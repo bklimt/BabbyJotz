@@ -4,9 +4,9 @@ using Xamarin.Forms;
 
 namespace BabbyJotz {
 	public class App {
-		public static Page GetMainPage(ICloudStore cloudStore) {
-			RootViewModel model = new RootViewModel(cloudStore);
-			var page = new ItemListPage(model);
+		public static Page GetMainPage(IDataStore dataStore) {
+			RootViewModel model = new RootViewModel(dataStore);
+			var page = new MainPage(model);
 			return page;
 		}
 	}

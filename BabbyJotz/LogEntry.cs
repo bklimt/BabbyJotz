@@ -3,6 +3,46 @@ using Xamarin.Forms;
 
 namespace BabbyJotz {
 	public class LogEntry : BindableObject {
+		private bool updatingDateTime = false;
+
+		private static void UpdateDateTime(BindableObject obj) {
+			var entry = obj as LogEntry;
+			if (entry.updatingDateTime) {
+				return;
+			}
+			entry.updatingDateTime = true;
+			entry.DateTime = entry.Date + entry.Time;
+			entry.updatingDateTime = false;
+			UpdateDescription(obj);
+		}
+
+		private static void UpdateDateAndTime(BindableObject obj) {
+			var entry = obj as LogEntry;
+			if (entry.updatingDateTime) {
+				return;
+			}
+			entry.updatingDateTime = true;
+			entry.Date = entry.DateTime - entry.DateTime.TimeOfDay;
+			entry.Time = entry.DateTime.TimeOfDay;
+			entry.updatingDateTime = false;
+			UpdateDescription(obj);
+		}
+
+		private static void UpdateDescription(BindableObject obj) {
+			var entry = obj as LogEntry;
+			entry.Description =
+				entry.DateTime.ToString("hh:mm tt") + " - " +
+				(entry.IsAsleep ? "\ud83d\udca4 " : "") +
+				(entry.IsPoop ? "\ud83d\udca9 " : "") +
+				(entry.FormulaEaten > 0 ? ("\ud83c\udf7c " + entry.FormulaEaten + "oz ") : "") +
+				entry.Text;
+		}
+
+		// Properties
+
+		public string Uuid { get; private set; }
+		public string ObjectId { get; set; }
+
 		public static readonly BindableProperty TextProperty =
 			BindableProperty.Create<LogEntry, string>(p => p.Text, "",
 				BindingMode.Default, null, (p, _1, _2) => UpdateDescription(p), null, null);
@@ -76,42 +116,14 @@ namespace BabbyJotz {
 			private set { SetValue(DescriptionProperty, value); }
 		}
 
-		private bool updatingDateTime = false;
-
 		public LogEntry() {
+			DateTime = DateTime.Now;
+			Uuid = Guid.NewGuid().ToString("D");
 		}
 
-		private static void UpdateDateTime(BindableObject obj) {
-			var entry = obj as LogEntry;
-			if (entry.updatingDateTime) {
-				return;
-			}
-			entry.updatingDateTime = true;
-			entry.DateTime = entry.Date + entry.Time;
-			entry.updatingDateTime = false;
-			UpdateDescription(obj);
-		}
-
-		private static void UpdateDateAndTime(BindableObject obj) {
-			var entry = obj as LogEntry;
-			if (entry.updatingDateTime) {
-				return;
-			}
-			entry.updatingDateTime = true;
-			entry.Date = entry.DateTime - entry.DateTime.TimeOfDay;
-			entry.Time = entry.DateTime.TimeOfDay;
-			entry.updatingDateTime = false;
-			UpdateDescription(obj);
-		}
-
-		private static void UpdateDescription(BindableObject obj) {
-			var entry = obj as LogEntry;
-			entry.Description =
-				entry.DateTime.ToString("hh:mm tt") + " - " +
-				(entry.IsAsleep ? "\ud83d\udca4 " : "") +
-				(entry.IsPoop ? "\ud83d\udca9 " : "") +
-				(entry.FormulaEaten > 0 ? ("\ud83c\udf7c " + entry.FormulaEaten + "oz ") : "") +
-				entry.Text;
+		public LogEntry(string uuid) {
+			DateTime = DateTime.Now;
+			Uuid = uuid;
 		}
 	}
 }

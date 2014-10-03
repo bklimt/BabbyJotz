@@ -18,10 +18,11 @@ namespace BabbyJotz.iOS {
 				"dRJrkKFywmUEYJx10K96Sw848juYyFF01Zlno6Uf",
 				"0ICNGpRDtEswmZw8E3nfS08W8RNWbFLExIIw2IvS");
 			var cloudStore = new CloudStore();
+			var localStore = new LocalStore(cloudStore);
 
 			window = new UIWindow(UIScreen.MainScreen.Bounds);
 
-			window.RootViewController = App.GetMainPage(cloudStore).CreateViewController();
+			window.RootViewController = App.GetMainPage(localStore).CreateViewController();
 			window.MakeKeyAndVisible();
 			
 			return true;

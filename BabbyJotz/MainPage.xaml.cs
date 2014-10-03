@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Xamarin.Forms;
 
 namespace BabbyJotz {
-	public partial class ItemListPage : ContentPage {
+	public partial class MainPage : TabbedPage {
 		private RootViewModel rootViewModel;
 
-		public ItemListPage(RootViewModel model) {
+		public MainPage(RootViewModel model) {
 			rootViewModel = model;
 			this.BindingContext = rootViewModel;
-
 			InitializeComponent();
 		}
 
@@ -18,6 +16,14 @@ namespace BabbyJotz {
 			var entry = rootViewModel.NewEntry;
 			rootViewModel.AddNewEntry();
 			listView.SelectedItem = entry;
+		}
+
+		public void OnPreviousDayClicked(object sender, EventArgs args) {
+			rootViewModel.NewEntry.Date -= TimeSpan.FromDays(1);
+		}
+
+		public void OnNextDayClicked(object sender, EventArgs args) {
+			rootViewModel.NewEntry.Date += TimeSpan.FromDays(1);
 		}
 	}
 }

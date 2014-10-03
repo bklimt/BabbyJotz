@@ -19,7 +19,8 @@ namespace BabbyJotz.iOS {
 			NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.DidShowNotification, (notification) => {
 				var rectValue = (NSValue)notification.UserInfo[UIKeyboard.FrameBeginUserInfoKey];
 				var rect = rectValue.CGRectValue;
-				Element.HeightRequest = rect.Height;
+				// The 60 is the height of the tabs at the bottom.
+				Element.HeightRequest = rect.Height - 55;
 				// ResizeAsync(rect.Height, 30, 5);
 			});
 			NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillHideNotification, (notification) => {

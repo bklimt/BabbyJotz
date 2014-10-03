@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<TabbedPage
+	xmlns ="http://xamarin.com/schemas/2014/forms"
+	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	xmlns:local="clr-namespace:BabbyJotz;assembly=BabbyJotz"
+	x:Class="BabbyJotz.MainPage">
+	<TabbedPage.Children>
+		<ContentPage
+			xmlns="http://xamarin.com/schemas/2014/forms"
+			xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			xmlns:local="clr-namespace:BabbyJotz;assembly=BabbyJotz"
+			x:Class="BabbyJotz.ItemListPage"
+			Title="Log"
+			Icon="collections_view_as_list">
+			<StackLayout BackgroundColor="#ccffff">
+				<StackLayout.Padding>
+					<Thickness Top="20" Bottom="8" Left="0" Right="0" />
+				</StackLayout.Padding>
+				<local:ScrollingListView x:Name="listView" ItemsSource="{Binding Entries}">
+					<ListView.ItemTemplate>
+						<DataTemplate>
+							<TextCell Text="{Binding Description}" />
+						</DataTemplate>
+					</ListView.ItemTemplate>
+				</local:ScrollingListView>
+				<!-- <Label Text="{Binding NewEntry.Description}" /> -->
+				<StackLayout Orientation="Horizontal" Spacing="8">
+					<StackLayout.Padding>
+						<Thickness Top="8" Left="8" Right="8" />
+					</StackLayout.Padding>
+					<StackLayout Orientation="Horizontal" Spacing="0">
+						<Button Text="◀" Clicked="OnPreviousDayClicked" />
+						<DatePicker Date="{Binding NewEntry.Date}" HorizontalOptions="FillAndExpand" />
+						<Button Text="▶" Clicked="OnNextDayClicked" />
+					</StackLayout>
+					<TimePicker Time="{Binding NewEntry.Time}" HorizontalOptions="FillAndExpand" />
+				</StackLayout>
+				<StackLayout Orientation="Horizontal" Spacing="8">
+					<StackLayout.Padding>
+						<Thickness Top="8" Left="8" Right="8" />
+					</StackLayout.Padding>
+					<Switch IsToggled="{Binding NewEntry.IsAsleep}" />
+					<Label Text="💤" HorizontalOptions="FillAndExpand" VerticalOptions="Center" />
+					<Switch IsToggled="{Binding NewEntry.IsPoop}" />
+					<Label Text="💩" HorizontalOptions="FillAndExpand" VerticalOptions="Center" />
+					<Label Text="🍼" VerticalOptions="Center" />
+					<Entry Text="{Binding NewEntry.FormulaEaten}" Keyboard="Numeric" HorizontalOptions="FillAndExpand" />
+					<Label Text="oz" VerticalOptions="Center" />
+				</StackLayout>
+				<StackLayout Orientation="Horizontal" Spacing="8">
+					<StackLayout.Padding>
+						<Thickness Top="8" Left="8" Right="8" />
+					</StackLayout.Padding>
+					<Entry Text="{Binding NewEntry.Text}" HorizontalOptions="FillAndExpand" />
+					<Button Text="OK" Clicked="OnOkClicked" />
+				</StackLayout>
+				<local:KeyboardPlaceholderView Color="White" HeightRequest="0" />
+			</StackLayout>
+		</ContentPage>
+		<ContentPage
+			xmlns="http://xamarin.com/schemas/2014/forms"
+			xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			x:Class="BabbyJotz.SettingsPage"
+			Title="Settings"
+			Icon="action_settings">
+			<StackLayout BackgroundColor="#ccffff">
+				<StackLayout.Padding>
+					<Thickness Top="20" Bottom="8" Left="0" Right="0" />
+				</StackLayout.Padding>
+				<Label Text="Hello" />
+			</StackLayout>
+		</ContentPage>
+	</TabbedPage.Children>
+</TabbedPage>
