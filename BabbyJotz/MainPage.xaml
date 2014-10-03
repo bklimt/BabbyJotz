@@ -25,13 +25,13 @@
 				<StackLayout.Padding>
 					<Thickness Top="0" Bottom="8" Left="0" Right="0" />
 				</StackLayout.Padding>
-				<local:ScrollingListView x:Name="listView" ItemsSource="{Binding Entries}">
+				<ListView x:Name="listView" ItemsSource="{Binding Entries}">
 					<ListView.ItemTemplate>
 						<DataTemplate>
 							<TextCell Text="{Binding Description}" />
 						</DataTemplate>
 					</ListView.ItemTemplate>
-				</local:ScrollingListView>
+				</ListView>
 				<!-- <Label Text="{Binding NewEntry.Description}" /> -->
 				<StackLayout Orientation="Horizontal" Spacing="8">
 					<StackLayout.Padding>

@@ -16,8 +16,8 @@ namespace BabbyJotz {
 			try {
 				await rootViewModel.LogInAsync(username.Text, password.Text);
 				await Navigation.PopAsync();
-			} catch (Exception e) {
-				DisplayAlert("Error", "Unable to log in.", "OK");
+			} catch (Exception) {
+				await DisplayAlert("Error", "Unable to log in.", "OK");
 			}
 		}
 
@@ -25,8 +25,8 @@ namespace BabbyJotz {
 			try {
 				await rootViewModel.SignUpAsync(username.Text, password.Text);
 				await Navigation.PopAsync();
-			} catch (Exception e) {
-				DisplayAlert("Error", "Unable to sign up.", "OK");
+			} catch (Exception) {
+				await DisplayAlert("Error", "Unable to sign up.", "OK");
 			}
 		}
 	}
