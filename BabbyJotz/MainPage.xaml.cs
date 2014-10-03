@@ -31,7 +31,14 @@ namespace BabbyJotz {
 		}
 
 		public void OnLogInClicked(object sender, EventArgs args) {
-			Navigation.PushAsync(new LogInPage());
+			Navigation.PushAsync(new LogInPage(rootViewModel));
+		}
+
+		public async void OnLogOutClicked(object sender, EventArgs args) {
+			var ok = await DisplayAlert("Are you sure?", "Future syncing may fail.", "OK", "Cancel");
+			if (ok) {
+				rootViewModel.LogOut();
+			}
 		}
 	}
 }

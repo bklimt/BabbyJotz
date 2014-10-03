@@ -28,6 +28,10 @@ namespace BabbyJotz.iOS {
 
 		// Returns the ObjectId of the object.
 		public async Task SaveAsync(LogEntry entry) {
+			if (ParseUser.CurrentUser == null) {
+				throw new InvalidOperationException("Tried to sync without logging in.");
+			}
+
 			var obj = entry.ObjectId != null
 				? ParseObject.CreateWithoutData("LogEntry", entry.ObjectId)
 				: ParseObject.Create("LogEntry");
@@ -37,6 +41,7 @@ namespace BabbyJotz.iOS {
 			obj["poop"] = entry.IsPoop;
 			obj["asleep"] = entry.IsAsleep;
 			obj["formula"] = (double)entry.FormulaEaten;
+			obj.ACL = new ParseACL(ParseUser.CurrentUser);
 			await obj.SaveAsync();
 			entry.ObjectId = obj.ObjectId;
 		}

@@ -10,12 +10,12 @@
 				<Thickness Top="20" Bottom="20" Left="20" Right="20" />
 			</StackLayout.Padding>
 			<Label Text="Username:" />
-			<Entry HorizontalOptions="FillAndExpand" />
+			<Entry x:Name="username" HorizontalOptions="FillAndExpand" />
 			<Label Text="Password:" />
-			<Entry IsPassword="true" HorizontalOptions="FillAndExpand" />
+			<Entry x:Name="password" IsPassword="true" HorizontalOptions="FillAndExpand" />
 			<StackLayout Orientation="Horizontal">
-				<Button Text="Sign Up" HorizontalOptions="FillAndExpand" />
-				<Button Text="Log In" HorizontalOptions="FillAndExpand" />
+				<Button Text="Sign Up" Clicked="OnSignUpClicked" HorizontalOptions="FillAndExpand" />
+				<Button Text="Log In" Clicked="OnLogInClicked" HorizontalOptions="FillAndExpand" />
 			</StackLayout>
 		</StackLayout>
 	</ContentPage.Content>

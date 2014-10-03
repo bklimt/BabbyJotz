@@ -37,6 +37,8 @@ namespace BabbyJotz {
 			DataStore = dataStore;
 			Entries = new ObservableCollection<LogEntry>();
 
+			CloudUserName = DataStore.CloudUserName;
+
 			PropertyChanged += (sender, e) => {
 				if (e.PropertyName == "NewEntry") {
 					this.NewEntry.PropertyChanged += (sender2, e2) => {
@@ -57,6 +59,9 @@ namespace BabbyJotz {
 		public async Task SyncAsync() {
 			await syncQueue.EnqueueAsync(async toAwait => {
 				await toAwait;
+				if (CloudUserName == null) {
+					return false;
+				}
 				Syncing = true;
 				await DataStore.SyncToCloudAsync();
 				Syncing = false;
@@ -119,6 +124,29 @@ namespace BabbyJotz {
 			NewEntry = new LogEntry();
 			await DataStore.SaveAsync(entry);
 			await SyncAsync();
+		}
+
+		public async Task LogInAsync(string username, string password) {
+			CloudUserName = null;
+			try {
+				await DataStore.LogInAsync(username, password);
+			} finally {
+				CloudUserName = DataStore.CloudUserName;
+			}
+		}
+
+		public async Task SignUpAsync(string username, string password) {
+			CloudUserName = null;
+			try {
+				await DataStore.SignUpAsync(username, password);
+			} finally {
+				CloudUserName = DataStore.CloudUserName;
+			}
+		}
+
+		public void LogOut() {
+			CloudUserName = null;
+			DataStore.LogOut();
 		}
 	}
 }

@@ -59,12 +59,6 @@ namespace BabbyJotz.iOS {
 			});
 		}
 
-		public string CloudUserName {
-			get {
-				return cloudStore.UserName;
-			}
-		}
-
 		public async Task SaveAsync(LogEntry entry) {
 			await EnqueueAsync(async () => {
 				var connection = new SqliteConnection("Data Source=" + path);
@@ -137,6 +131,29 @@ namespace BabbyJotz.iOS {
 				connection.Close();
 				return results;
 			});
+		}
+
+		public string CloudUserName {
+			get {
+				return cloudStore.UserName;
+			}
+		}
+
+		public async Task LogInAsync(string username, string password) {
+			ParseUser.LogOut();
+			await ParseUser.LogInAsync(username, password);
+		}
+
+		public async Task SignUpAsync(string username, string password) {
+			ParseUser.LogOut();
+			var user = new ParseUser();
+			user.Username = username;
+			user.Password = password;
+			await user.SignUpAsync();
+		}
+
+		public void LogOut() {
+			ParseUser.LogOut();
 		}
 
 		public async Task UpdateFromCloudAsync(SqliteConnection conn, LogEntry entry) {

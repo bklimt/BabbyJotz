@@ -79,7 +79,7 @@
 					<Thickness Top="8" Bottom="8" Left="8" Right="8" />
 				</StackLayout.Padding>
 				<Label
-					Text="Logged in as username"
+					Text="{Binding CloudUserName, StringFormat='Logged in as {0}'}"
 					IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
 					HorizontalOptions="Center" />
 				<Button
@@ -90,6 +90,7 @@
 					HorizontalOptions="FillAndExpand" />
 				<Button
 					Text="Log out of Cloud Sync"
+					Clicked="OnLogOutClicked"
 					IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
 					HorizontalOptions="FillAndExpand" />
 				<Button
