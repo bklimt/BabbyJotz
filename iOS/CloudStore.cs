@@ -20,9 +20,9 @@ namespace BabbyJotz.iOS {
 		public CloudStore() {
 		}
 
-		public bool IsLoggedIn {
+		public string UserName {
 			get {
-				return ParseUser.CurrentUser != null;
+				return ParseUser.CurrentUser != null ? ParseUser.CurrentUser.Username : null;
 			}
 		}
 

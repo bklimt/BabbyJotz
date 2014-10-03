@@ -14,7 +14,7 @@ namespace BabbyJotz.iOS {
 		private CloudStore cloudStore;
 
 		private Task<T> EnqueueAsync<T>(Func<Task<T>> func) {
-			return queue.Enqueue(async toAwait => {
+			return queue.EnqueueAsync(async toAwait => {
 				await toAwait;
 				return await func();
 			});
@@ -59,9 +59,9 @@ namespace BabbyJotz.iOS {
 			});
 		}
 
-		public bool IsLoggedIn {
+		public string CloudUserName {
 			get {
-				return cloudStore.IsLoggedIn;
+				return cloudStore.UserName;
 			}
 		}
 

@@ -3,7 +3,15 @@
 	xmlns ="http://xamarin.com/schemas/2014/forms"
 	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 	xmlns:local="clr-namespace:BabbyJotz;assembly=BabbyJotz"
-	x:Class="BabbyJotz.MainPage">
+	x:Class="BabbyJotz.MainPage"
+	Title="Babby Jotz">
+	<TabbedPage.Resources>
+		<ResourceDictionary>
+ 			<local:NotConverter x:Key="notConverter" />
+ 			<local:NullConverter x:Key="nullConverter" />
+ 			<local:NotNullConverter x:Key="notNullConverter" />
+ 		</ResourceDictionary>
+	</TabbedPage.Resources>
 	<TabbedPage.Children>
 		<ContentPage
 			xmlns="http://xamarin.com/schemas/2014/forms"
@@ -11,10 +19,11 @@
 			xmlns:local="clr-namespace:BabbyJotz;assembly=BabbyJotz"
 			x:Class="BabbyJotz.ItemListPage"
 			Title="Log"
-			Icon="collections_view_as_list">
+			Icon="collections_view_as_list"
+			IsBusy="{Binding Syncing}">
 			<StackLayout BackgroundColor="#ccffff">
 				<StackLayout.Padding>
-					<Thickness Top="20" Bottom="8" Left="0" Right="0" />
+					<Thickness Top="0" Bottom="8" Left="0" Right="0" />
 				</StackLayout.Padding>
 				<local:ScrollingListView x:Name="listView" ItemsSource="{Binding Entries}">
 					<ListView.ItemTemplate>
@@ -62,12 +71,32 @@
 			xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 			x:Class="BabbyJotz.SettingsPage"
 			Title="Settings"
-			Icon="action_settings">
-			<StackLayout BackgroundColor="#ccffff">
+			Icon="action_settings"
+			BackgroundColor="#ccffff"
+			IsBusy="{Binding Syncing}">
+			<StackLayout VerticalOptions="Center">
 				<StackLayout.Padding>
-					<Thickness Top="20" Bottom="8" Left="0" Right="0" />
+					<Thickness Top="8" Bottom="8" Left="8" Right="8" />
 				</StackLayout.Padding>
-				<Label Text="Hello" />
+				<Label
+					Text="Logged in as username"
+					IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
+					HorizontalOptions="Center" />
+				<Button
+					Text="Sync Now"
+					Clicked="OnSyncClicked"
+					IsEnabled="{Binding Syncing, Converter={StaticResource notConverter}}"
+					IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
+					HorizontalOptions="FillAndExpand" />
+				<Button
+					Text="Log out of Cloud Sync"
+					IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
+					HorizontalOptions="FillAndExpand" />
+				<Button
+					Text="Log in to Cloud Sync"
+					Clicked="OnLogInClicked"
+					IsVisible="{Binding CloudUserName, Converter={StaticResource nullConverter}}"
+					HorizontalOptions="FillAndExpand" />
 			</StackLayout>
 		</ContentPage>
 	</TabbedPage.Children>

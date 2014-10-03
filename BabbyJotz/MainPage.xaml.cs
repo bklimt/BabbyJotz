@@ -25,5 +25,13 @@ namespace BabbyJotz {
 		public void OnNextDayClicked(object sender, EventArgs args) {
 			rootViewModel.NewEntry.Date += TimeSpan.FromDays(1);
 		}
+
+		public void OnSyncClicked(object sender, EventArgs args) {
+			rootViewModel.SyncEventually();
+		}
+
+		public void OnLogInClicked(object sender, EventArgs args) {
+			Navigation.PushAsync(new LogInPage());
+		}
 	}
 }

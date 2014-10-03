@@ -10,7 +10,7 @@ namespace BabbyJotz {
 			tail = Task.FromResult(0);
 		}
 
-		public Task<T> Enqueue<T>(Func<Task<int>, Task<T>> func) {
+		public Task<T> EnqueueAsync<T>(Func<Task<int>, Task<T>> func) {
 			lock (mutex) {
 				var thisTask = func(tail);
 				var tailAndThisTask = tail.ContinueWith(_ => thisTask).Unwrap();

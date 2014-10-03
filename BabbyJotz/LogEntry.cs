@@ -99,6 +99,7 @@ namespace BabbyJotz {
 
 		// Derived properties
 
+		// TODO: Get rid of DateTime and just have Date and Time.
 		public static readonly BindableProperty DateTimeProperty =
 			BindableProperty.Create<LogEntry, DateTime>(p => p.DateTime, DateTime.Now,
 				BindingMode.Default, null, (p, _1, _2) => UpdateDateAndTime(p), null, null);
@@ -108,6 +109,7 @@ namespace BabbyJotz {
 			set { SetValue(DateTimeProperty, value); }
 		}
 
+		// TODO: Replace this with a LogEntry -> String value converter.
 		public static readonly BindableProperty DescriptionProperty =
 			BindableProperty.Create<LogEntry, string>(p => p.Description, "");
 

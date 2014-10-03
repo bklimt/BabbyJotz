@@ -7,16 +7,30 @@ using Xamarin.Forms;
 
 namespace BabbyJotz {
 	public class RootViewModel : BindableObject {
-		public IDataStore DataStore { get; private set; }
+		private IDataStore DataStore { get; set; }
+		private TaskQueue syncQueue = new TaskQueue();
 
 		public ObservableCollection<LogEntry> Entries { get; private set; }
 
 		public static readonly BindableProperty NewEntryProperty =
 			BindableProperty.Create<RootViewModel, LogEntry>(p => p.NewEntry, default(LogEntry));
-
 		public LogEntry NewEntry {
 			get { return (LogEntry)base.GetValue(NewEntryProperty); }
 			set { SetValue(NewEntryProperty, value); }
+		}
+
+		public static readonly BindableProperty SyncingProperty =
+			BindableProperty.Create<RootViewModel, bool>(p => p.Syncing, false);
+		public bool Syncing {
+			get { return (bool)base.GetValue(SyncingProperty); }
+			set { SetValue(SyncingProperty, value); }
+		}
+
+		public static readonly BindableProperty CloudUserNameProperty =
+			BindableProperty.Create<RootViewModel, string>(p => p.CloudUserName, null);
+		public string CloudUserName {
+			get { return (string)base.GetValue(CloudUserNameProperty); }
+			set { SetValue(CloudUserNameProperty, value); }
 		}
 
 		public RootViewModel(IDataStore dataStore) {
@@ -37,7 +51,21 @@ namespace BabbyJotz {
 
 			NewEntry = new LogEntry();
 
-			DataStore.SyncToCloudAsync();
+			SyncEventually();
+		}
+
+		public async Task SyncAsync() {
+			await syncQueue.EnqueueAsync(async toAwait => {
+				await toAwait;
+				Syncing = true;
+				await DataStore.SyncToCloudAsync();
+				Syncing = false;
+				return true;
+			});
+		}
+
+		public async void SyncEventually() {
+			await SyncAsync();
 		}
 
 		private void UpdateEntries(IEnumerable<LogEntry> updatedEntries) {
@@ -90,7 +118,7 @@ namespace BabbyJotz {
 			var entry = NewEntry;
 			NewEntry = new LogEntry();
 			await DataStore.SaveAsync(entry);
-			await DataStore.SyncToCloudAsync();
+			await SyncAsync();
 		}
 	}
 }
