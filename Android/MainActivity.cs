@@ -12,9 +12,11 @@ using Parse;
 
 using Xamarin.Forms.Platform.Android;
 
-
 namespace BabbyJotz.Android {
-	[Activity(Label = "BabbyJotz.Android.Android", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
+	[Activity(Label = "Babby Jotz",
+		MainLauncher = true,
+		Theme = "@style/BabbyTheme",
+		ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
 	public class MainActivity : AndroidActivity {
 		protected override void OnCreate(Bundle bundle) {
 			base.OnCreate(bundle);
