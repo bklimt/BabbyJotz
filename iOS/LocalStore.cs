@@ -21,12 +21,15 @@ namespace BabbyJotz.iOS {
 		}
 			
 		private LogEntry CreateEntryFromDataRecord(IDataRecord rec) {
+			var deleted = (rec["Deleted"] is DBNull) ? (DateTime?)null : DateTime.Parse((string)rec["Deleted"]);
+
 			return new LogEntry((string)rec["Uuid"]) {
 				DateTime = DateTime.Parse((string)rec["Time"]),
 				Text = (string)rec["Text"],
 				IsPoop = (bool)rec["Poop"],
 				IsAsleep = (bool)rec["Asleep"],
 				FormulaEaten = (decimal)((double)rec["Formula"]),
+				Deleted = deleted,
 				ObjectId = rec["ObjectId"] as string
 			};
 		}
@@ -38,7 +41,7 @@ namespace BabbyJotz.iOS {
 
 			path = Path.Combine(
 				Environment.GetFolderPath(Environment.SpecialFolder.Personal),
-				"database2.db3");
+				"database4.db3");
 
 			EnqueueAsync(async () => {
 				if (!File.Exists(path)) {
@@ -50,7 +53,7 @@ namespace BabbyJotz.iOS {
 						command.CommandText = "CREATE TABLE [LogEntry] (" +
 							"[Uuid] varchar(255) PRIMARY KEY, [Time] string, [Text] varchar(255), " +
 							"[Asleep] bool, [Poop] bool, [Formula] double, " +
-							"[ObjectId] varchar(255), [Synced] bool);";
+							"[ObjectId] varchar(255), [Deleted] varchar(255), [Synced] bool);";
 						await command.ExecuteNonQueryAsync();
 					}
 					connection.Close();
@@ -64,13 +67,17 @@ namespace BabbyJotz.iOS {
 				var connection = new SqliteConnection("Data Source=" + path);
 				await connection.OpenAsync();
 
+				var deleted = (entry.Deleted.HasValue ? entry.Deleted.Value.ToString("O") : null);
+
 				var parameters = new SqliteParameter[] {
 					new SqliteParameter("Uuid", entry.Uuid),
 					new SqliteParameter("Time", entry.DateTime.ToString("O")),
+					new SqliteParameter("Deleted", deleted),
 					new SqliteParameter("Text", entry.Text),
 					new SqliteParameter("Asleep", entry.IsAsleep),
 					new SqliteParameter("Poop", entry.IsPoop),
 					new SqliteParameter("Formula", entry.FormulaEaten),
+					new SqliteParameter("Deleted", deleted),
 					new SqliteParameter("Synced", false)
 				};
 				int rowsChanged = 0;
@@ -78,15 +85,16 @@ namespace BabbyJotz.iOS {
 				using (var command = connection.CreateCommand()) {
 					command.CommandText = "UPDATE LogEntry SET " +
 						"Time=:Time, Text=:Text, Asleep=:Asleep, Poop=:Poop, Formula=:Formula, " +
-						"Synced=:Synced WHERE Uuid=:Uuid";
+						"Deleted=:Deleted, Synced=:Synced WHERE Uuid=:Uuid";
 					command.Parameters.AddRange(parameters);
 					rowsChanged = await command.ExecuteNonQueryAsync();
 				}
 
 				if (rowsChanged < 1) {
 					using (var command = connection.CreateCommand()) {
-						command.CommandText = "INSERT INTO LogEntry(Uuid, Time, Text, Asleep, Poop, Formula, Synced) " +
-							"VALUES (:Uuid, :Time, :Text, :Asleep, :Poop, :Formula, :Synced);";
+						command.CommandText =
+							"INSERT INTO LogEntry(Uuid, Time, Text, Asleep, Poop, Formula, Deleted, Synced) " +
+							"VALUES (:Uuid, :Time, :Text, :Asleep, :Poop, :Formula, :Deleted, :Synced);";
 						command.Parameters.AddRange(parameters);
 						rowsChanged = await command.ExecuteNonQueryAsync();
 					}
@@ -100,6 +108,11 @@ namespace BabbyJotz.iOS {
 			if (Changed != null) {
 				Changed(this, EventArgs.Empty);
 			}
+		}
+
+		public async Task DeleteAsync(LogEntry entry) {
+			entry.Deleted = DateTime.Now;
+			await SaveAsync(entry);
 		}
 
 		public async Task<IEnumerable<LogEntry>> FetchAsync(DateTime day) {
@@ -119,7 +132,7 @@ namespace BabbyJotz.iOS {
 
 				using (var command = connection.CreateCommand()) {
 					command.CommandText =
-						"SELECT * FROM LogEntry WHERE Time>=:Date AND Time<=:NextDate ORDER BY Time";
+						"SELECT * FROM LogEntry WHERE Time>=:Date AND Time<=:NextDate AND Deleted IS NULL ORDER BY Time";
 					command.Parameters.AddRange(parameters);
 					var reader = await command.ExecuteReaderAsync();
 
@@ -149,6 +162,7 @@ namespace BabbyJotz.iOS {
 			var user = new ParseUser();
 			user.Username = username;
 			user.Password = password;
+			user.ACL = new ParseACL();
 			await user.SignUpAsync();
 		}
 
@@ -157,6 +171,8 @@ namespace BabbyJotz.iOS {
 		}
 
 		public async Task UpdateFromCloudAsync(SqliteConnection conn, LogEntry entry) {
+			var deleted = entry.Deleted.HasValue ? entry.Deleted.Value.ToString("O") : null;
+
 			var parameters = new SqliteParameter[] {
 				new SqliteParameter("Uuid", entry.Uuid),
 				new SqliteParameter("ObjectId", entry.ObjectId),
@@ -165,6 +181,7 @@ namespace BabbyJotz.iOS {
 				new SqliteParameter("Asleep", entry.IsAsleep),
 				new SqliteParameter("Poop", entry.IsPoop),
 				new SqliteParameter("Formula", entry.FormulaEaten),
+				new SqliteParameter("Deleted", deleted),
 				new SqliteParameter("Synced", true)
 			};
 			int rowsChanged = 0;
@@ -172,7 +189,7 @@ namespace BabbyJotz.iOS {
 			using (var command = conn.CreateCommand()) {
 				command.CommandText = "UPDATE LogEntry SET " +
 					"ObjectId=:ObjectId, Time=:Time, Text=:Text, Asleep=:Asleep, Poop=:Poop, Formula=:Formula, " +
-					"Synced=:Synced WHERE Uuid=:Uuid";
+					"Deleted=:Deleted, Synced=:Synced WHERE Uuid=:Uuid";
 				command.Parameters.AddRange(parameters);
 				rowsChanged = await command.ExecuteNonQueryAsync();
 			}
@@ -180,8 +197,8 @@ namespace BabbyJotz.iOS {
 			if (rowsChanged < 1) {
 				using (var command = conn.CreateCommand()) {
 					command.CommandText = "INSERT INTO LogEntry " +
-						"(Uuid, ObjectId, Time, Text, Asleep, Poop, Formula, Synced) " +
-						"VALUES (:Uuid, :ObjectId, :Time, :Text, :Asleep, :Poop, :Formula, :Synced);";
+						"(Uuid, ObjectId, Time, Text, Asleep, Poop, Formula, Deleted, Synced) " +
+						"VALUES (:Uuid, :ObjectId, :Time, :Text, :Asleep, :Poop, :Formula, :Deleted, :Synced);";
 					command.Parameters.AddRange(parameters);
 					rowsChanged = await command.ExecuteNonQueryAsync();
 				}

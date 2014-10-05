@@ -12,7 +12,7 @@
  			<local:NotNullConverter x:Key="notNullConverter" />
  		</ResourceDictionary>
 	</TabbedPage.Resources>
-	<TabbedPage.Children>
+  	<TabbedPage.Children>
 		<ContentPage
 			xmlns="http://xamarin.com/schemas/2014/forms"
 			xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -21,49 +21,40 @@
 			Title="Log"
 			Icon="collections_view_as_list"
 			IsBusy="{Binding Syncing}">
-			<StackLayout BackgroundColor="#ccffff">
+			<StackLayout Spacing="8">
+				<StackLayout.BackgroundColor>
+					<OnPlatform x:TypeArguments="Color" iOS="#ccffff" Android="#efffff" />
+				</StackLayout.BackgroundColor>
 				<StackLayout.Padding>
-					<Thickness Top="0" Bottom="8" Left="0" Right="0" />
+					<Thickness Top="8" Bottom="0" Left="0" Right="0" />
 				</StackLayout.Padding>
-				<ListView x:Name="listView" ItemsSource="{Binding Entries}">
+				<StackLayout Orientation="Horizontal" Spacing="0">
+					<StackLayout.Padding>
+						<Thickness Left="8" Right="8" />
+					</StackLayout.Padding>
+					<Button Text="◀" Clicked="OnPreviousDayClicked" />
+					<DatePicker Date="{Binding Date}" HorizontalOptions="FillAndExpand" />
+					<Button Text="▶" Clicked="OnNextDayClicked" />
+				</StackLayout>
+				<ListView ItemsSource="{Binding Entries}" ItemTapped="OnEntryTapped" BackgroundColor="White">
 					<ListView.ItemTemplate>
 						<DataTemplate>
-							<TextCell TextColor="Black" Text="{Binding Description}" />
+							<!--<TextCell TextColor="Black" Text="{Binding Description}" />-->
+							<ViewCell>
+								<StackLayout>
+									<StackLayout.Padding>
+										<Thickness Top="0" Bottom="0" Left="16" Right="8" />
+									</StackLayout.Padding>
+									<Label
+										Text="{Binding Description}"
+										TextColor="Black"
+										LineBreakMode="TailTruncation"
+										VerticalOptions="CenterAndExpand" />
+								</StackLayout>
+							</ViewCell>
 						</DataTemplate>
 					</ListView.ItemTemplate>
 				</ListView>
-				<!-- <Label Text="{Binding NewEntry.Description}" /> -->
-				<StackLayout Orientation="Horizontal" Spacing="8">
-					<StackLayout.Padding>
-						<Thickness Top="8" Left="8" Right="8" />
-					</StackLayout.Padding>
-					<StackLayout Orientation="Horizontal" Spacing="0">
-						<Button Text="◀" Clicked="OnPreviousDayClicked" />
-						<DatePicker Date="{Binding NewEntry.Date}" HorizontalOptions="FillAndExpand" />
-						<Button Text="▶" Clicked="OnNextDayClicked" />
-					</StackLayout>
-					<TimePicker Time="{Binding NewEntry.Time}" HorizontalOptions="FillAndExpand" />
-				</StackLayout>
-				<StackLayout Orientation="Horizontal" Spacing="8">
-					<StackLayout.Padding>
-						<Thickness Top="8" Left="8" Right="8" />
-					</StackLayout.Padding>
-					<Switch IsToggled="{Binding NewEntry.IsAsleep}" />
-					<Label Text="💤" HorizontalOptions="FillAndExpand" VerticalOptions="Center" />
-					<Switch IsToggled="{Binding NewEntry.IsPoop}" />
-					<Label Text="💩" HorizontalOptions="FillAndExpand" VerticalOptions="Center" />
-					<Label Text="🍼" VerticalOptions="Center" />
-					<Entry Text="{Binding NewEntry.FormulaEaten}" Keyboard="Numeric" HorizontalOptions="FillAndExpand" />
-					<Label Text="oz" VerticalOptions="Center" />
-				</StackLayout>
-				<StackLayout Orientation="Horizontal" Spacing="8">
-					<StackLayout.Padding>
-						<Thickness Top="8" Left="8" Right="8" />
-					</StackLayout.Padding>
-					<Entry Text="{Binding NewEntry.Text}" HorizontalOptions="FillAndExpand" />
-					<Button Text="OK" Clicked="OnOkClicked" />
-				</StackLayout>
-				<local:KeyboardPlaceholderView Color="White" HeightRequest="0" />
 			</StackLayout>
 		</ContentPage>
 		<ContentPage
@@ -72,8 +63,10 @@
 			x:Class="BabbyJotz.SettingsPage"
 			Title="Settings"
 			Icon="action_settings"
-			BackgroundColor="#ccffff"
 			IsBusy="{Binding Syncing}">
+			<ContentPage.BackgroundColor>
+				<OnPlatform x:TypeArguments="Color" iOS="#ccffff" Android="#efffff" />
+			</ContentPage.BackgroundColor>
 			<StackLayout VerticalOptions="Center">
 				<StackLayout.Padding>
 					<Thickness Top="8" Bottom="8" Left="8" Right="8" />

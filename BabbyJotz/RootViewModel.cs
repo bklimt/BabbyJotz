@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Xamarin.Forms;
 
 namespace BabbyJotz {
@@ -12,11 +13,11 @@ namespace BabbyJotz {
 
 		public ObservableCollection<LogEntry> Entries { get; private set; }
 
-		public static readonly BindableProperty NewEntryProperty =
-			BindableProperty.Create<RootViewModel, LogEntry>(p => p.NewEntry, default(LogEntry));
-		public LogEntry NewEntry {
-			get { return (LogEntry)base.GetValue(NewEntryProperty); }
-			set { SetValue(NewEntryProperty, value); }
+		public static readonly BindableProperty DateProperty =
+			BindableProperty.Create<RootViewModel, DateTime>(p => p.Date, default(DateTime));
+		public DateTime Date {
+			get { return (DateTime)base.GetValue(DateProperty); }
+			set { SetValue(DateProperty, value); }
 		}
 
 		public static readonly BindableProperty SyncingProperty =
@@ -36,22 +37,17 @@ namespace BabbyJotz {
 		public RootViewModel(IDataStore dataStore) {
 			DataStore = dataStore;
 			Entries = new ObservableCollection<LogEntry>();
-
 			CloudUserName = DataStore.CloudUserName;
 
 			PropertyChanged += (sender, e) => {
-				if (e.PropertyName == "NewEntry") {
-					this.NewEntry.PropertyChanged += (sender2, e2) => {
-						if (e2.PropertyName == "Date") {
-							RefreshEntriesAsync();
-						}
-					};
+				if (e.PropertyName == "Date") {
+					RefreshEntriesAsync();
 				}
 			};
 
 			DataStore.Changed += (sender, e) => RefreshEntriesAsync();
-
-			NewEntry = new LogEntry();
+			var now = DateTime.Now;
+			Date = now - now.TimeOfDay;
 
 			SyncEventually();
 		}
@@ -115,14 +111,17 @@ namespace BabbyJotz {
 		}
 
 		public async void RefreshEntriesAsync() {
-			var newEntries = await DataStore.FetchAsync(NewEntry.Date);
+			var newEntries = await DataStore.FetchAsync(Date);
 			UpdateEntries(newEntries);
 		}
 
-		public async void AddNewEntry() {
-			var entry = NewEntry;
-			NewEntry = new LogEntry();
+		public async Task SaveAsync(LogEntry entry) {
 			await DataStore.SaveAsync(entry);
+			await SyncAsync();
+		}
+
+		public async Task DeleteAsync(LogEntry entry) {
+			await DataStore.DeleteAsync(entry);
 			await SyncAsync();
 		}
 

@@ -45,7 +45,13 @@ namespace BabbyJotz.Android
 		{
 			
 			// aapt resource value: 0x7f020000
-			public const int Icon = 2130837504;
+			public const int content_new_event = 2130837504;
+			
+			// aapt resource value: 0x7f020001
+			public const int ic_launcher = 2130837505;
+			
+			// aapt resource value: 0x7f020002
+			public const int Icon = 2130837506;
 			
 			static Drawable()
 			{
@@ -112,7 +118,10 @@ namespace BabbyJotz.Android
 		{
 			
 			// aapt resource value: 0x7f050000
-			public const int BabbyTheme = 2131034112;
+			public const int BabbyTextView = 2131034112;
+			
+			// aapt resource value: 0x7f050001
+			public const int BabbyTheme = 2131034113;
 			
 			static Style()
 			{
@@ -120,6 +129,21 @@ namespace BabbyJotz.Android
 			}
 			
 			private Style()
+			{
+			}
+		}
+		
+		public partial class Styleable
+		{
+			
+			public static int[] BabbyTheme;
+			
+			static Styleable()
+			{
+				global::Android.Runtime.ResourceIdManager.UpdateIdValues();
+			}
+			
+			private Styleable()
 			{
 			}
 		}

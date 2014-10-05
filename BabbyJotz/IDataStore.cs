@@ -9,6 +9,7 @@ namespace BabbyJotz {
 
 		// Basic CRUD.
 		Task SaveAsync(LogEntry entry);
+		Task DeleteAsync(LogEntry entry);
 		Task<IEnumerable<LogEntry>> FetchAsync(DateTime day);
 
 		// Cloud Syncing.

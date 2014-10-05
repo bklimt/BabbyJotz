@@ -42,6 +42,7 @@ namespace BabbyJotz {
 
 		public string Uuid { get; private set; }
 		public string ObjectId { get; set; }
+		public DateTime? Deleted { get; set; }
 
 		public static readonly BindableProperty TextProperty =
 			BindableProperty.Create<LogEntry, string>(p => p.Text, "",

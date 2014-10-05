@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <style name="BabbyTextView" parent="@android:style/Widget.TextView">
+        <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
+    </style>
+    <style name="BabbyTheme" parent="@android:style/Theme.Holo.Light">
+		<item name="android:textViewStyle">@style/BabbyTextView</item>
+    </style>
+</resources>

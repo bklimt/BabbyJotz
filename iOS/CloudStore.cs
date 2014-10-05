@@ -7,12 +7,16 @@ using Parse;
 namespace BabbyJotz.iOS {
 	public class CloudStore {
 		private LogEntry CreateLogEntryFromParseObject(ParseObject obj) {
+			DateTime? deleted = null;
+			obj.TryGetValue<DateTime?>("deleted", out deleted);
+
 			return new LogEntry(obj.Get<String>("uuid")) {
 				DateTime = obj.Get<DateTime>("time"),
 				Text = obj.Get<string>("text"),
 				IsPoop = obj.Get<bool>("poop"),
 				IsAsleep = obj.Get<bool>("asleep"),
 				FormulaEaten = (decimal)obj.Get<double>("formula"),
+				Deleted = deleted,
 				ObjectId = obj.ObjectId as string
 			};
 		}
@@ -41,6 +45,7 @@ namespace BabbyJotz.iOS {
 			obj["poop"] = entry.IsPoop;
 			obj["asleep"] = entry.IsAsleep;
 			obj["formula"] = (double)entry.FormulaEaten;
+			obj["deleted"] = entry.Deleted;
 			obj.ACL = new ParseACL(ParseUser.CurrentUser);
 			await obj.SaveAsync();
 			entry.ObjectId = obj.ObjectId;

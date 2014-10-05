@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace BabbyJotz {
@@ -10,20 +11,28 @@ namespace BabbyJotz {
 			rootViewModel = model;
 			this.BindingContext = rootViewModel;
 			InitializeComponent();
+
+			ToolbarItems.Add(new ToolbarItem("Add", "content_new_event", async () => {
+				await OnAddClicked();
+			}));
 		}
 
-		public void OnOkClicked(object sender, EventArgs args) {
-			var entry = rootViewModel.NewEntry;
-			rootViewModel.AddNewEntry();
-			listView.SelectedItem = entry;
+		private async Task OnAddClicked() {
+			await Navigation.PushAsync(new EntryPage(rootViewModel, new LogEntry()));
+		}
+
+		public async void OnEntryTapped(object sender, EventArgs args) {
+			var tappedArgs = args as ItemTappedEventArgs;
+			var entry = tappedArgs.Item as LogEntry;
+			await Navigation.PushAsync(new EntryPage(rootViewModel, entry));
 		}
 
 		public void OnPreviousDayClicked(object sender, EventArgs args) {
-			rootViewModel.NewEntry.Date -= TimeSpan.FromDays(1);
+			rootViewModel.Date -= TimeSpan.FromDays(1);
 		}
 
 		public void OnNextDayClicked(object sender, EventArgs args) {
-			rootViewModel.NewEntry.Date += TimeSpan.FromDays(1);
+			rootViewModel.Date += TimeSpan.FromDays(1);
 		}
 
 		public void OnSyncClicked(object sender, EventArgs args) {

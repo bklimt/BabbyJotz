@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentPage
+	xmlns="http://xamarin.com/schemas/2014/forms"
+	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	xmlns:local="clr-namespace:BabbyJotz;assembly=BabbyJotz"
+	x:Class="BabbyJotz.EntryPage">
+	<ScrollView
+		HorizontalOptions="FillAndExpand"
+		VerticalOptions="FillAndExpand">
+		<StackLayout Spacing="8">
+		<StackLayout.BackgroundColor>
+			<OnPlatform x:TypeArguments="Color" iOS="#ccffff" Android="#efffff" />
+		</StackLayout.BackgroundColor>
+		<StackLayout.Padding>
+			<Thickness Top="20" Bottom="20" Left="20" Right="20" />
+		</StackLayout.Padding>
+			<StackLayout Orientation="Horizontal" Spacing="8" HorizontalOptions="FillAndExpand">
+				<Label Text="Date" />
+				<DatePicker
+					Date="{Binding Date}"
+					WidthRequest="150"
+					HorizontalOptions="EndAndExpand" />
+			</StackLayout>
+			<StackLayout Orientation="Horizontal" Spacing="8" HorizontalOptions="FillAndExpand">
+				<Label Text="Time" />
+				<TimePicker Time="{Binding Time}" WidthRequest="150" HorizontalOptions="EndAndExpand" />
+			</StackLayout>
+			<Label Text="Notes" />
+			<Editor
+				Text="{Binding Text}"
+				Focused="OnNotesFocused"
+				HeightRequest="100"
+				HorizontalOptions="FillAndExpand" />
+			<StackLayout Orientation="Horizontal" Spacing="8">
+				<Label Text="💤 Asleep?" HorizontalOptions="FillAndExpand" />
+				<Switch IsToggled="{Binding IsAsleep}" />
+			</StackLayout>
+			<StackLayout Orientation="Horizontal" Spacing="8">
+				<Label Text="💩 Poop?" HorizontalOptions="FillAndExpand" />
+				<Switch IsToggled="{Binding IsPoop}" />
+			</StackLayout>
+			<StackLayout Orientation="Horizontal" Spacing="8" HorizontalOptions="FillAndExpand">
+				<Label Text="🍼 Eaten?" />
+				<Entry Text="{Binding FormulaEaten}" Keyboard="Numeric" WidthRequest="75" HorizontalOptions="EndAndExpand" />
+				<Label Text="oz" VerticalOptions="Center" HorizontalOptions="End" />
+			</StackLayout>
+			<StackLayout Orientation="Horizontal" Spacing="8">
+				<Button Text="Delete" Clicked="OnDeleteClicked" HorizontalOptions="FillAndExpand" />
+				<Button Text="Save" Clicked="OnSaveClicked" HorizontalOptions="FillAndExpand" />
+			</StackLayout>
+			<!--<local:KeyboardPlaceholderView Color="White" HeightRequest="0" />-->
+		</StackLayout>
+	</ScrollView>
+</ContentPage>
