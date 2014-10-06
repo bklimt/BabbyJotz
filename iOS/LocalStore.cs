@@ -20,7 +20,7 @@ namespace BabbyJotz.iOS {
 				return await func();
 			});
 		}
-			
+
 		private LogEntry CreateEntryFromDataRecord(IDataRecord rec) {
 			var deleted = (rec["Deleted"] is DBNull) ? (DateTime?)null : DateTime.Parse((string)rec["Deleted"]);
 
@@ -42,7 +42,7 @@ namespace BabbyJotz.iOS {
 
 			path = Path.Combine(
 				Environment.GetFolderPath(Environment.SpecialFolder.Personal),
-				"database4.db3");
+				"database5.db3");
 
 			EnqueueAsync(async () => {
 				if (!File.Exists(path)) {
@@ -52,9 +52,9 @@ namespace BabbyJotz.iOS {
 					await connection.OpenAsync();
 					using (var command = connection.CreateCommand()) {
 						command.CommandText = "CREATE TABLE [LogEntry] (" +
-							"[Uuid] varchar(255) PRIMARY KEY, [Time] string, [Text] varchar(255), " +
-							"[Asleep] bool, [Poop] bool, [Formula] double, " +
-							"[ObjectId] varchar(255), [Deleted] varchar(255), [Synced] bool);";
+						"[Uuid] varchar(255) PRIMARY KEY, [Time] string, [Text] varchar(255), " +
+						"[Asleep] bool, [Poop] bool, [Formula] double, [ObjectId] varchar(255), " +
+						"[Deleted] varchar(255), [Synced] bool, [LocalVersion] integer);";
 						await command.ExecuteNonQueryAsync();
 					}
 					connection.Close();
@@ -86,7 +86,7 @@ namespace BabbyJotz.iOS {
 				using (var command = connection.CreateCommand()) {
 					command.CommandText = "UPDATE LogEntry SET " +
 						"Time=:Time, Text=:Text, Asleep=:Asleep, Poop=:Poop, Formula=:Formula, " +
-						"Deleted=:Deleted, Synced=:Synced WHERE Uuid=:Uuid";
+						"Deleted=:Deleted, Synced=:Synced, LocalVersion=LocalVersion+1 WHERE Uuid=:Uuid";
 					command.Parameters.AddRange(parameters);
 					rowsChanged = await command.ExecuteNonQueryAsync();
 				}
@@ -94,8 +94,8 @@ namespace BabbyJotz.iOS {
 				if (rowsChanged < 1) {
 					using (var command = connection.CreateCommand()) {
 						command.CommandText =
-							"INSERT INTO LogEntry(Uuid, Time, Text, Asleep, Poop, Formula, Deleted, Synced) " +
-							"VALUES (:Uuid, :Time, :Text, :Asleep, :Poop, :Formula, :Deleted, :Synced);";
+							"INSERT INTO LogEntry(Uuid, Time, Text, Asleep, Poop, Formula, Deleted, Synced, LocalVersion) " +
+							"VALUES (:Uuid, :Time, :Text, :Asleep, :Poop, :Formula, :Deleted, :Synced, 1);";
 						command.Parameters.AddRange(parameters);
 						rowsChanged = await command.ExecuteNonQueryAsync();
 					}
@@ -137,7 +137,8 @@ namespace BabbyJotz.iOS {
 					command.Parameters.AddRange(parameters);
 					var reader = await command.ExecuteReaderAsync();
 
-					results = from obj in reader.Cast<IDataRecord>() select CreateEntryFromDataRecord(obj);
+					results = from obj in reader.Cast<IDataRecord>()
+					          select CreateEntryFromDataRecord(obj);
 					results = results.ToList();
 					reader.Close();
 				}
@@ -204,8 +205,8 @@ namespace BabbyJotz.iOS {
 				if (isNew) {
 					using (var command = conn.CreateCommand()) {
 						command.CommandText = "INSERT INTO LogEntry " +
-							"(Uuid, ObjectId, Time, Text, Asleep, Poop, Formula, Deleted, Synced) " +
-							"VALUES (:Uuid, :ObjectId, :Time, :Text, :Asleep, :Poop, :Formula, :Deleted, :Synced);";
+						"(Uuid, ObjectId, Time, Text, Asleep, Poop, Formula, Deleted, Synced, LocalVersion) " +
+						"VALUES (:Uuid, :ObjectId, :Time, :Text, :Asleep, :Poop, :Formula, :Deleted, :Synced, 1);";
 						command.Parameters.AddRange(parameters);
 						await command.ExecuteNonQueryAsync();
 					}
@@ -213,8 +214,8 @@ namespace BabbyJotz.iOS {
 					using (var command = conn.CreateCommand()) {
 						// The WHERE Synced clause keeps us from overwriting local changes made since the sync started.
 						command.CommandText = "UPDATE LogEntry SET " +
-							"ObjectId=:ObjectId, Time=:Time, Text=:Text, Asleep=:Asleep, Poop=:Poop, Formula=:Formula, " +
-							"Deleted=:Deleted WHERE Uuid=:Uuid AND Synced=:Synced";
+						"ObjectId=:ObjectId, Time=:Time, Text=:Text, Asleep=:Asleep, Poop=:Poop, Formula=:Formula, " +
+						"Deleted=:Deleted, LocalVersion=LocalVersion+1 WHERE Uuid=:Uuid AND Synced=:Synced";
 						command.Parameters.AddRange(parameters);
 						await command.ExecuteNonQueryAsync();
 					}
@@ -225,8 +226,13 @@ namespace BabbyJotz.iOS {
 			});
 		}
 
+		private class EntryAndVersion {
+			public LogEntry Entry { get; set; }
+			public long LocalVersion { get; set; }
+		}
+
 		public async Task SyncToCloudAsync() {
-			IEnumerable<LogEntry> unsavedEntries = null;
+			IEnumerable<EntryAndVersion> unsavedEntries = null;
 
 			await EnqueueAsync<bool>(async () => {
 				var connection = new SqliteConnection("Data Source=" + path);
@@ -237,7 +243,10 @@ namespace BabbyJotz.iOS {
 					selectCommand.CommandText = "SELECT * FROM LogEntry WHERE (NOT Synced) OR ObjectId IS NULL";
 					var reader = await selectCommand.ExecuteReaderAsync();
 					var results = from obj in reader.Cast<IDataRecord>()
-					              select CreateEntryFromDataRecord(obj);
+								  select new EntryAndVersion {
+						Entry = CreateEntryFromDataRecord(obj),
+						LocalVersion = (long)obj["LocalVersion"]
+					};
 					// It would be nice to do this in an async-friendly way.
 					unsavedEntries = results.ToList();
 					reader.Close();
@@ -246,12 +255,11 @@ namespace BabbyJotz.iOS {
 				return true;
 			});
 
-			// await Task.Delay(20000);
-
-			foreach (var entry in unsavedEntries) {
+			foreach (var item in unsavedEntries) {
+				var entry = item.Entry;
 				await cloudStore.SaveAsync(entry);
+
 				await EnqueueAsync<bool>(async () => {
-					// TODO: Deal with the case where the user has edited it in the meantime.
 					var connection = new SqliteConnection("Data Source=" + path);
 					await connection.OpenAsync();
 
@@ -259,10 +267,13 @@ namespace BabbyJotz.iOS {
 						var parameters = new SqliteParameter[] {
 							new SqliteParameter("Uuid", entry.Uuid),
 							new SqliteParameter("ObjectId", entry.ObjectId),
-							new SqliteParameter("Synced", true)
+							new SqliteParameter("Synced", true),
+							new SqliteParameter("LocalVersion", item.LocalVersion)
 						};
+						// The LocalVersion clause stops us from overwriting changes made since the row was fetched.
 						updateCommand.CommandText =
-							"Update LogEntry SET ObjectId=:ObjectId, Synced=:Synced WHERE Uuid=:Uuid";
+							"UPDATE LogEntry SET ObjectId=:ObjectId, Synced=:Synced " +
+							"WHERE Uuid=:Uuid AND LocalVersion=:LocalVersion";
 						updateCommand.Parameters.AddRange(parameters);
 						await updateCommand.ExecuteNonQueryAsync();
 					}
