@@ -41,6 +41,9 @@ namespace BabbyJotz {
 
 			PropertyChanged += (sender, e) => {
 				if (e.PropertyName == "Date") {
+					Entries.Clear();
+					// RefreshEntriesAsync is too slow, and this sleep lets the rest of the UI update.
+					// await Task.Delay(10);
 					RefreshEntriesAsync();
 				}
 			};
@@ -49,7 +52,7 @@ namespace BabbyJotz {
 			var now = DateTime.Now;
 			Date = now - now.TimeOfDay;
 
-			SyncEventually();
+			TryToSyncEventually();
 		}
 
 		public async Task SyncAsync() {
@@ -59,14 +62,21 @@ namespace BabbyJotz {
 					return false;
 				}
 				Syncing = true;
-				await DataStore.SyncToCloudAsync();
-				Syncing = false;
+				try {
+					await DataStore.SyncToCloudAsync();
+				} finally {
+					Syncing = false;
+				}
 				return true;
 			});
 		}
 
-		public async void SyncEventually() {
-			await SyncAsync();
+		public async void TryToSyncEventually() {
+			try {
+				await SyncAsync();
+			} catch (Exception) {
+				// Just ignore it.
+			}
 		}
 
 		private void UpdateEntries(IEnumerable<LogEntry> updatedEntries) {
@@ -117,12 +127,12 @@ namespace BabbyJotz {
 
 		public async Task SaveAsync(LogEntry entry) {
 			await DataStore.SaveAsync(entry);
-			await SyncAsync();
+			TryToSyncEventually();
 		}
 
 		public async Task DeleteAsync(LogEntry entry) {
 			await DataStore.DeleteAsync(entry);
-			await SyncAsync();
+			TryToSyncEventually();
 		}
 
 		public async Task LogInAsync(string username, string password) {

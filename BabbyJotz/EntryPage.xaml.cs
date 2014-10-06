@@ -15,16 +15,27 @@ namespace BabbyJotz {
 		}
 
 		public async void OnSaveClicked(object sender, EventArgs args) {
+			// TODO: Disable the Save and Delete buttons while this is happening.
 			await RootViewModel.SaveAsync(Entry);
-			await Navigation.PopAsync();
+			try {
+				await Navigation.PopAsync();
+			} catch (Exception) {
+				// This can happen if they navigate back manually before it finishes saving.
+				// No need to get too upset about it.
+			}
 		}
 
 		public async void OnDeleteClicked(object sender, EventArgs args) {
+			// TODO: Disable the Save and Delete buttons while this is happening.
 			var ok = await DisplayAlert("Are you sure?", "Delete \"" + Entry.Description + "\"?", "Delete", "Cancel");
 			if (ok) {
 				await RootViewModel.DeleteAsync(Entry);
+				try {
+					await Navigation.PopAsync();
+				} catch (Exception) {
+					// Meh.
+				}
 			}
-			await Navigation.PopAsync();
 		}
 
 		public void OnNotesFocused(object sender, EventArgs args) {
