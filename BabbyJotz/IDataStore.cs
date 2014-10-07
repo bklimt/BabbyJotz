@@ -7,12 +7,15 @@ namespace BabbyJotz {
 		// Fired whenever the contents of the database change.
 		event EventHandler Changed;
 
-		// Basic CRUD.
+		// Basic CRUD
 		Task SaveAsync(LogEntry entry);
 		Task DeleteAsync(LogEntry entry);
 		Task<IEnumerable<LogEntry>> FetchAsync(DateTime day);
 
-		// Cloud Syncing.
+		// Statistics
+		Task GetStatisticsAsync(Statistics stats);
+
+		// Cloud Syncing
 		string CloudUserName { get; }
 		Task LogInAsync(string username, string password);
 		Task SignUpAsync(string username, string password);

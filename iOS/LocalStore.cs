@@ -21,20 +21,6 @@ namespace BabbyJotz.iOS {
 			});
 		}
 
-		private LogEntry CreateEntryFromDataRecord(IDataRecord rec) {
-			var deleted = (rec["Deleted"] is DBNull) ? (DateTime?)null : DateTime.Parse((string)rec["Deleted"]);
-
-			return new LogEntry((string)rec["Uuid"]) {
-				DateTime = DateTime.Parse((string)rec["Time"]),
-				Text = (string)rec["Text"],
-				IsPoop = (bool)rec["Poop"],
-				IsAsleep = (bool)rec["Asleep"],
-				FormulaEaten = (decimal)((double)rec["Formula"]),
-				Deleted = deleted,
-				ObjectId = rec["ObjectId"] as string
-			};
-		}
-
 		public event EventHandler Changed;
 
 		public LocalStore(CloudStore store) {
@@ -114,6 +100,61 @@ namespace BabbyJotz.iOS {
 		public async Task DeleteAsync(LogEntry entry) {
 			entry.Deleted = DateTime.Now;
 			await SaveAsync(entry);
+		}
+
+		private LogEntry CreateEntryFromDataRecord(IDataRecord rec) {
+			var deleted = (rec["Deleted"] is DBNull) ? (DateTime?)null : DateTime.Parse((string)rec["Deleted"]);
+
+			return new LogEntry((string)rec["Uuid"]) {
+				DateTime = DateTime.Parse((string)rec["Time"]),
+				Text = (string)rec["Text"],
+				IsPoop = (bool)rec["Poop"],
+				IsAsleep = (bool)rec["Asleep"],
+				FormulaEaten = (decimal)((double)rec["Formula"]),
+				Deleted = deleted,
+				ObjectId = rec["ObjectId"] as string
+			};
+		}
+
+		private async Task<decimal> GetAggregateFormulaEatenAsync(string func, DateTime since) {
+			return await EnqueueAsync(async () => {
+				var connection = new SqliteConnection("Data Source=" + path);
+				await connection.OpenAsync();
+
+				var parameters = new SqliteParameter[] {
+					new SqliteParameter("Since", since.ToString("O"))
+				};
+
+				decimal result = 0.0m;
+
+				using (var command = connection.CreateCommand()) {
+					command.CommandText =
+						"SELECT " + func + " FROM LogEntry WHERE Time>=:SINCE AND Deleted IS NULL";
+					command.Parameters.AddRange(parameters);
+					var obj = await command.ExecuteScalarAsync();
+					result = (decimal)((double)obj);
+				}
+
+				connection.Close();
+				return result;
+			});
+		}
+
+		public async Task GetStatisticsAsync(Statistics stats) {
+			var now = DateTime.Now;
+			var yesterday = now - TimeSpan.FromDays(1);
+			var threeDaysAgo = now - TimeSpan.FromDays(3);
+			var aWeekAgo = now - TimeSpan.FromDays(7);
+			var aMonthAgo = now - TimeSpan.FromDays(30);
+
+			stats.TotalEatenLastDay = await GetAggregateFormulaEatenAsync("SUM(Formula)", yesterday);
+			stats.TotalEatenLastThreeDays = await GetAggregateFormulaEatenAsync("SUM(Formula)", threeDaysAgo);
+			stats.TotalEatenLastWeek = await GetAggregateFormulaEatenAsync("SUM(Formula)", aWeekAgo);
+			stats.TotalEatenLastMonth = await GetAggregateFormulaEatenAsync("SUM(Formula)", aMonthAgo);
+
+			stats.AverageEatenLastThreeDays = stats.TotalEatenLastThreeDays / 3;
+			stats.AverageEatenLastWeek = stats.TotalEatenLastWeek / 7;
+			stats.AverageEatenLastMonth = stats.TotalEatenLastMonth / 30;
 		}
 
 		public async Task<IEnumerable<LogEntry>> FetchAsync(DateTime day) {

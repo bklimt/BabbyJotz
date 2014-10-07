@@ -12,6 +12,7 @@ namespace BabbyJotz {
 		private TaskQueue syncQueue = new TaskQueue();
 
 		public ObservableCollection<LogEntry> Entries { get; private set; }
+		public Statistics Statistics { get; private set; }
 
 		public static readonly BindableProperty DateProperty =
 			BindableProperty.Create<RootViewModel, DateTime>(p => p.Date, default(DateTime));
@@ -37,6 +38,7 @@ namespace BabbyJotz {
 		public RootViewModel(IDataStore dataStore) {
 			DataStore = dataStore;
 			Entries = new ObservableCollection<LogEntry>();
+			Statistics = new Statistics();
 			CloudUserName = DataStore.CloudUserName;
 
 			PropertyChanged += (sender, e) => {
@@ -156,6 +158,10 @@ namespace BabbyJotz {
 		public void LogOut() {
 			CloudUserName = null;
 			DataStore.LogOut();
+		}
+
+		public async Task GetStatisticsAsync() {
+			await DataStore.GetStatisticsAsync(Statistics);
 		}
 	}
 }

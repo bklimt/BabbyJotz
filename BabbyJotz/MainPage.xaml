@@ -14,10 +14,6 @@
 	</TabbedPage.Resources>
   	<TabbedPage.Children>
 		<ContentPage
-			xmlns="http://xamarin.com/schemas/2014/forms"
-			xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-			xmlns:local="clr-namespace:BabbyJotz;assembly=BabbyJotz"
-			x:Class="BabbyJotz.ItemListPage"
 			Title="Log"
 			Icon="collections_view_as_list"
 			IsBusy="{Binding Syncing}">
@@ -58,9 +54,23 @@
 			</StackLayout>
 		</ContentPage>
 		<ContentPage
-			xmlns="http://xamarin.com/schemas/2014/forms"
-			xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-			x:Class="BabbyJotz.SettingsPage"
+			Title="Stats"
+			Icon="action_settings"
+			IsBusy="{Binding Syncing}">
+			<StackLayout>
+				<StackLayout.Padding>
+					<Thickness Top="8" Bottom="8" Left="8" Right="8" />
+				</StackLayout.Padding>
+				<Label Text="{Binding Statistics.TotalEatenLastDay, StringFormat='Total Eaten in Last 24 Hours: {0:F2} oz'}" />
+				<Label Text="{Binding Statistics.TotalEatenLastThreeDays, StringFormat='Total Eaten in Last 3 Days: {0:F2} oz'}" />
+				<Label Text="{Binding Statistics.AverageEatenLastThreeDays, StringFormat='Average Eaten in Last 3 Days: {0:F2} oz'}" />
+				<Label Text="{Binding Statistics.TotalEatenLastWeek, StringFormat='Total Eaten in Last 7 Days: {0:F2} oz'}" />
+				<Label Text="{Binding Statistics.AverageEatenLastWeek, StringFormat='Average Eaten in Last 7 Days: {0:F2} oz'}" />
+				<Label Text="{Binding Statistics.TotalEatenLastMonth, StringFormat='Total Eaten in Last 30 Days: {0:F2} oz'}" />
+				<Label Text="{Binding Statistics.AverageEatenLastMonth, StringFormat='Average Eaten in Last 30 Days: {0:F2} oz'}" />
+			</StackLayout>
+		</ContentPage>
+		<ContentPage
 			Title="Settings"
 			Icon="action_settings"
 			IsBusy="{Binding Syncing}">

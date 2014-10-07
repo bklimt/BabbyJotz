@@ -15,6 +15,12 @@ namespace BabbyJotz {
 			ToolbarItems.Add(new ToolbarItem("Add", "content_new_event", async () => {
 				await OnAddClicked();
 			}));
+
+			CurrentPageChanged += async (object sender, EventArgs e) => {
+				if (CurrentPage.Title == "Stats") {
+					await rootViewModel.GetStatisticsAsync();
+				}
+			};
 		}
 
 		private async Task OnAddClicked() {
