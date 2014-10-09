@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "underscore": "~1.7.0",
+    "read": "~1.0.5",
+    "parse": "~1.2.19"
+  }
+}

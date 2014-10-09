@@ -350,7 +350,8 @@ namespace BabbyJotz.iOS {
             });
 
             // Now, read everything from the cloud and add it to the local store.
-            // TODO: Add a writer ID so that we don't fetch the changes we just made.
+            // Yes, we do re-read everything we just wrote, but that won't be much, and at it
+            // allows us to catch any changes the server may have made during the write.
             var objsAndLastUpdatedAt = await cloudStore.FetchChangesAsync(lastUpdatedAt);
             var objs = objsAndLastUpdatedAt.Item1.ToList();
             lastUpdatedAt = objsAndLastUpdatedAt.Item2;
