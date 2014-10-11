@@ -149,14 +149,15 @@ namespace BabbyJotz.iOS {
         */
 
         public async Task<string> GetStatisticsHtmlAsync() {
-            return await EnqueueAsync(async () => {
+            List<LogEntry> entries = null;
+
+            await EnqueueAsync(async () => {
                 var connection = new SqliteConnection("Data Source=" + path);
                 await connection.OpenAsync();
 
                 var parameters = new SqliteParameter[] {
                 };
 
-                List<LogEntry> entries = null;
 
                 using (var command = connection.CreateCommand()) {
                     command.CommandText =
@@ -171,9 +172,10 @@ namespace BabbyJotz.iOS {
                 }
 
                 connection.Close();
-
-                return StatisticsHtmlBuilder.GenerateStatisticsHtml(entries);
+                return true;
             });
+
+            return await StatisticsHtmlBuilder.GenerateStatisticsHtmlAsync(entries);
         }
 
         public async Task GetStatisticsAsync(Statistics stats) {

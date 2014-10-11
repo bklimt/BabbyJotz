@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BabbyJotz {
     public class StatisticsHtmlBuilder {
@@ -13,7 +14,7 @@ namespace BabbyJotz {
       body {
         padding: 0px;
         margin: 8px;
-        //font-family: Helvetica;
+        font-family: Helvetica;
       }
       h2 {
         font-size: 12pt;
@@ -27,12 +28,12 @@ namespace BabbyJotz {
         width: 100%;
       }
       th {
-        font-size: 6pt;
+        font-size: 4pt;
         border; 0px;
       }
       td {
         padding: 0px;
-        font-size: 6pt;
+        font-size: 4pt;
         width: 1%;
         height: 4px;
         border-right: none;
@@ -51,9 +52,9 @@ namespace BabbyJotz {
         border-bottom: solid black 1px;
         text-align: left;
       }
-      //td .top {
-      //  border-top: solid black 1px;
-      //}
+      .top-cell {
+        border-top: solid black 1px;
+      }
       .left {
         border-left: solid black 1px;
         border-right: solid black 1px;
@@ -78,13 +79,15 @@ namespace BabbyJotz {
         public StatisticsHtmlBuilder() {
         }
 
-        public static string GenerateStatisticsHtml(List<LogEntry> entries) {
-            StringBuilder html = new StringBuilder(3000);  // The HTML is usually about 2.5k.
-            html.Append(header);
-            // GenerateFormulaGraph(html, entries, 50);
-            GenerateSleepHeatMap(html, entries, 12, 15);
-            html.Append(footer);
-            return html.ToString();
+        public static Task<string> GenerateStatisticsHtmlAsync(List<LogEntry> entries) {
+            return Task.Run(() => {
+                StringBuilder html = new StringBuilder(3000);  // The HTML is usually about 2.5k.
+                html.Append(header);
+                GenerateFormulaGraph(html, entries, 50);
+                GenerateSleepHeatMap(html, entries, 12, 15);
+                html.Append(footer);
+                return html.ToString();
+            });
         }
 
         private static void GenerateFormulaGraph(StringBuilder html, List<LogEntry> entries, int steps) {
@@ -116,7 +119,7 @@ namespace BabbyJotz {
                 html.AppendFormat("<tr><th class=\"left\">{0}</th>\n", day.Date.ToString("MM/dd"));
                 var rowClass = "";
                 if (day.Date == minDate) {
-                    rowClass = "top";
+                    rowClass = "top-cell";
                 }
                 if (day.Date == maxDate) {
                     rowClass = "bottom";
@@ -132,7 +135,7 @@ namespace BabbyJotz {
                     }
                     html.AppendFormat("<td class=\"{0} {1}\">&nbsp;</td>", colorClass, rowClass);
                 }
-                html.AppendFormat("<td class=\"white {1}\">{0}</td>\n", day.FormulaEaten, rowClass);
+                html.AppendFormat("<td class=\"white right {1}\">{0}</td>\n", day.FormulaEaten, rowClass);
                 html.AppendFormat("</tr>\n");
             }
 
@@ -140,7 +143,7 @@ namespace BabbyJotz {
         }
 
         private static void GenerateSleepHeatMap(StringBuilder html, List<LogEntry> entries, int startHour, int quantum) {
-            var tableHeader = "<!--<h2>Sleeping</h2>--><table><tr><th>&nbsp;</th>\n";
+            var tableHeader = "<h2>Sleeping</h2><table><tr><th>&nbsp;</th>\n";
             var tableFooter = "</tr></table>\n";
 
             html.Append(tableHeader);
