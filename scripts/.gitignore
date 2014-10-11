@@ -1,4 +1,6 @@
 *.txt
+*.es5.js
+*.html
 node_modules/
 importer.js
 create_importer.py

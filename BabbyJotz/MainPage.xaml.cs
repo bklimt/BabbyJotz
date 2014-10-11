@@ -12,6 +12,9 @@ namespace BabbyJotz {
 			this.BindingContext = rootViewModel;
 			InitializeComponent();
 
+            // Seems like a bug with WebView binding.
+            webview.BindingContext = BindingContext;
+
 			ToolbarItems.Add(new ToolbarItem("Add", "content_new_event", async () => {
 				await OnAddClicked();
 			}));

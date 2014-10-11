@@ -1,107 +1,114 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <TabbedPage
-	xmlns ="http://xamarin.com/schemas/2014/forms"
-	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-	xmlns:local="clr-namespace:BabbyJotz;assembly=BabbyJotz"
-	x:Class="BabbyJotz.MainPage"
-	Title="Babby Jotz">
-	<TabbedPage.Resources>
-		<ResourceDictionary>
- 			<local:NotConverter x:Key="notConverter" />
- 			<local:NullConverter x:Key="nullConverter" />
- 			<local:NotNullConverter x:Key="notNullConverter" />
- 		</ResourceDictionary>
-	</TabbedPage.Resources>
-  	<TabbedPage.Children>
-		<ContentPage
-			Title="Log"
-			Icon="collections_view_as_list"
-			IsBusy="{Binding Syncing}">
-			<StackLayout Spacing="8">
-				<StackLayout.BackgroundColor>
-					<OnPlatform x:TypeArguments="Color" iOS="#ccffff" Android="#efffff" />
-				</StackLayout.BackgroundColor>
-				<StackLayout.Padding>
-					<Thickness Top="8" Bottom="0" Left="0" Right="0" />
-				</StackLayout.Padding>
-				<StackLayout Orientation="Horizontal" Spacing="0">
-					<StackLayout.Padding>
-						<Thickness Left="8" Right="8" />
-					</StackLayout.Padding>
-					<Button Text="◀" Clicked="OnPreviousDayClicked" />
-					<DatePicker Date="{Binding Date}" HorizontalOptions="FillAndExpand" />
-					<Button Text="▶" Clicked="OnNextDayClicked" />
-				</StackLayout>
-				<ListView ItemsSource="{Binding Entries}" ItemTapped="OnEntryTapped" BackgroundColor="White">
-					<ListView.ItemTemplate>
-						<DataTemplate>
-							<!--<TextCell TextColor="Black" Text="{Binding Description}" />-->
-							<ViewCell>
-								<StackLayout>
-									<StackLayout.Padding>
-										<Thickness Top="0" Bottom="0" Left="16" Right="8" />
-									</StackLayout.Padding>
-									<Label
-										Text="{Binding Description}"
-										TextColor="Black"
-										LineBreakMode="TailTruncation"
-										VerticalOptions="CenterAndExpand" />
-								</StackLayout>
-							</ViewCell>
-						</DataTemplate>
-					</ListView.ItemTemplate>
-				</ListView>
-			</StackLayout>
-		</ContentPage>
-		<ContentPage
-			Title="Stats"
-			Icon="action_settings"
-			IsBusy="{Binding Syncing}">
-			<StackLayout>
-				<StackLayout.Padding>
-					<Thickness Top="8" Bottom="8" Left="8" Right="8" />
-				</StackLayout.Padding>
-				<Label Text="{Binding Statistics.TotalEatenLastDay, StringFormat='Total Eaten in Last 24 Hours: {0:F2} oz'}" />
-				<Label Text="{Binding Statistics.TotalEatenLastThreeDays, StringFormat='Total Eaten in Last 3 Days: {0:F2} oz'}" />
-				<Label Text="{Binding Statistics.AverageEatenLastThreeDays, StringFormat='Average Eaten in Last 3 Days: {0:F2} oz'}" />
-				<Label Text="{Binding Statistics.TotalEatenLastWeek, StringFormat='Total Eaten in Last 7 Days: {0:F2} oz'}" />
-				<Label Text="{Binding Statistics.AverageEatenLastWeek, StringFormat='Average Eaten in Last 7 Days: {0:F2} oz'}" />
-				<Label Text="{Binding Statistics.TotalEatenLastMonth, StringFormat='Total Eaten in Last 30 Days: {0:F2} oz'}" />
-				<Label Text="{Binding Statistics.AverageEatenLastMonth, StringFormat='Average Eaten in Last 30 Days: {0:F2} oz'}" />
-			</StackLayout>
-		</ContentPage>
-		<ContentPage
-			Title="Settings"
-			Icon="action_settings"
-			IsBusy="{Binding Syncing}">
-			<ContentPage.BackgroundColor>
-				<OnPlatform x:TypeArguments="Color" iOS="#ccffff" Android="#efffff" />
-			</ContentPage.BackgroundColor>
-			<StackLayout VerticalOptions="Center">
-				<StackLayout.Padding>
-					<Thickness Top="8" Bottom="8" Left="8" Right="8" />
-				</StackLayout.Padding>
-				<Label
-					Text="{Binding CloudUserName, StringFormat='Logged in as {0}'}"
-					IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
-					HorizontalOptions="Center" />
-				<Button
-					Text="Sync Now"
-					Clicked="OnSyncClicked"
-					IsEnabled="{Binding Syncing, Converter={StaticResource notConverter}}"
-					IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
-					HorizontalOptions="FillAndExpand" />
-				<Button
-					Text="Log out of Cloud Sync"
-					Clicked="OnLogOutClicked"
-					IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
-					HorizontalOptions="FillAndExpand" />
-				<Button
-					Text="Log in to Cloud Sync"
-					Clicked="OnLogInClicked"
-					IsVisible="{Binding CloudUserName, Converter={StaticResource nullConverter}}"
-					HorizontalOptions="FillAndExpand" />
-			</StackLayout>
-		</ContentPage>
-	</TabbedPage.Children>
+    xmlns ="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:BabbyJotz;assembly=BabbyJotz"
+    x:Class="BabbyJotz.MainPage"
+    Title="Babby Jotz">
+    <TabbedPage.Resources>
+        <ResourceDictionary>
+            <local:NotConverter x:Key="notConverter" />
+            <local:NullConverter x:Key="nullConverter" />
+            <local:NotNullConverter x:Key="notNullConverter" />
+        </ResourceDictionary>
+    </TabbedPage.Resources>
+    <TabbedPage.Children>
+        <ContentPage
+            Title="Log"
+            Icon="collections_view_as_list"
+            IsBusy="{Binding Syncing}">
+            <StackLayout Spacing="8">
+                <StackLayout.BackgroundColor>
+                    <OnPlatform x:TypeArguments="Color" iOS="#ccffff" Android="#efffff" />
+                </StackLayout.BackgroundColor>
+                <StackLayout.Padding>
+                    <Thickness Top="8" Bottom="0" Left="0" Right="0" />
+                </StackLayout.Padding>
+                <StackLayout Orientation="Horizontal" Spacing="0">
+                    <StackLayout.Padding>
+                        <Thickness Left="8" Right="8" />
+                    </StackLayout.Padding>
+                    <Button Text="◀" Clicked="OnPreviousDayClicked" />
+                    <DatePicker Date="{Binding Date}" HorizontalOptions="FillAndExpand" />
+                    <Button Text="▶" Clicked="OnNextDayClicked" />
+                </StackLayout>
+                <ListView ItemsSource="{Binding Entries}" ItemTapped="OnEntryTapped" BackgroundColor="White">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <!--<TextCell TextColor="Black" Text="{Binding Description}" />-->
+                            <ViewCell>
+                                <StackLayout>
+                                    <StackLayout.Padding>
+                                        <Thickness Top="0" Bottom="0" Left="16" Right="8" />
+                                    </StackLayout.Padding>
+                                    <Label
+                                        Text="{Binding Description}"
+                                        TextColor="Black"
+                                        LineBreakMode="TailTruncation"
+                                        VerticalOptions="CenterAndExpand" />
+                                </StackLayout>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackLayout>
+        </ContentPage>
+        <ContentPage
+            Title="Stats"
+            Icon="action_settings"
+            IsBusy="{Binding Syncing}">
+            <StackLayout HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+                <StackLayout.Padding>
+                    <Thickness Top="0" Bottom="0" Left="0" Right="0" />
+                </StackLayout.Padding>
+                <!--
+                <Label Text="{Binding Statistics.TotalEatenLastDay, StringFormat='Total Eaten in Last 24 Hours: {0:F2} oz'}" />
+                <Label Text="{Binding Statistics.TotalEatenLastThreeDays, StringFormat='Total Eaten in Last 3 Days: {0:F2} oz'}" />
+                <Label Text="{Binding Statistics.AverageEatenLastThreeDays, StringFormat='Average Eaten in Last 3 Days: {0:F2} oz'}" />
+                <Label Text="{Binding Statistics.TotalEatenLastWeek, StringFormat='Total Eaten in Last 7 Days: {0:F2} oz'}" />
+                <Label Text="{Binding Statistics.AverageEatenLastWeek, StringFormat='Average Eaten in Last 7 Days: {0:F2} oz'}" />
+                <Label Text="{Binding Statistics.TotalEatenLastMonth, StringFormat='Total Eaten in Last 30 Days: {0:F2} oz'}" />
+                <Label Text="{Binding Statistics.AverageEatenLastMonth, StringFormat='Average Eaten in Last 30 Days: {0:F2} oz'}" />
+                -->
+                <WebView x:Name="webview" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
+                    <WebView.Source>
+                        <HtmlWebViewSource Html="{Binding Statistics.Html}"/>
+                    </WebView.Source>
+                </WebView>
+            </StackLayout>
+        </ContentPage>
+        <ContentPage
+            Title="Settings"
+            Icon="action_settings"
+            IsBusy="{Binding Syncing}">
+            <ContentPage.BackgroundColor>
+                <OnPlatform x:TypeArguments="Color" iOS="#ccffff" Android="#efffff" />
+            </ContentPage.BackgroundColor>
+            <StackLayout VerticalOptions="Center">
+                <StackLayout.Padding>
+                    <Thickness Top="8" Bottom="8" Left="8" Right="8" />
+                </StackLayout.Padding>
+                <Label
+                    Text="{Binding CloudUserName, StringFormat='Logged in as {0}'}"
+                    IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
+                    HorizontalOptions="Center" />
+                <Button
+                    Text="Sync Now"
+                    Clicked="OnSyncClicked"
+                    IsEnabled="{Binding Syncing, Converter={StaticResource notConverter}}"
+                    IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
+                    HorizontalOptions="FillAndExpand" />
+                <Button
+                    Text="Log out of Cloud Sync"
+                    Clicked="OnLogOutClicked"
+                    IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
+                    HorizontalOptions="FillAndExpand" />
+                <Button
+                    Text="Log in to Cloud Sync"
+                    Clicked="OnLogInClicked"
+                    IsVisible="{Binding CloudUserName, Converter={StaticResource nullConverter}}"
+                    HorizontalOptions="FillAndExpand" />
+            </StackLayout>
+        </ContentPage>
+    </TabbedPage.Children>
 </TabbedPage>

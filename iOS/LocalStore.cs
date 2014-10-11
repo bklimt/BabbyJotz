@@ -122,6 +122,7 @@ namespace BabbyJotz.iOS {
             };
         }
 
+        /*
         private async Task<decimal> GetAggregateFormulaEatenAsync(string func, DateTime since) {
             return await EnqueueAsync(async () => {
                 var connection = new SqliteConnection("Data Source=" + path);
@@ -145,8 +146,38 @@ namespace BabbyJotz.iOS {
                 return result;
             });
         }
+        */
+
+        public async Task<string> GetStatisticsHtmlAsync() {
+            return await EnqueueAsync(async () => {
+                var connection = new SqliteConnection("Data Source=" + path);
+                await connection.OpenAsync();
+
+                var parameters = new SqliteParameter[] {
+                };
+
+                List<LogEntry> entries = null;
+
+                using (var command = connection.CreateCommand()) {
+                    command.CommandText =
+                        "SELECT * FROM LogEntry WHERE Deleted IS NULL ORDER BY Time DESC";
+                    command.Parameters.AddRange(parameters);
+                    var reader = await command.ExecuteReaderAsync();
+                    // TODO: Do this in a more async-friendly way.
+                    var results = from obj in reader.Cast<IDataRecord>()
+                        select CreateEntryFromDataRecord(obj);
+                    entries = results.Reverse().ToList();
+                    reader.Close();
+                }
+
+                connection.Close();
+
+                return StatisticsHtmlBuilder.GenerateStatisticsHtml(entries);
+            });
+        }
 
         public async Task GetStatisticsAsync(Statistics stats) {
+            /*
             var now = DateTime.Now;
             var yesterday = now - TimeSpan.FromDays(1);
             var threeDaysAgo = now - TimeSpan.FromDays(3);
@@ -161,6 +192,9 @@ namespace BabbyJotz.iOS {
             stats.AverageEatenLastThreeDays = stats.TotalEatenLastThreeDays / 3;
             stats.AverageEatenLastWeek = stats.TotalEatenLastWeek / 7;
             stats.AverageEatenLastMonth = stats.TotalEatenLastMonth / 30;
+            */
+
+            stats.Html = await GetStatisticsHtmlAsync();
         }
 
         public async Task<IEnumerable<LogEntry>> FetchAsync(DateTime day) {
