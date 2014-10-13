@@ -104,6 +104,7 @@ namespace BabbyJotz {
                 FormulaEaten = day.ToList().Sum()
             };
 
+            // TODO: This fails if there are no entries.
             var maxEaten = (from day in eaten
                             select day.FormulaEaten).Max();
 
@@ -142,6 +143,7 @@ namespace BabbyJotz {
             html.Append(tableFooter);
         }
 
+        // TODO: Rewrite this to be simpler.
         private static void GenerateSleepHeatMap(StringBuilder html, List<LogEntry> entries, int startHour, int quantum) {
             var tableHeader = "<h2>Sleeping</h2><table><tr><th>&nbsp;</th>\n";
             var tableFooter = "</tr></table>\n";

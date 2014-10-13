@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Mono.Data.Sqlite;
-using Parse;
 
 namespace BabbyJotz.iOS {
     public class LocalStore : IDataStore {
@@ -237,22 +236,22 @@ namespace BabbyJotz.iOS {
             }
         }
 
+        public string CloudUserId {
+            get {
+                return cloudStore.UserId;
+            }
+        }
+
         public async Task LogInAsync(string username, string password) {
-            ParseUser.LogOut();
-            await ParseUser.LogInAsync(username, password);
+            await cloudStore.LogInAsync(username, password);
         }
 
         public async Task SignUpAsync(string username, string password) {
-            ParseUser.LogOut();
-            var user = new ParseUser();
-            user.Username = username;
-            user.Password = password;
-            user.ACL = new ParseACL();
-            await user.SignUpAsync();
+            await cloudStore.SignUpAsync(username, password);
         }
 
         public void LogOut() {
-            ParseUser.LogOut();
+            cloudStore.LogOut();
         }
 
         public async Task UpdateFromCloudAsync(LogEntry entry) {

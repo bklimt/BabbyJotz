@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Xamarin.Forms;
 
+// TODO: Add beforeSave triggers to enforce ACLs, non-NULLs, and proper datetime.
+// TODO: Add push notifications.
+// TODO: Add a dark theme.
 namespace BabbyJotz {
 	public class RootViewModel : BindableObject {
 		private IDataStore DataStore { get; set; }
@@ -28,12 +31,12 @@ namespace BabbyJotz {
 			set { SetValue(SyncingProperty, value); }
 		}
 
-		public static readonly BindableProperty CloudUserNameProperty =
-			BindableProperty.Create<RootViewModel, string>(p => p.CloudUserName, null);
-		public string CloudUserName {
-			get { return (string)base.GetValue(CloudUserNameProperty); }
-			set { SetValue(CloudUserNameProperty, value); }
-		}
+        public static readonly BindableProperty CloudUserNameProperty =
+            BindableProperty.Create<RootViewModel, string>(p => p.CloudUserName, null);
+        public string CloudUserName {
+            get { return (string)base.GetValue(CloudUserNameProperty); }
+            set { SetValue(CloudUserNameProperty, value); }
+        }
 
 		public RootViewModel(IDataStore dataStore) {
 			DataStore = dataStore;
@@ -154,6 +157,12 @@ namespace BabbyJotz {
 				CloudUserName = DataStore.CloudUserName;
 			}
 		}
+
+        public string CloudUserId {
+            get {
+                return DataStore.CloudUserId;
+            }
+        }
 
 		public void LogOut() {
 			CloudUserName = null;

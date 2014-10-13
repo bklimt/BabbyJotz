@@ -17,6 +17,7 @@ namespace BabbyJotz {
 
 		// Cloud Syncing
 		string CloudUserName { get; }
+        string CloudUserId { get; }
 		Task LogInAsync(string username, string password);
 		Task SignUpAsync(string username, string password);
 		void LogOut();
