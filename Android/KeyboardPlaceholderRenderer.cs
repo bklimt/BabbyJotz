@@ -7,6 +7,7 @@ using Xamarin.Forms.Platform.Android;
 using BabbyJotz;
 using BabbyJotz.Android;
 
+// TODO: Get rid of this.
 [assembly: ExportRenderer(typeof(KeyboardPlaceholderView), typeof(KeyboardPlaceholderRenderer))]
 namespace BabbyJotz.Android {
 	public class KeyboardPlaceholderRenderer : BoxRenderer {

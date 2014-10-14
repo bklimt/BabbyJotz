@@ -10,7 +10,7 @@ using Android.App;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("")]
-[assembly: AssemblyCopyright("klimt")]
+[assembly: AssemblyCopyright("Bryan Klimt")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

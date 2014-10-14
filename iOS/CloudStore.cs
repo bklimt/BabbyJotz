@@ -9,6 +9,13 @@ using MonoTouch.Foundation;
 using MonoTouch.UIKit;
 #endif
 
+#if __ANDROID__
+using Android.App;
+using Android.Content;
+using Android.OS;
+using Android.Runtime;
+#endif
+
 namespace BabbyJotz.iOS {
     public class CloudStore {
         private LogEntry CreateLogEntryFromParseObject(ParseObject obj) {
@@ -50,9 +57,25 @@ namespace BabbyJotz.iOS {
         }
         #endif
 
+        #if __ANDROID__
+        private void RegisterForPushAndroid() {
+            // From: https://groups.google.com/forum/#!msg/parse-developers/ku8-r91_o6s/Hk_YZQVgK6MJ
+            var context = Application.Context;
+            Intent intent = new Intent("com.google.android.c2dm.intent.REGISTER");
+            intent.SetPackage("com.google.android.gsf");
+            intent.PutExtra("app", PendingIntent.GetBroadcast(context, 0, new Intent(), 0));
+            intent.PutExtra("sender", "1076345567071");
+            // intent.PutExtra("sender", "earnest-math-732");
+            context.StartService(intent);
+        }
+        #endif
+
         private void RegisterForPush() {
             #if __IOS__
             RegisterForPushIOS();
+            #endif
+            #if __ANDROID__
+            RegisterForPushAndroid();
             #endif
         }
 
@@ -61,10 +84,23 @@ namespace BabbyJotz.iOS {
             UIApplication.SharedApplication.UnregisterForRemoteNotifications();
         }
         #endif
+
+        #if __ANDROID__
+        private void UnregisterForPushAndroid() {
+            var context = Application.Context;
+            // TODO: Implicit intents are unsafe.
+            Intent intent = new Intent("com.google.android.c2dm.intent.UNREGISTER");
+            intent.PutExtra("app", PendingIntent.GetBroadcast(context, 0, new Intent(), 0));
+            context.StartService(intent);
+        }
+        #endif
         
         private void UnregisterForPush() {
             #if __IOS__
             UnregisterForPushIOS();
+            #endif
+            #if __ANDROID__
+            UnregisterForPushAndroid();
             #endif
         }
 
@@ -123,6 +159,7 @@ namespace BabbyJotz.iOS {
         }
 
         public async Task LogInAsync(string username, string password) {
+            // Fix this weird issue with a NPE half the time when logging in.
             LogOut();
             await ParseUser.LogInAsync(username, password);
             RegisterForPush();

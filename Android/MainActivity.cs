@@ -13,24 +13,25 @@ using Parse;
 using Xamarin.Forms.Platform.Android;
 
 namespace BabbyJotz.Android {
-	[Activity(Label = "Babby Jotz",
-		MainLauncher = true,
-		Theme = "@style/BabbyTheme",
-		ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
-	public class MainActivity : AndroidActivity {
-		protected override void OnCreate(Bundle bundle) {
-			base.OnCreate(bundle);
+    [Activity(Label = "Babby Jotz",
+        MainLauncher = true,
+        Theme = "@style/BabbyTheme",
+        ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
+    public class MainActivity : AndroidActivity {
+        protected override void OnCreate(Bundle bundle) {
+            base.OnCreate(bundle);
 
-			Xamarin.Forms.Forms.Init(this, bundle);
+            Xamarin.Forms.Forms.Init(this, bundle);
 
-			ParseClient.Initialize(
-				"dRJrkKFywmUEYJx10K96Sw848juYyFF01Zlno6Uf",
-				"0ICNGpRDtEswmZw8E3nfS08W8RNWbFLExIIw2IvS");
-			var cloudStore = new BabbyJotz.iOS.CloudStore();
-			var localStore = new BabbyJotz.iOS.LocalStore(cloudStore);
+            ParseClient.Initialize(
+                "dRJrkKFywmUEYJx10K96Sw848juYyFF01Zlno6Uf",
+                "0ICNGpRDtEswmZw8E3nfS08W8RNWbFLExIIw2IvS");
+            var cloudStore = new BabbyJotz.iOS.CloudStore();
+            var localStore = new BabbyJotz.iOS.LocalStore(cloudStore);
+            var model = new RootViewModel(localStore);
 
-			SetPage(App.GetMainPage(localStore));
-		}
-	}
+            SetPage(App.GetMainPage(model));
+        }
+    }
 }
 

@@ -91,6 +91,7 @@ namespace BabbyJotz {
             set { SetValue(IsAsleepProperty, value); }
         }
 
+        // TODO: Fix hangs when deleting this too quickly.
         public static readonly BindableProperty FormulaEatenProperty =
             BindableProperty.Create<LogEntry, decimal>(p => p.FormulaEaten, 0.0m,
                 BindingMode.Default, null, (p, _1, _2) => UpdateDescription(p), null, null);

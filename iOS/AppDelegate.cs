@@ -44,6 +44,8 @@ namespace BabbyJotz.iOS {
             try {
                 var userDefaultsKey = "ParseInstallationObjectId";
                 var objectId = NSUserDefaults.StandardUserDefaults.StringForKey(userDefaultsKey);
+
+                // TODO: Move this logic into CloudStore.
                 var obj = (objectId == null)
                     ? ParseObject.Create("_Installation")
                     : ParseObject.CreateWithoutData("_Installation", objectId);
@@ -59,6 +61,7 @@ namespace BabbyJotz.iOS {
                 obj["parseVersion"] = "1.3.0";
                 obj["userId"] = model.CloudUserId;
                 await obj.SaveAsync();
+
                 NSUserDefaults.StandardUserDefaults.SetString(userDefaultsKey, obj.ObjectId);
             } catch (Exception e) {
                 Console.WriteLine("Unable to save device token. {0}", e);

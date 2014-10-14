@@ -4,3 +4,4 @@ obj/
 *.userprefs
 packages/
 Components/
+parse/config/global.json

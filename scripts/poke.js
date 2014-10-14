@@ -33,27 +33,17 @@ Parse.Promise.as().then(function() {
   return Parse.User.logIn(userpass.username, userpass.password);
 
 }).then(function() {
-  var q = new Parse.Query("LogEntry");
-  //q.doesNotExist("datetime");
-  q.equalTo("deleted", null);
-  q.ascending("updatedAt");
-  q.limit(1000);
-  return q.find();
-
-}).then(function(entries) {
-  console.log("fixing " + entries.length + " dates...");
-  var p = Parse.Promise.as();
-  _.each(entries, function(obj) {
-    p = p.then(function() {
-      //obj.set("datetime",
-      //    new Date(Date.parse(
-      //        obj.get("time").toUTCString().replace(" GMT", " PDT"))));
-      //obj.set("deleted", null);
-      obj.unset("deleted");
-      return obj.save();
-    });
+  var obj = new Parse.Object("LogEntry");
+  obj.id = "vi0ncWLs3j";
+  obj.set({
+    poop: true,
+    asleep: true,
+    formula: 1000.5,
+    text: "Hello World!",
+    deleted: new Date(),
+    time: new Date()
   });
-  return p;
+  return obj.save();
 
 }).then(function() {
   console.log("Success!");
