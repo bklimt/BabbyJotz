@@ -88,6 +88,7 @@
     <Compile Include="KeyboardPlaceholderRenderer.cs" />
     <Compile Include="BabbyJotzBroadcastReceiver.cs" />
     <Compile Include="BabbyJotzIntentService.cs" />
+    <Compile Include="BabbyJotzApplication.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />

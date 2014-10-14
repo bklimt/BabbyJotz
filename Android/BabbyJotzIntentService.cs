@@ -38,7 +38,7 @@ namespace BabbyJotz.Android {
                 if (action.Equals("com.google.android.c2dm.intent.REGISTRATION")) {
                     HandleRegistration(context, intent).Wait();
                 } else if (action.Equals("com.google.android.c2dm.intent.RECEIVE")) {
-                    HandleMessage(context, intent);
+                    HandleMessage(context, intent).Wait();
                 }
             } finally {
                 lock (mutex) {
@@ -96,7 +96,14 @@ namespace BabbyJotz.Android {
             public string Alert { get; set; }
         }
 
-        private void HandleMessage(Context context, Intent intent) {
+        private async Task HandleMessage(Context context, Intent intent) {
+            var app = (BabbyJotzApplication)Application;
+            try {
+                await app.RootViewModel.SyncAsync();
+            } catch {
+                // Well, we tried. :-(
+            }
+
             var json = intent.GetStringExtra("data") ?? "{}";
             var data = JsonConvert.DeserializeObject<ParsePushData>(json);
             var desc = data.Alert ?? "<empty>";
@@ -111,10 +118,10 @@ namespace BabbyJotz.Android {
             // TODO: A better title.
             // TODO: Vibrate?
             // TODO: Collapse?
-            // TODO: Sync the app if it's open.
             // TODO: Don't show alert if the app is open?
             // TODO: Settings for notifications.
             // TODO: Does this run before the app is opened?
+            // TODO: Deal with deleted items correctly.
 
             var manager = (NotificationManager)GetSystemService(Context.NotificationService);
             // TODO: Figure out how to deal with this id.

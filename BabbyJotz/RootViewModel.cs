@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Xamarin.Forms;
 
-// TODO: Add beforeSave triggers to enforce ACLs, non-NULLs, and proper datetime.
-// TODO: Add push notifications.
 // TODO: Add a dark theme.
 namespace BabbyJotz {
 	public class RootViewModel : BindableObject {

@@ -418,6 +418,8 @@ namespace BabbyJotz.iOS {
                 });
             }
 
+            // TODO: If there were 1000 results, go ahead and try to sync again.
+
             // Signal listeners that the database has been updated.
             if (Changed != null) {
                 Changed(this, EventArgs.Empty);
