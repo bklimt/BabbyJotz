@@ -63,5 +63,9 @@ namespace BabbyJotz {
 				rootViewModel.LogOut();
 			}
 		}
+
+        public void OnToggleThemeClicked(object sender, EventArgs args) {
+            rootViewModel.ToggleTheme();
+        }
 	}
 }

@@ -89,6 +89,7 @@
     <Compile Include="BabbyJotzBroadcastReceiver.cs" />
     <Compile Include="BabbyJotzIntentService.cs" />
     <Compile Include="BabbyJotzApplication.cs" />
+    <Compile Include="Preferences.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />

@@ -17,10 +17,7 @@
             Title="Log"
             Icon="collections_view_as_list"
             IsBusy="{Binding Syncing}">
-            <StackLayout Spacing="8">
-                <StackLayout.BackgroundColor>
-                    <OnPlatform x:TypeArguments="Color" iOS="#ccffff" Android="#efffff" />
-                </StackLayout.BackgroundColor>
+            <StackLayout Spacing="8" BackgroundColor="{Binding Theme.Background}">
                 <StackLayout.Padding>
                     <Thickness Top="8" Bottom="0" Left="0" Right="0" />
                 </StackLayout.Padding>
@@ -29,10 +26,16 @@
                         <Thickness Left="8" Right="8" />
                     </StackLayout.Padding>
                     <Button Text="◀" Clicked="OnPreviousDayClicked" />
-                    <DatePicker Date="{Binding Date}" HorizontalOptions="FillAndExpand" />
+                    <DatePicker
+                        Date="{Binding Date}"
+                        BackgroundColor="White"
+                        HorizontalOptions="FillAndExpand" />
                     <Button Text="▶" Clicked="OnNextDayClicked" />
                 </StackLayout>
-                <ListView ItemsSource="{Binding Entries}" ItemTapped="OnEntryTapped" BackgroundColor="White">
+                <ListView
+                    ItemsSource="{Binding Entries}"
+                    ItemTapped="OnEntryTapped"
+                    BackgroundColor="{Binding Theme.ListBackground}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <!--<TextCell TextColor="Black" Text="{Binding Description}" />-->
@@ -43,7 +46,7 @@
                                     </StackLayout.Padding>
                                     <Label
                                         Text="{Binding Description}"
-                                        TextColor="Black"
+                                        TextColor="Gray"
                                         LineBreakMode="TailTruncation"
                                         VerticalOptions="CenterAndExpand" />
                                 </StackLayout>
@@ -80,16 +83,15 @@
         <ContentPage
             Title="Settings"
             Icon="action_settings"
-            IsBusy="{Binding Syncing}">
-            <ContentPage.BackgroundColor>
-                <OnPlatform x:TypeArguments="Color" iOS="#ccffff" Android="#efffff" />
-            </ContentPage.BackgroundColor>
+            IsBusy="{Binding Syncing}"
+            BackgroundColor="{Binding Theme.Background}">
             <StackLayout VerticalOptions="Center">
                 <StackLayout.Padding>
                     <Thickness Top="8" Bottom="8" Left="8" Right="8" />
                 </StackLayout.Padding>
                 <Label
                     Text="{Binding CloudUserName, StringFormat='Logged in as {0}'}"
+                    TextColor="{Binding Theme.Text}"
                     IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
                     HorizontalOptions="Center" />
                 <Button
@@ -107,6 +109,10 @@
                     Text="Log in to Cloud Sync"
                     Clicked="OnLogInClicked"
                     IsVisible="{Binding CloudUserName, Converter={StaticResource nullConverter}}"
+                    HorizontalOptions="FillAndExpand" />
+                <Button
+                    Text="Toggle Theme"
+                    Clicked="OnToggleThemeClicked"
                     HorizontalOptions="FillAndExpand" />
             </StackLayout>
         </ContentPage>

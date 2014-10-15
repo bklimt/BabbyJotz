@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Xamarin.Forms;
 
-// TODO: Add a dark theme.
+// TODO: Make a new icon.
+// TODO: Swap out toolbar icons on theme change.
 namespace BabbyJotz {
 	public class RootViewModel : BindableObject {
 		private IDataStore DataStore { get; set; }
+        private IPreferences Preferences { get; set; }
 		private TaskQueue syncQueue = new TaskQueue();
 
 		public ObservableCollection<LogEntry> Entries { get; private set; }
@@ -36,8 +38,16 @@ namespace BabbyJotz {
             set { SetValue(CloudUserNameProperty, value); }
         }
 
-		public RootViewModel(IDataStore dataStore) {
+        public static readonly BindableProperty ThemeProperty =
+            BindableProperty.Create<RootViewModel, Theme>(p => p.Theme, Theme.Light);
+        public Theme Theme {
+            get { return (Theme)base.GetValue(ThemeProperty); }
+            set { SetValue(ThemeProperty, value); }
+        }
+
+        public RootViewModel(IDataStore dataStore, IPreferences preferences) {
 			DataStore = dataStore;
+            Preferences = preferences;
 			Entries = new ObservableCollection<LogEntry>();
 			Statistics = new Statistics();
 			CloudUserName = DataStore.CloudUserName;
@@ -54,6 +64,8 @@ namespace BabbyJotz {
 			DataStore.Changed += (sender, e) => RefreshEntriesAsync();
 			var now = DateTime.Now;
 			Date = now - now.TimeOfDay;
+
+            Theme = Preferences.GetBool("dark") ? Theme.Dark : Theme.Light;
 
 			TryToSyncEventually();
 		}
@@ -170,6 +182,21 @@ namespace BabbyJotz {
 		public async Task GetStatisticsAsync() {
 			await DataStore.GetStatisticsAsync(Statistics);
 		}
+
+        public void ToggleTheme() {
+            if (Theme == Theme.Light) {
+                Theme = Theme.Dark;
+                Preferences.SetBool("dark", true);
+            } else {
+                Theme = Theme.Light;
+                Preferences.SetBool("dark", false);
+            }
+
+            // This is just a hack to make the ListView redraw with the right colors.
+            var originalDate = Date;
+            Date = originalDate.AddDays(1);
+            Date = originalDate;
+        }
 	}
 }
 

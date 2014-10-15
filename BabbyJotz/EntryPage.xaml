@@ -4,52 +4,84 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 	xmlns:local="clr-namespace:BabbyJotz;assembly=BabbyJotz"
 	x:Class="BabbyJotz.EntryPage"
+    IsBusy="{Binding RootViewModel.Syncing}"
 	Title="Edit Entry">
 	<ScrollView
 		HorizontalOptions="FillAndExpand"
 		VerticalOptions="FillAndExpand">
-		<StackLayout Spacing="8">
-		<StackLayout.BackgroundColor>
-			<OnPlatform x:TypeArguments="Color" iOS="#ccffff" Android="#efffff" />
-		</StackLayout.BackgroundColor>
+		<StackLayout Spacing="8" BackgroundColor="{Binding RootViewModel.Theme.Background}">
 		<StackLayout.Padding>
 			<Thickness Top="20" Bottom="20" Left="20" Right="20" />
 		</StackLayout.Padding>
 			<StackLayout Orientation="Horizontal" Spacing="8" HorizontalOptions="FillAndExpand">
-				<Label Text="Date" />
+				<Label
+                    Text="Date"
+                    TextColor="{Binding RootViewModel.Theme.Text}" />
 				<DatePicker
-					Date="{Binding Date}"
+					Date="{Binding LogEntry.Date}"
+                    BackgroundColor="White"
 					WidthRequest="150"
 					HorizontalOptions="EndAndExpand" />
 			</StackLayout>
 			<StackLayout Orientation="Horizontal" Spacing="8" HorizontalOptions="FillAndExpand">
-				<Label Text="Time" />
-				<TimePicker Time="{Binding Time}" WidthRequest="150" HorizontalOptions="EndAndExpand" />
+				<Label
+                    Text="Time"
+                    TextColor="{Binding RootViewModel.Theme.Text}" />
+				<TimePicker
+                    Time="{Binding LogEntry.Time}"
+                    BackgroundColor="White"
+                    WidthRequest="150"
+                    HorizontalOptions="EndAndExpand" />
 			</StackLayout>
-			<Label Text="Notes" />
+			<Label
+                Text="Notes"
+                TextColor="{Binding RootViewModel.Theme.Text}" />
 			<Editor
-				Text="{Binding Text}"
+				Text="{Binding LogEntry.Text}"
+                BackgroundColor="White"
 				Focused="OnNotesFocused"
 				HeightRequest="100"
 				HorizontalOptions="FillAndExpand" />
 			<StackLayout Orientation="Horizontal" Spacing="8">
-				<Label Text="💤 Asleep?" HorizontalOptions="FillAndExpand" />
-				<Switch IsToggled="{Binding IsAsleep}" />
+				<Label
+                    Text="💤 Asleep?"
+                    TextColor="{Binding RootViewModel.Theme.Text}"
+                    HorizontalOptions="FillAndExpand" />
+				<Switch IsToggled="{Binding LogEntry.IsAsleep}" />
 			</StackLayout>
 			<StackLayout Orientation="Horizontal" Spacing="8">
-				<Label Text="💩 Poop?" HorizontalOptions="FillAndExpand" />
-				<Switch IsToggled="{Binding IsPoop}" />
+				<Label
+                    Text="💩 Poop?"
+                    TextColor="{Binding RootViewModel.Theme.Text}"
+                    HorizontalOptions="FillAndExpand" />
+				<Switch IsToggled="{Binding LogEntry.IsPoop}" />
 			</StackLayout>
 			<StackLayout Orientation="Horizontal" Spacing="8" HorizontalOptions="FillAndExpand">
-				<Label Text="🍼 Eaten?" />
-				<Entry Text="{Binding FormulaEaten}" Keyboard="Numeric" WidthRequest="75" HorizontalOptions="EndAndExpand" />
-				<Label Text="oz" VerticalOptions="Center" HorizontalOptions="End" />
+				<Label
+                    Text="🍼 Eaten?"
+                    TextColor="{Binding RootViewModel.Theme.Text}" />
+				<Entry
+                    Text="{Binding LogEntry.FormulaEaten}"
+                    BackgroundColor="White"
+                    Keyboard="Numeric"
+                    WidthRequest="75"
+                    HorizontalOptions="EndAndExpand" />
+				<Label
+                    Text="oz"
+                    TextColor="{Binding RootViewModel.Theme.Text}"
+                    VerticalOptions="Center"
+                    HorizontalOptions="End" />
 			</StackLayout>
 			<StackLayout Orientation="Horizontal" Spacing="8">
-				<Button Text="Delete" Clicked="OnDeleteClicked" HorizontalOptions="FillAndExpand" />
-				<Button Text="Save" Clicked="OnSaveClicked" HorizontalOptions="FillAndExpand" />
+				<Button
+                    Text="Delete"
+                    Clicked="OnDeleteClicked"
+                    HorizontalOptions="FillAndExpand" />
+				<Button
+                    Text="Save"
+                    Clicked="OnSaveClicked"
+                    HorizontalOptions="FillAndExpand" />
 			</StackLayout>
-			<!--<local:KeyboardPlaceholderView Color="White" HeightRequest="0" />-->
 		</StackLayout>
 	</ScrollView>
 </ContentPage>

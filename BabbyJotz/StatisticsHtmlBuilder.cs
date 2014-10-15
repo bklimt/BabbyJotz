@@ -83,8 +83,13 @@ namespace BabbyJotz {
             return Task.Run(() => {
                 StringBuilder html = new StringBuilder(3000);  // The HTML is usually about 2.5k.
                 html.Append(header);
-                GenerateFormulaGraph(html, entries, 50);
-                GenerateSleepHeatMap(html, entries, 12, 15);
+                if (entries.Count == 0) {
+                    html.Append("<h2>No Data</h2>\n");
+                    html.Append("<p>Add some entries to see analytics.</p>");
+                } else {
+                    GenerateFormulaGraph(html, entries, 50);
+                    GenerateSleepHeatMap(html, entries, 12, 15);
+                }
                 html.Append(footer);
                 return html.ToString();
             });
@@ -104,7 +109,6 @@ namespace BabbyJotz {
                 FormulaEaten = day.ToList().Sum()
             };
 
-            // TODO: This fails if there are no entries.
             var maxEaten = (from day in eaten
                             select day.FormulaEaten).Max();
 

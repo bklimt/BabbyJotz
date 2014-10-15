@@ -10,7 +10,10 @@ namespace BabbyJotz {
 		public EntryPage(RootViewModel rootViewModel, LogEntry entry) {
 			RootViewModel = rootViewModel;
 			Entry = entry;
-			BindingContext = entry;
+            BindingContext = new {
+                RootViewModel = rootViewModel,
+                LogEntry = entry
+            };
 			InitializeComponent();
 		}
 

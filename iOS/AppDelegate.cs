@@ -1,16 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using MonoTouch.Foundation;
 using MonoTouch.UIKit;
 using Parse;
 using Xamarin.Forms;
+using Xamarin.Forms.Platform.iOS;
 
 namespace BabbyJotz.iOS {
     [Register("AppDelegate")]
     public partial class AppDelegate : UIApplicationDelegate {
         UIWindow window;
         RootViewModel model;
+
+        private void UpdateForTheme(Theme theme) {
+            // TODO: It would be nice if this took effect without restarting.
+            // One hacky way to do that would be to push something onto the
+            // navigation controller and then pop it off. Or maybe we could just
+            // replace this page somehow?
+            UITabBar.Appearance.BarTintColor = theme.Title.ToUIColor();
+            UITabBar.Appearance.BackgroundColor = theme.Title.ToUIColor();
+
+            // TODO: Make this the button text color.
+            UITabBar.Appearance.TintColor = theme.Text.ToUIColor();
+
+            if (theme == Theme.Dark) {
+                UIApplication.SharedApplication.StatusBarStyle =
+                    UIStatusBarStyle.Default;
+            } else {
+                UIApplication.SharedApplication.StatusBarStyle =
+                    UIStatusBarStyle.LightContent;
+            }
+        }
 
         public override bool FinishedLaunching(UIApplication app, NSDictionary options) {
             window = new UIWindow(UIScreen.MainScreen.Bounds);
@@ -22,7 +44,14 @@ namespace BabbyJotz.iOS {
                 "0ICNGpRDtEswmZw8E3nfS08W8RNWbFLExIIw2IvS");
             var cloudStore = new CloudStore();
             var localStore = new LocalStore(cloudStore);
-            model = new RootViewModel(localStore);
+
+            model = new RootViewModel(localStore, new Preferences());
+            model.PropertyChanged += (object sender, PropertyChangedEventArgs e) => {
+                if (e.PropertyName == "Theme") {
+                    UpdateForTheme(model.Theme);
+                }
+            };
+            UpdateForTheme(model.Theme);
 
             window.RootViewController = App.GetMainPage(model).CreateViewController();
             window.MakeKeyAndVisible();
@@ -55,7 +84,7 @@ namespace BabbyJotz.iOS {
                 obj["deviceToken"] = dt;
                 obj["deviceType"] = "ios";
                 obj["appIdentifier"] = "com.bklimt.BabbyJotz";
-                obj["timeZone"] = TimeZone.CurrentTimeZone.ToString();
+                // obj["timeZone"] = TimeZone.CurrentTimeZone.ToString();
                 obj["appName"] = "BabbyJotz";
                 obj["appVersion"] = "1.0.0";
                 obj["parseVersion"] = "1.3.0";

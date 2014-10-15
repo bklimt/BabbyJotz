@@ -22,7 +22,7 @@ namespace BabbyJotz.Android {
                 "0ICNGpRDtEswmZw8E3nfS08W8RNWbFLExIIw2IvS");
             var cloudStore = new BabbyJotz.iOS.CloudStore();
             var localStore = new BabbyJotz.iOS.LocalStore(cloudStore);
-            RootViewModel = new RootViewModel(localStore);
+            RootViewModel = new RootViewModel(localStore, new Preferences(this));
         }
     }
 }
