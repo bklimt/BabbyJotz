@@ -58,7 +58,7 @@ namespace BabbyJotz {
       .left {
         border-left: solid black 1px;
         border-right: solid black 1px;
-        width: 4%
+        width: 4%;
       }
       .right {
         border-right: solid black 1px;
@@ -87,6 +87,7 @@ namespace BabbyJotz {
                     html.Append("<h2>No Data</h2>\n");
                     html.Append("<p>Add some entries to see analytics.</p>");
                 } else {
+                    GeneratePoopGraph(html, entries);
                     GenerateFormulaGraph(html, entries, 50);
                     GenerateSleepHeatMap(html, entries, 12, 15);
                 }
@@ -141,6 +142,77 @@ namespace BabbyJotz {
                     html.AppendFormat("<td class=\"{0} {1}\">&nbsp;</td>", colorClass, rowClass);
                 }
                 html.AppendFormat("<td class=\"white right {1}\">{0}</td>\n", day.FormulaEaten, rowClass);
+                html.AppendFormat("</tr>\n");
+            }
+
+            html.Append(tableFooter);
+        }
+
+        private static void GeneratePoopGraph(StringBuilder html, List<LogEntry> entries) {
+            var tableHeader = "<h2>Poop</h2><table>\n";
+            var tableFooter = "</table>\n";
+
+            html.Append(tableHeader);
+
+            var pooped = from entry in entries
+                         where entry.IsPoop
+                         group entry.IsPoop by entry.Date into day
+                         select new {
+                             Date = day.Key,
+                             Poops = day.ToList().Count
+                         };
+
+            var maxPooped = (from day in pooped
+                select day.Poops).Max();
+
+            var minDate = (from day in pooped
+                select day.Date).Min();
+
+            var maxDate = (from day in pooped
+                select day.Date).Max();
+            var endDate = maxDate.AddDays(1);
+
+            var columnWidth = 100 / (maxPooped + 2);
+
+            var poopEnumerator = pooped.GetEnumerator();
+            poopEnumerator.MoveNext();
+            for (var date = minDate; date != endDate; date = date.AddDays(1)) {
+                while (poopEnumerator.Current.Date < date) {
+                    poopEnumerator.MoveNext();
+                }
+                var poops = 0;
+                if (poopEnumerator.Current.Date == date) {
+                    poops = poopEnumerator.Current.Poops;
+                }
+
+                html.AppendFormat(
+                    "<tr><th class=\"left\" style=\"width: {1}%\">{0}</th>\n",
+                    date.ToString("MM/dd"),
+                    columnWidth);
+
+                var rowClass = "";
+                if (date == minDate) {
+                    rowClass = "top-cell";
+                }
+                if (date == maxDate) {
+                    rowClass = "bottom";
+                }
+                for (int i = 0; i <= maxPooped; ++i) {
+                    var colorClass = "white";
+                    if (poops > i) {
+                        colorClass = "black";
+                    }
+                    html.AppendFormat(
+                        "<td class=\"{0} {1}\" style=\"width: {2}%\">&nbsp;</td>",
+                        colorClass,
+                        rowClass,
+                        columnWidth);
+                }
+                html.AppendFormat(
+                    "<td class=\"white right {1}\" style=\"width: {2}%\">{0}</td>\n",
+                    poops,
+                    rowClass,
+                    columnWidth);
                 html.AppendFormat("</tr>\n");
             }
 
