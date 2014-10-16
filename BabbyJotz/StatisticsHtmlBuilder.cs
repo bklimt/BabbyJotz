@@ -28,7 +28,7 @@ namespace BabbyJotz {
         width: 100%;
       }
       th {
-        font-size: 4pt;
+        font-size: 8pt;
         border; 0px;
       }
       td {
@@ -63,6 +63,10 @@ namespace BabbyJotz {
       .right {
         border-right: solid black 1px;
       }
+      .right-label {
+        border-right: solid black 1px;
+        font-size: 8pt;
+      }
       .bottom {
         border-bottom: solid black 1px;
       }
@@ -76,119 +80,242 @@ namespace BabbyJotz {
 </html>
 ";
 
-        public StatisticsHtmlBuilder() {
+        private enum Metric { Sleeping, Eating, Pooping };
+
+        private StatisticsHtmlBuilder() {
         }
 
-        public static Task<string> GenerateStatisticsHtmlAsync(List<LogEntry> entries) {
-            return Task.Run(() => {
-                StringBuilder html = new StringBuilder(3000);  // The HTML is usually about 2.5k.
+        private delegate void HtmlBuilderFunc(StringBuilder html, List<LogEntry> entries);
+
+        private static async Task<string> GetHtmlAsync(RootViewModel model, HtmlBuilderFunc func) {
+            var entries = await model.GetEntriesForStatisticsAsync();
+            return await Task.Run(() => {
+                var html = new StringBuilder(5000);
                 html.Append(header);
                 if (entries.Count == 0) {
                     html.Append("<h2>No Data</h2>\n");
                     html.Append("<p>Add some entries to see analytics.</p>");
                 } else {
-                    GeneratePoopGraph(html, entries);
-                    GenerateFormulaGraph(html, entries, 50);
-                    GenerateSleepHeatMap(html, entries, 12, 15);
+                    func(html, entries);
                 }
                 html.Append(footer);
                 return html.ToString();
             });
         }
 
-        private static void GenerateFormulaGraph(StringBuilder html, List<LogEntry> entries, int steps) {
-            var tableHeader = "<h2>Feeding</h2><table>\n";
-            var tableFooter = "</table>\n";
+        public static async Task<string> GetSleepingBarChartHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateBarChart(html, entries, Metric.Sleeping, 50));
+        }
 
-            html.Append(tableHeader);
+        public static async Task<string> GetSleepingNightHeatMapHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateHeatMap(html, entries, Metric.Sleeping, true, 15));
+        }
 
-            var eaten = from entry in entries
-                        where entry.FormulaEaten > 0.0m
-                        group entry.FormulaEaten by entry.Date into day
-                        select new {
-                Date = day.Key,
-                FormulaEaten = day.ToList().Sum()
-            };
+        public static async Task<string> GetSleepingDayHeatMapHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateHeatMap(html, entries, Metric.Sleeping, false, 15));
+        }
 
-            var maxEaten = (from day in eaten
-                            select day.FormulaEaten).Max();
+        public static async Task<string> GetEatingBarChartHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateBarChart(html, entries, Metric.Eating, 50));
+        }
 
-            var minDate = (from day in eaten
-                           select day.Date).Min();
+        public static async Task<string> GetEatingHeatMapHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateHeatMap(html, entries, Metric.Eating, false, 30));
+        }
 
-            var maxDate = (from day in eaten
-                           select day.Date).Max();
+        public static async Task<string> GetPoopingBarChartHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateBarChart(html, entries, Metric.Pooping, 50));
+        }
 
-            var step = maxEaten / steps;
+        public static async Task<string> GetPoopingHeatMapHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateHeatMap(html, entries, Metric.Pooping, false, 30));
+        }
 
-            foreach (var day in eaten) {
-                html.AppendFormat("<tr><th class=\"left\">{0}</th>\n", day.Date.ToString("MM/dd"));
-                var rowClass = "";
-                if (day.Date == minDate) {
-                    rowClass = "top-cell";
+        private static DateTime DatetimeModMinutes(DateTime date, int minutes) {
+            return (date - date.TimeOfDay) +
+                TimeSpan.FromHours(date.Hour) +
+                TimeSpan.FromMinutes(date.Minute % minutes);
+        }
+
+        private static void GenerateHeatMap(StringBuilder html, List<LogEntry> entries, Metric metric, bool night, int quantum) {
+            html.Append("<table><tr><th>&nbsp;</th>\n");
+            for (int i = 0; i < 2; ++i) {
+                if ((night ? (1 - i) : i) == 0) {
+                    html.AppendFormat("<th class=\"top\" colspan=\"{0}\">Midnight</th>\n", (7 * 60) / quantum);
+                    html.AppendFormat("<th class=\"top\" colspan=\"{0}\">7am</th>\n", (5 * 60) / quantum);
+                } else {
+                    html.AppendFormat("<th class=\"top\" colspan=\"{0}\">Noon</th>\n", (7 * 60) / quantum);
+                    html.AppendFormat("<th class=\"top\" colspan=\"{0}\">7pm</th>\n", (5 * 60) / quantum);
                 }
-                if (day.Date == maxDate) {
-                    rowClass = "bottom";
+            }
+            html.Append("</tr>\n");
+
+            var maxEaten = 0.0m;
+            if (metric == Metric.Eating) {
+                maxEaten = (from e in entries
+                            group e.FormulaEaten by DatetimeModMinutes(e.DateTime, quantum) into day
+                            select day.ToList().Sum()).Max();
+            }
+
+            bool wasJustAsleep = false;
+
+            var startDay = entries[0].Date;
+            var lastDay = entries[entries.Count - 1].Date;
+
+            if (night) {
+                var startDateTime = entries[0].DateTime;
+                var startDayNoon = (startDateTime - startDateTime.TimeOfDay).AddHours(12);
+                if (startDateTime < startDayNoon) {
+                    startDayNoon = startDayNoon.AddDays(-1.0);
                 }
-                for (int i = 0; i < steps; ++i) {
-                    var colorClass = "white";
-                    if (day.FormulaEaten > (i * step)) {
-                        if (day.FormulaEaten >= ((i + 1) * step)) {
-                            colorClass = "black";
-                        } else {
-                            colorClass = "dark";
+                startDay = startDayNoon;
+
+                var lastDateTime = entries[entries.Count - 1].DateTime;
+                var lastDayNoon = (lastDateTime - lastDateTime.TimeOfDay).AddHours(12);
+                if (lastDateTime < lastDayNoon) {
+                    lastDayNoon = lastDayNoon.AddDays(-1.0);
+                }
+                lastDay = lastDayNoon;
+            }
+
+            var endDay = lastDay.AddDays(1);
+
+            var entry = entries.GetEnumerator();
+            var entryValid = entry.MoveNext();
+
+            var nextDay = startDay;
+            for (var day = startDay; day != endDay; day = nextDay) {
+                html.AppendFormat("<tr><th class=\"left\">{0}</th>\n", day.ToString("MM/dd"));
+                nextDay = day.AddDays(1);
+                var nextTime = day;
+                for (var time = day; time != nextDay; time = nextTime) {
+                    nextTime = time.AddMinutes(quantum);
+                    var eaten = 0.0m;
+                    var pooped = false;
+                    // If the entry lines up perfectly with the time, don't use the last asleep value.
+                    if (entry.Current.DateTime == time) {
+                        wasJustAsleep = entry.Current.IsAsleep;
+                    }
+                    var wasEverAsleep = wasJustAsleep;
+                    var wasAlwaysAsleep = wasJustAsleep;
+                    var hadEntries = false;
+                    while (entryValid && entry.Current.DateTime < nextTime) {
+                        eaten += entry.Current.FormulaEaten;
+                        pooped = pooped || entry.Current.IsPoop;
+                        wasJustAsleep = entry.Current.IsAsleep;
+                        wasEverAsleep = wasEverAsleep || entry.Current.IsAsleep;
+                        wasAlwaysAsleep = wasAlwaysAsleep && entry.Current.IsAsleep;
+                        hadEntries = true;
+                        entryValid = entry.MoveNext();
+                    }
+
+                    var cssClass = "white";
+
+                    if (metric == Metric.Eating) {
+                        var eatenRatio = Math.Min(eaten / maxEaten, 1.0m);
+
+                        // TODO: Make this grayscale or something.
+                        if (eatenRatio > 0.66m) {
+                            cssClass = "black";
+                        } else if (eatenRatio >= 0.33m) {
+                            cssClass = "dark";
+                        } else if (eatenRatio > 0) {
+                            cssClass = "light";
                         }
                     }
-                    html.AppendFormat("<td class=\"{0} {1}\">&nbsp;</td>", colorClass, rowClass);
+
+                    if (metric == Metric.Pooping) {
+                        if (pooped) {
+                            cssClass = "black";
+                        }
+                    }
+
+                    if (metric == Metric.Sleeping) {
+                        if (wasAlwaysAsleep && !hadEntries) {
+                            cssClass = "black";
+                        } else if (wasAlwaysAsleep) {
+                            cssClass = "dark";
+                        } else if (wasEverAsleep) {
+                            cssClass = "light";
+                        }
+                    }
+
+                    if (nextTime.Minute == 0 &&
+                        (nextTime.Hour == 0 || nextTime.Hour == 7 || nextTime.Hour == 12 || nextTime.Hour == 19)) {
+                        cssClass += " right";
+                    }
+                    if (day == lastDay) {
+                        cssClass += " bottom";
+                    }
+
+                    html.AppendFormat("<td class=\"{0}\">&nbsp;</td>", cssClass);
                 }
-                html.AppendFormat("<td class=\"white right {1}\">{0}</td>\n", day.FormulaEaten, rowClass);
                 html.AppendFormat("</tr>\n");
             }
 
-            html.Append(tableFooter);
+            html.Append("</table>\n");
         }
 
-        private static void GeneratePoopGraph(StringBuilder html, List<LogEntry> entries) {
-            var tableHeader = "<h2>Poop</h2><table>\n";
-            var tableFooter = "</table>\n";
+        private struct DailyTotal {
+            public DateTime Date;
+            public decimal Amount;
+        }
 
-            html.Append(tableHeader);
+        private static void GenerateBarChart(StringBuilder html, List<LogEntry> entries, Metric metric, int steps) {
+            html.Append("<table>\n");
 
-            var pooped = from entry in entries
-                         where entry.IsPoop
-                         group entry.IsPoop by entry.Date into day
-                         select new {
-                             Date = day.Key,
-                             Poops = day.ToList().Count
-                         };
+            IEnumerable<DailyTotal> dailyTotals = null;
 
-            var maxPooped = (from day in pooped
-                select day.Poops).Max();
+            if (metric == Metric.Eating) {
+                dailyTotals = from entry in entries
+                              where entry.FormulaEaten > 0.0m
+                              group entry.FormulaEaten by entry.Date into day
+                              select new DailyTotal {
+                    Date = day.Key,
+                    Amount = day.ToList().Sum()
+                };
+            }
 
-            var minDate = (from day in pooped
-                select day.Date).Min();
+            if (metric == Metric.Pooping) {
+                dailyTotals = from entry in entries
+                              where entry.IsPoop
+                              group entry.IsPoop by entry.Date into day
+                              select new DailyTotal {
+                    Date = day.Key,
+                    Amount = day.ToList().Count()
+                };
+            }
 
-            var maxDate = (from day in pooped
-                select day.Date).Max();
+            var maxAmount = (from day in dailyTotals select day.Amount).Max();
+            var minDate = (from day in dailyTotals select day.Date).Min();
+            var maxDate = (from day in dailyTotals select day.Date).Max();
+
+            if (metric == Metric.Pooping) {
+                maxAmount += 1.0m;
+                steps = (int)maxAmount;
+            }
+            var step = maxAmount / steps;
+
             var endDate = maxDate.AddDays(1);
 
-            var columnWidth = 100 / (maxPooped + 2);
+            var columnWidthString = "";
+            if (metric == Metric.Pooping) {
+                var columnWidth = 100 / ((int)maxAmount + 1);
+                columnWidthString = String.Format(" style=\"width: {0}%\"", columnWidth);
+            }
 
-            var poopEnumerator = pooped.GetEnumerator();
-            poopEnumerator.MoveNext();
+            var dailyTotal = dailyTotals.GetEnumerator();
+            dailyTotal.MoveNext();
             for (var date = minDate; date != endDate; date = date.AddDays(1)) {
-                while (poopEnumerator.Current.Date < date) {
-                    poopEnumerator.MoveNext();
+                while (dailyTotal.Current.Date < date) {
+                    dailyTotal.MoveNext();
                 }
-                var poops = 0;
-                if (poopEnumerator.Current.Date == date) {
-                    poops = poopEnumerator.Current.Poops;
+                var amount = 0.0m;
+                if (dailyTotal.Current.Date == date) {
+                    amount = dailyTotal.Current.Amount;
                 }
 
-                html.AppendFormat(
-                    "<tr><th class=\"left\" style=\"width: {1}%\">{0}</th>\n",
-                    date.ToString("MM/dd"),
-                    columnWidth);
+                html.AppendFormat("<tr><th class=\"left\"{1}>{0}</th>\n", date.ToString("MM/dd"), columnWidthString);
 
                 var rowClass = "";
                 if (date == minDate) {
@@ -197,120 +324,30 @@ namespace BabbyJotz {
                 if (date == maxDate) {
                     rowClass = "bottom";
                 }
-                for (int i = 0; i <= maxPooped; ++i) {
+                for (int i = 0; i < steps; ++i) {
                     var colorClass = "white";
-                    if (poops > i) {
-                        colorClass = "black";
+
+                    if (amount > (i * step)) {
+                        if (amount >= ((i + 1) * step)) {
+                            colorClass = "black";
+                        } else {
+                            colorClass = "dark";
+                        }
                     }
-                    html.AppendFormat(
-                        "<td class=\"{0} {1}\" style=\"width: {2}%\">&nbsp;</td>",
-                        colorClass,
-                        rowClass,
-                        columnWidth);
+
+                    html.AppendFormat("<td class=\"{0} {1}\"{2}>&nbsp;</td>", colorClass, rowClass, columnWidthString);
                 }
+
                 html.AppendFormat(
-                    "<td class=\"white right {1}\" style=\"width: {2}%\">{0}</td>\n",
-                    poops,
+                    "<td class=\"white right-label {1}\"{2}>{0}</td>\n",
+                    dailyTotal.Current.Amount,
                     rowClass,
-                    columnWidth);
+                    columnWidthString);
+
                 html.AppendFormat("</tr>\n");
             }
 
-            html.Append(tableFooter);
-        }
-
-        // TODO: Rewrite this to be simpler.
-        private static void GenerateSleepHeatMap(StringBuilder html, List<LogEntry> entries, int startHour, int quantum) {
-            var tableHeader = "<h2>Sleeping</h2><table><tr><th>&nbsp;</th>\n";
-            var tableFooter = "</tr></table>\n";
-
-            html.Append(tableHeader);
-
-            // TODO: The times listed need to be based on startHour.
-            html.AppendFormat("<th class=\"top\" colspan=\"{0}\">Noon</th>\n", (7 * 60) / quantum);
-            html.AppendFormat("<th class=\"top\" colspan=\"{0}\">7pm</th>\n", (5 * 60) / quantum);
-            html.AppendFormat("<th class=\"top\" colspan=\"{0}\">Midnight</th>\n", (7 * 60) / quantum);
-            html.AppendFormat("<th class=\"top\" colspan=\"{0}\">7am</th>\n", (5 * 60) / quantum);
-
-            var startDate = entries[0].DateTime;
-            var endDate = entries[entries.Count - 1].DateTime;
-
-            // Fast forward to the next noon (or startHour).
-            var startDateNoon = (startDate - startDate.TimeOfDay).AddHours(startHour);
-            if (startDate > startDateNoon) {
-                startDateNoon = startDateNoon.AddDays(1.0);
-            }
-            startDate = startDateNoon;
-
-            // Rewind to the previous noon (or startHour).                                               
-            var endDateNoon = (endDate - endDate.TimeOfDay).AddHours(startHour);
-            if (endDate < endDateNoon) {
-                endDateNoon = endDateNoon.AddDays(-1.0);
-            }
-            endDate = endDateNoon;
-
-            var t = startDate;
-            var i = 0;
-            var hasProcessedEntry = false;
-            var isAsleep = false;
-            var wasEverAsleep = false;
-            var wasAlwaysAsleep = false;
-            var count = 0;
-            var outputting = false;
-
-            while (true) {
-                if (t <= entries[i].DateTime) {
-                    // The next entry is in the future, just propagate the asleep state.
-                    if (hasProcessedEntry) {
-                        var cssClass = "";
-                        if (wasAlwaysAsleep) {
-                            if (count > 1) {
-                                cssClass = "dark";
-                            } else {
-                                cssClass = "black";
-                            }
-                        } else {
-                            if (wasEverAsleep) {
-                                cssClass = "light";
-                            } else {
-                                cssClass = "white";
-                            }
-                        }
-                        if (t.Minute == 0 && (t.Hour == 0 || t.Hour == 7 || t.Hour == 12 || t.Hour == 19)) {
-                            cssClass += " right";
-                        }
-                        if (t > endDate.AddDays(-1)) {
-                            cssClass += " bottom";
-                        }
-                        if (outputting) {
-                            html.AppendFormat("<td class=\"{0}\">&nbsp;</td>\n", cssClass);
-                        }
-                        if (t.Hour == startHour && t.Minute == 0) {
-                            outputting = (t != endDate);
-                            if (outputting) {
-                                html.AppendFormat("</tr><tr><th class=\"left\">{0}</th>\n", t.ToString("MM/dd"));
-                            }
-                        }
-                        wasEverAsleep = isAsleep;
-                        wasAlwaysAsleep = isAsleep;
-                        count = 1;
-                    }
-                    t = t.AddMinutes(quantum);
-                } else {
-                    // The next entry is in this time span. Record that there was sleeping
-                    // and move to the next entry.
-                    isAsleep = entries[i].IsAsleep;
-                    wasEverAsleep = wasEverAsleep || isAsleep;
-                    wasAlwaysAsleep = wasAlwaysAsleep && isAsleep;
-                    hasProcessedEntry = true;
-                    count++;
-                    i++;
-                    if (i >= entries.Count) {
-                        break;
-                    }                                                                         
-                }
-            }
-            html.Append(tableFooter);
+            html.Append("</table>\n");
         }
     }
 }

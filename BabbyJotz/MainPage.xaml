@@ -60,11 +60,26 @@
             Title="Stats"
             Icon="action_settings"
             IsBusy="{Binding Syncing}">
+            <TableView Intent="Menu" BackgroundColor="{Binding Theme.Background}">
+                <TableSection Title="Sleeping">
+                    <TextCell Text="Bar Chart" TextColor="Blue" Tapped="OnSleepingBarChartClicked" />
+                    <TextCell Text="Night Heat Map" TextColor="Blue" Tapped="OnSleepingNightHeatMapClicked" />
+                    <TextCell Text="Day Heat Map" TextColor="Blue" Tapped="OnSleepingDayHeatMapClicked" />
+                </TableSection>
+                <TableSection Title="Eating">
+                    <TextCell Text="Bar Chart" TextColor="Blue" Tapped="OnEatingBarChartClicked" />
+                    <TextCell Text="Heat Map" TextColor="Blue" Tapped="OnEatingHeatMapClicked" />
+                </TableSection>
+                <TableSection Title="Pooping">
+                    <TextCell Text="Bar Chart" TextColor="Blue" Tapped="OnPoopingBarChartClicked" />
+                    <TextCell Text="Heat Map" TextColor="Blue" Tapped="OnPoopingHeatMapClicked" />
+                </TableSection>
+            </TableView>
+            <!--
             <StackLayout HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
                 <StackLayout.Padding>
                     <Thickness Top="0" Bottom="0" Left="0" Right="0" />
                 </StackLayout.Padding>
-                <!--
                 <Label Text="{Binding Statistics.TotalEatenLastDay, StringFormat='Total Eaten in Last 24 Hours: {0:F2} oz'}" />
                 <Label Text="{Binding Statistics.TotalEatenLastThreeDays, StringFormat='Total Eaten in Last 3 Days: {0:F2} oz'}" />
                 <Label Text="{Binding Statistics.AverageEatenLastThreeDays, StringFormat='Average Eaten in Last 3 Days: {0:F2} oz'}" />
@@ -72,13 +87,13 @@
                 <Label Text="{Binding Statistics.AverageEatenLastWeek, StringFormat='Average Eaten in Last 7 Days: {0:F2} oz'}" />
                 <Label Text="{Binding Statistics.TotalEatenLastMonth, StringFormat='Total Eaten in Last 30 Days: {0:F2} oz'}" />
                 <Label Text="{Binding Statistics.AverageEatenLastMonth, StringFormat='Average Eaten in Last 30 Days: {0:F2} oz'}" />
-                -->
                 <WebView x:Name="webview" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
                     <WebView.Source>
                         <HtmlWebViewSource Html="{Binding Statistics.Html}"/>
                     </WebView.Source>
                 </WebView>
             </StackLayout>
+            -->
         </ContentPage>
         <ContentPage
             Title="Settings"

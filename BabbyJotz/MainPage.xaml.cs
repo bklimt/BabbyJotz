@@ -13,17 +13,12 @@ namespace BabbyJotz {
 			InitializeComponent();
 
             // Seems like a bug with WebView binding.
-            webview.BindingContext = BindingContext;
+            // webview.BindingContext = BindingContext;
 
+            // TODO: Bind this icon to a theme.
 			ToolbarItems.Add(new ToolbarItem("Add", "content_new_event", async () => {
 				await OnAddClicked();
 			}));
-
-			CurrentPageChanged += async (object sender, EventArgs e) => {
-				if (CurrentPage.Title == "Stats") {
-					await rootViewModel.GetStatisticsAsync();
-				}
-			};
 		}
 
 		private async Task OnAddClicked() {
@@ -67,5 +62,40 @@ namespace BabbyJotz {
         public void OnToggleThemeClicked(object sender, EventArgs args) {
             rootViewModel.ToggleTheme();
         }
-	}
+
+        public async void OnSleepingBarChartClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new WebViewPage("Sleeping", () =>
+                StatisticsHtmlBuilder.GetSleepingBarChartHtmlAsync(rootViewModel)));
+        }
+
+        public async void OnSleepingDayHeatMapClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new WebViewPage("Sleeping", () =>
+                StatisticsHtmlBuilder.GetSleepingDayHeatMapHtmlAsync(rootViewModel)));
+        }
+
+        public async void OnSleepingNightHeatMapClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new WebViewPage("Sleeping", () =>
+                StatisticsHtmlBuilder.GetSleepingNightHeatMapHtmlAsync(rootViewModel)));
+        }
+
+        public async void OnEatingBarChartClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new WebViewPage("Eating", () =>
+                StatisticsHtmlBuilder.GetEatingBarChartHtmlAsync(rootViewModel)));
+        }
+
+        public async void OnEatingHeatMapClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new WebViewPage("Eating", () =>
+                StatisticsHtmlBuilder.GetEatingHeatMapHtmlAsync(rootViewModel)));
+        }
+
+        public async void OnPoopingBarChartClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new WebViewPage("Pooping", () =>
+                StatisticsHtmlBuilder.GetPoopingBarChartHtmlAsync(rootViewModel)));
+        }
+
+        public async void OnPoopingHeatMapClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new WebViewPage("Pooping", () =>
+                StatisticsHtmlBuilder.GetPoopingHeatMapHtmlAsync(rootViewModel)));
+        }
+    }
 }

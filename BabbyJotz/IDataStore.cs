@@ -12,8 +12,8 @@ namespace BabbyJotz {
 		Task DeleteAsync(LogEntry entry);
 		Task<IEnumerable<LogEntry>> FetchAsync(DateTime day);
 
-		// Statistics
-		Task GetStatisticsAsync(Statistics stats);
+        // Statistics
+        Task<List<LogEntry>> GetEntriesForStatisticsAsync();
 
 		// Cloud Syncing
 		string CloudUserName { get; }
