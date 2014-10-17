@@ -7,6 +7,7 @@ using System.Windows.Input;
 using Xamarin.Forms;
 
 // TODO: Make a new icon.
+// TODO: Add launch images.
 // TODO: Swap out toolbar icons on theme change.
 namespace BabbyJotz {
 	public class RootViewModel : BindableObject {

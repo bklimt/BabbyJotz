@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Xamarin.Forms;
+
 namespace BabbyJotz {
     public class StatisticsHtmlBuilder {
         private static readonly string header = @"
@@ -15,6 +17,7 @@ namespace BabbyJotz {
         padding: 0px;
         margin: 8px;
         font-family: Helvetica;
+        background-color: ""{Binding Background}"";
       }
       h2 {
         font-size: 12pt;
@@ -85,13 +88,22 @@ namespace BabbyJotz {
         private StatisticsHtmlBuilder() {
         }
 
+        private static string ToHexString(Color color) {
+            return String.Format("#{0:x2}{1:x2}{2:x2}", (int)color.R, (int)color.G, (int)color.B);
+        }
+
+        private static string Header(Theme theme) {
+            // TODO: Why doesn't this work?
+            return header.Replace("{Binding Background}", ToHexString(theme.Background));
+        }
+
         private delegate void HtmlBuilderFunc(StringBuilder html, List<LogEntry> entries);
 
         private static async Task<string> GetHtmlAsync(RootViewModel model, HtmlBuilderFunc func) {
             var entries = await model.GetEntriesForStatisticsAsync();
             return await Task.Run(() => {
                 var html = new StringBuilder(5000);
-                html.Append(header);
+                html.Append(Header(model.Theme));
                 if (entries.Count == 0) {
                     html.Append("<h2>No Data</h2>\n");
                     html.Append("<p>Add some entries to see analytics.</p>");
@@ -261,6 +273,48 @@ namespace BabbyJotz {
             public decimal Amount;
         }
 
+        // TODO: Separate out day sleep and night sleep.
+        private static List<DailyTotal> ComputeSleepDailyTotals(List<LogEntry> entries) {
+            var startDay = entries[0].Date;
+            var lastDay = entries[entries.Count - 1].Date;
+            var endDay = lastDay.AddDays(1);
+
+            var entry = entries.GetEnumerator();
+            var entryValid = entry.MoveNext();
+
+            var totals = new List<DailyTotal>();
+
+            DateTime? napTime = null;
+            var nextDay = startDay;
+            for (var day = startDay; day != endDay; day = nextDay) {
+                var timeSlept = TimeSpan.FromMinutes(0);
+                nextDay = day.AddDays(1);
+                while (entryValid && entry.Current.DateTime < nextDay) {
+                    if (napTime != null && !entry.Current.IsAsleep) {
+                        // He woke up.
+                        timeSlept += (entry.Current.DateTime - napTime.Value);
+                        napTime = null;
+                    } else if (napTime == null && entry.Current.IsAsleep) {
+                        // He fell asleep.
+                        napTime = entry.Current.DateTime;
+                    }
+                    entryValid = entry.MoveNext();
+                }
+                if (napTime != null) {
+                    // He was asleep at the end of the day.
+                    timeSlept += (nextDay - napTime.Value);
+                    napTime = nextDay;
+                }
+
+                totals.Add(new DailyTotal() {
+                    Date = day,
+                    Amount = (decimal)timeSlept.TotalMinutes
+                });
+            }
+
+            return totals;
+        }
+
         private static void GenerateBarChart(StringBuilder html, List<LogEntry> entries, Metric metric, int steps) {
             html.Append("<table>\n");
 
@@ -286,9 +340,14 @@ namespace BabbyJotz {
                 };
             }
 
+            if (metric == Metric.Sleeping) {
+                dailyTotals = ComputeSleepDailyTotals(entries);
+            }
+
             var maxAmount = (from day in dailyTotals select day.Amount).Max();
-            var minDate = (from day in dailyTotals select day.Date).Min();
-            var maxDate = (from day in dailyTotals select day.Date).Max();
+
+            var minDate = entries[0].Date;
+            var maxDate = entries[entries.Count - 1].Date;
 
             if (metric == Metric.Pooping) {
                 maxAmount += 1.0m;
@@ -338,9 +397,15 @@ namespace BabbyJotz {
                     html.AppendFormat("<td class=\"{0} {1}\"{2}>&nbsp;</td>", colorClass, rowClass, columnWidthString);
                 }
 
+                var amountString = String.Format("{0}", dailyTotal.Current.Amount);
+                if (metric == Metric.Sleeping) {
+                    var span = TimeSpan.FromMinutes((double)dailyTotal.Current.Amount);
+                    amountString = span.ToString(@"hh\:mm");
+                }
+
                 html.AppendFormat(
                     "<td class=\"white right-label {1}\"{2}>{0}</td>\n",
-                    dailyTotal.Current.Amount,
+                    amountString,
                     rowClass,
                     columnWidthString);
 

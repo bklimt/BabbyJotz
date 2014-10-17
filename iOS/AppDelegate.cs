@@ -15,15 +15,10 @@ namespace BabbyJotz.iOS {
         RootViewModel model;
 
         private void UpdateForTheme(Theme theme) {
-            // TODO: It would be nice if this took effect without restarting.
-            // One hacky way to do that would be to push something onto the
-            // navigation controller and then pop it off. Or maybe we could just
-            // replace this page somehow?
             UITabBar.Appearance.BarTintColor = theme.Title.ToUIColor();
-            UITabBar.Appearance.BackgroundColor = theme.Title.ToUIColor();
-
-            // TODO: Make this the button text color.
             UITabBar.Appearance.TintColor = theme.Text.ToUIColor();
+            // TODO: Does this even do anything? The unselected icons are invisible.
+            UITabBar.Appearance.BackgroundColor = theme.Background.ToUIColor();
 
             if (theme == Theme.Dark) {
                 UIApplication.SharedApplication.StatusBarStyle =

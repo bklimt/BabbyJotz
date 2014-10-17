@@ -96,6 +96,7 @@ namespace BabbyJotz {
             BindableProperty.Create<LogEntry, decimal>(p => p.FormulaEaten, 0.0m,
                 BindingMode.Default, null, (p, _1, _2) => UpdateDescription(p), null, null);
 
+        // TODO: Get rid of decimal everywhere.
         public decimal FormulaEaten {
             get { return (decimal)base.GetValue(FormulaEatenProperty); }
             set { SetValue(FormulaEatenProperty, value); }

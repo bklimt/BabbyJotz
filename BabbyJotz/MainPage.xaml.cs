@@ -28,6 +28,7 @@ namespace BabbyJotz {
 		public async void OnEntryTapped(object sender, EventArgs args) {
 			var tappedArgs = args as ItemTappedEventArgs;
 			var entry = tappedArgs.Item as LogEntry;
+            // TODO: Copy the entry so that navigating back cancels changes.
 			await Navigation.PushAsync(new EntryPage(rootViewModel, entry));
 		}
 
@@ -53,14 +54,17 @@ namespace BabbyJotz {
 		}
 
 		public async void OnLogOutClicked(object sender, EventArgs args) {
+            // TODO: Maybe remove synced items on log out?
 			var ok = await DisplayAlert("Are you sure?", "Future syncing may fail.", "OK", "Cancel");
 			if (ok) {
 				rootViewModel.LogOut();
 			}
 		}
 
-        public void OnToggleThemeClicked(object sender, EventArgs args) {
+        public async void OnToggleThemeClicked(object sender, EventArgs args) {
             rootViewModel.ToggleTheme();
+            // This is a stupid hack to force the tabs on the bottom to update.
+            await Navigation.PushAsync(new VanishingPage(rootViewModel));
         }
 
         public async void OnSleepingBarChartClicked(object sender, EventArgs args) {

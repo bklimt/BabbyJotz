@@ -17,7 +17,7 @@
             Title="Log"
             Icon="collections_view_as_list"
             IsBusy="{Binding Syncing}">
-            <StackLayout Spacing="8" BackgroundColor="{Binding Theme.Background}">
+            <StackLayout Spacing="8" BackgroundColor="{Binding Theme.ListBackground}">
                 <StackLayout.Padding>
                     <Thickness Top="8" Bottom="0" Left="0" Right="0" />
                 </StackLayout.Padding>
@@ -59,20 +59,42 @@
         <ContentPage
             Title="Stats"
             Icon="action_settings"
+            BackgroundColor="{Binding Theme.Background}"
             IsBusy="{Binding Syncing}">
-            <TableView Intent="Menu" BackgroundColor="{Binding Theme.Background}">
+            <TableView Intent="Menu" BackgroundColor="#00000000">
                 <TableSection Title="Sleeping">
-                    <TextCell Text="Bar Chart" TextColor="Blue" Tapped="OnSleepingBarChartClicked" />
-                    <TextCell Text="Night Heat Map" TextColor="Blue" Tapped="OnSleepingNightHeatMapClicked" />
-                    <TextCell Text="Day Heat Map" TextColor="Blue" Tapped="OnSleepingDayHeatMapClicked" />
+                    <TextCell
+                        Text="Bar Chart"
+                        TextColor="{Binding Theme.ButtonText}"
+                        Tapped="OnSleepingBarChartClicked" />
+                    <TextCell
+                        Text="Night Heat Map"
+                        TextColor="{Binding Theme.ButtonText}"
+                        Tapped="OnSleepingNightHeatMapClicked" />
+                    <TextCell
+                        Text="Day Heat Map"
+                        TextColor="{Binding Theme.ButtonText}"
+                        Tapped="OnSleepingDayHeatMapClicked" />
                 </TableSection>
                 <TableSection Title="Eating">
-                    <TextCell Text="Bar Chart" TextColor="Blue" Tapped="OnEatingBarChartClicked" />
-                    <TextCell Text="Heat Map" TextColor="Blue" Tapped="OnEatingHeatMapClicked" />
+                    <TextCell
+                        Text="Bar Chart"
+                        TextColor="{Binding Theme.ButtonText}"
+                        Tapped="OnEatingBarChartClicked" />
+                    <TextCell
+                        Text="Heat Map"
+                        TextColor="{Binding Theme.ButtonText}"
+                        Tapped="OnEatingHeatMapClicked" />
                 </TableSection>
                 <TableSection Title="Pooping">
-                    <TextCell Text="Bar Chart" TextColor="Blue" Tapped="OnPoopingBarChartClicked" />
-                    <TextCell Text="Heat Map" TextColor="Blue" Tapped="OnPoopingHeatMapClicked" />
+                    <TextCell
+                        Text="Bar Chart"
+                        TextColor="{Binding Theme.ButtonText}"
+                        Tapped="OnPoopingBarChartClicked" />
+                    <TextCell
+                        Text="Heat Map"
+                        TextColor="{Binding Theme.ButtonText}"
+                        Tapped="OnPoopingHeatMapClicked" />
                 </TableSection>
             </TableView>
             <!--
@@ -114,20 +136,24 @@
                     Clicked="OnSyncClicked"
                     IsEnabled="{Binding Syncing, Converter={StaticResource notConverter}}"
                     IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
+                    TextColor="{Binding Theme.ButtonText}"
                     HorizontalOptions="FillAndExpand" />
                 <Button
                     Text="Log out of Cloud Sync"
                     Clicked="OnLogOutClicked"
                     IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
+                    TextColor="{Binding Theme.ButtonText}"
                     HorizontalOptions="FillAndExpand" />
                 <Button
                     Text="Log in to Cloud Sync"
                     Clicked="OnLogInClicked"
                     IsVisible="{Binding CloudUserName, Converter={StaticResource nullConverter}}"
+                    TextColor="{Binding Theme.ButtonText}"
                     HorizontalOptions="FillAndExpand" />
                 <Button
                     Text="Toggle Theme"
                     Clicked="OnToggleThemeClicked"
+                    TextColor="{Binding Theme.ButtonText}"
                     HorizontalOptions="FillAndExpand" />
             </StackLayout>
         </ContentPage>

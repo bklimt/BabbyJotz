@@ -2,22 +2,28 @@
 <ContentPage
 	xmlns ="http://xamarin.com/schemas/2014/forms"
 	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-	x:Class="BabbyJotz.LogInPage">
-	<ContentPage.BackgroundColor>
-		<OnPlatform x:TypeArguments="Color" iOS="#ccffff" Android="#efffff" />
-	</ContentPage.BackgroundColor>
+	x:Class="BabbyJotz.LogInPage"
+    BackgroundColor="{Binding Theme.Background}">
 	<ContentPage.Content>
 		<StackLayout Spacing="8">
 			<StackLayout.Padding>
 				<Thickness Top="20" Bottom="20" Left="20" Right="20" />
 			</StackLayout.Padding>
-			<Label Text="Username:" />
+			<Label Text="Username:" TextColor="{Binding Theme.Text}" />
 			<Entry x:Name="username" HorizontalOptions="FillAndExpand" />
-			<Label Text="Password:" />
+			<Label Text="Password:" TextColor="{Binding Theme.Text}" />
 			<Entry x:Name="password" IsPassword="true" HorizontalOptions="FillAndExpand" />
 			<StackLayout Orientation="Horizontal">
-				<Button Text="Sign Up" Clicked="OnSignUpClicked" HorizontalOptions="FillAndExpand" />
-				<Button Text="Log In" Clicked="OnLogInClicked" HorizontalOptions="FillAndExpand" />
+				<Button
+                    Text="Sign Up"
+                    Clicked="OnSignUpClicked"
+                    TextColor="{Binding Theme.ButtonText}"
+                    HorizontalOptions="FillAndExpand" />
+				<Button
+                    Text="Log In"
+                    Clicked="OnLogInClicked"
+                    TextColor="{Binding Theme.ButtonText}"
+                    HorizontalOptions="FillAndExpand" />
 			</StackLayout>
 		</StackLayout>
 	</ContentPage.Content>
