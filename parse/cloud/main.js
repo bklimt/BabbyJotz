@@ -40,17 +40,26 @@ Parse.Cloud.beforeSave("LogEntry", function(request, response) {
                 " GMT", " PDT"))));
   }
 
+  response.success();
+});
+
+Parse.Cloud.afterSave("LogEntry", function(request) {
   // Send a push.
   var userId = Parse.User.current().id;
+  var objectId = request.object.id;
   var text = desc(request.object);
-  console.log("Sending push to " + userId + ": \"" + text + "\"");
+  console.log("Sending push for " + objectId +
+      " to " + userId + ": \"" + text + "\"");
 
   var query = new Parse.Query(Parse.Installation);
   query.equalTo("userId", userId);
 
   var data = {};
   if (!request.object.get("deleted")) {
-    data = { alert: text };
+    data = {
+      alert: text,
+      objectId: objectId
+    };
   }
 
   Parse.Promise.as().then(function() {
@@ -60,8 +69,8 @@ Parse.Cloud.beforeSave("LogEntry", function(request, response) {
     });
 
   }).then(function() {
-    response.success();
+    // Success!
   }, function(error) {
-    response.error(JSON.stringify(error));
+    console.error(JSON.stringify(error));
   });
 });
