@@ -21,9 +21,7 @@ namespace BabbyJotz.Android {
         protected override void OnCreate(Bundle bundle) {
             base.OnCreate(bundle);
             Xamarin.Forms.Forms.Init(this, bundle);
-
             var app = (BabbyJotzApplication)this.Application;
-
             SetPage(App.GetMainPage(app.RootViewModel));
         }
     }

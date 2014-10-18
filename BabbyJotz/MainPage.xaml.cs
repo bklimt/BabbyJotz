@@ -16,7 +16,7 @@ namespace BabbyJotz {
             // webview.BindingContext = BindingContext;
 
             // TODO: Bind this icon to a theme.
-			ToolbarItems.Add(new ToolbarItem("Add", "content_new_event", async () => {
+			ToolbarItems.Add(new ToolbarItem("Add", "toolbar_new_entry", async () => {
 				await OnAddClicked();
 			}));
 		}
@@ -63,8 +63,11 @@ namespace BabbyJotz {
 
         public async void OnToggleThemeClicked(object sender, EventArgs args) {
             rootViewModel.ToggleTheme();
-            // This is a stupid hack to force the tabs on the bottom to update.
-            await Navigation.PushAsync(new VanishingPage(rootViewModel));
+            if (Device.OS == TargetPlatform.iOS) {
+                // This is a stupid hack to force the tabs on the bottom to update.
+                // On Android, this breaks everything. Go figure.
+                await Navigation.PushAsync(new VanishingPage(rootViewModel));
+            }
         }
 
         public async void OnSleepingBarChartClicked(object sender, EventArgs args) {

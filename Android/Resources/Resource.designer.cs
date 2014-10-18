@@ -53,6 +53,9 @@ namespace BabbyJotz.Android
 			// aapt resource value: 0x7f020002
 			public const int Icon = 2130837506;
 			
+			// aapt resource value: 0x7f020003
+			public const int toolbar_new_entry = 2130837507;
+			
 			static Drawable()
 			{
 				global::Android.Runtime.ResourceIdManager.UpdateIdValues();

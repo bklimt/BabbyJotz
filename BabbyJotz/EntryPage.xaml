@@ -76,12 +76,12 @@
 				<Button
                     Text="Delete"
                     Clicked="OnDeleteClicked"
-                    TextColor="{Binding Theme.ButtonText}"
+                    TextColor="{Binding RootViewModel.Theme.ButtonText}"
                     HorizontalOptions="FillAndExpand" />
 				<Button
                     Text="Save"
                     Clicked="OnSaveClicked"
-                    TextColor="{Binding Theme.ButtonText}"
+                    TextColor="{Binding RootViewModel.Theme.ButtonText}"
                     HorizontalOptions="FillAndExpand" />
 			</StackLayout>
 		</StackLayout>

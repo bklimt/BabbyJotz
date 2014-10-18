@@ -125,6 +125,12 @@ namespace BabbyJotz {
 
         public LogEntry() {
             DateTime = DateTime.Now;
+            if (Device.OS == TargetPlatform.Android) {
+                // Work around a bug in Xamarin.Android.
+                if (TimeZoneInfo.Local.IsDaylightSavingTime(DateTime)) {
+                    DateTime += TimeSpan.FromHours(1);
+                }
+            }
             Uuid = Guid.NewGuid().ToString("D");
         }
 

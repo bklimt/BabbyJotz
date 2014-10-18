@@ -109,7 +109,7 @@ namespace BabbyJotz.Android {
             var desc = data.Alert ?? "<empty>";
 
             var notification = new NotificationCompat.Builder(context)
-                .SetContentTitle("New BabbyJotz Event")
+                .SetContentTitle("Babby Jotz")
                 .SetSmallIcon(Resource.Drawable.ic_launcher)
                 .SetContentText(desc)
                 .Build();

@@ -3,7 +3,6 @@
 using Xamarin.Forms;
 
 namespace BabbyJotz {
-    // TODO: Add button text color that's blue or orange.
     public class Theme :BindableObject {
         public static readonly Theme Light = new Theme {
             Title = Color.FromHex("ffddff"),
@@ -17,8 +16,8 @@ namespace BabbyJotz {
         public static readonly Theme Dark = new Theme {
             Title = Color.FromHex("1E6E39"),
             IosBackground = Color.FromHex("333333"),
-            AndroidBackground = Color.FromHex("330000"),
-            ListBackground = Color.Black,
+            AndroidBackground = Color.FromHex("333333"),
+            ListBackground = Color.FromHex("333333"),
             Text = Color.White,
             ButtonText = Color.FromHex("ff8500")
         };

@@ -121,32 +121,6 @@ namespace BabbyJotz.iOS {
             };
         }
 
-        /*
-        private async Task<decimal> GetAggregateFormulaEatenAsync(string func, DateTime since) {
-            return await EnqueueAsync(async () => {
-                var connection = new SqliteConnection("Data Source=" + path);
-                await connection.OpenAsync();
-
-                var parameters = new SqliteParameter[] {
-                    new SqliteParameter("Since", since.ToString("O"))
-                };
-
-                decimal result = 0.0m;
-
-                using (var command = connection.CreateCommand()) {
-                    command.CommandText =
-                        "SELECT " + func + " FROM LogEntry WHERE Time>=:SINCE AND Deleted IS NULL";
-                    command.Parameters.AddRange(parameters);
-                    var obj = await command.ExecuteScalarAsync();
-                    result = (decimal)((double)obj);
-                }
-
-                connection.Close();
-                return result;
-            });
-        }
-        */
-
         public async Task<List<LogEntry>> GetEntriesForStatisticsAsync() {
             List<LogEntry> entries = null;
 
@@ -397,11 +371,14 @@ namespace BabbyJotz.iOS {
                 });
             }
 
-            // TODO: If there were 1000 results, go ahead and try to sync again.
-
             // Signal listeners that the database has been updated.
             if (Changed != null) {
                 Changed(this, EventArgs.Empty);
+            }
+
+            // If there were 1000 results, go ahead and try to sync again.
+            if (objs.Count == 1000) {
+                await SyncToCloudAsync();
             }
         }
     }

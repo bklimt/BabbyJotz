@@ -20,6 +20,9 @@ namespace BabbyJotz.iOS {
             // TODO: Does this even do anything? The unselected icons are invisible.
             UITabBar.Appearance.BackgroundColor = theme.Background.ToUIColor();
 
+            UINavigationBar.Appearance.TintColor = theme.ButtonText.ToUIColor();
+            UINavigationBar.Appearance.BackgroundColor = theme.Background.ToUIColor();
+
             if (theme == Theme.Dark) {
                 UIApplication.SharedApplication.StatusBarStyle =
                     UIStatusBarStyle.Default;

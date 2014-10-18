@@ -126,6 +126,9 @@
     <BundleResource Include="Resources\Icon-60%402x.png" />
     <BundleResource Include="Resources\Icon-Small-40%402x.png" />
     <BundleResource Include="Resources\Icon-Small-40.png" />
+    <BundleResource Include="Resources\toolbar_new_entry.png" />
+    <BundleResource Include="Resources\toolbar_new_entry%402x.png" />
+    <BundleResource Include="Resources\toolbar_new_entry%403x.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

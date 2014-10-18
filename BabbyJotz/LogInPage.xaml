@@ -9,10 +9,21 @@
 			<StackLayout.Padding>
 				<Thickness Top="20" Bottom="20" Left="20" Right="20" />
 			</StackLayout.Padding>
-			<Label Text="Username:" TextColor="{Binding Theme.Text}" />
-			<Entry x:Name="username" HorizontalOptions="FillAndExpand" />
-			<Label Text="Password:" TextColor="{Binding Theme.Text}" />
-			<Entry x:Name="password" IsPassword="true" HorizontalOptions="FillAndExpand" />
+			<Label
+                Text="Username:"
+                TextColor="{Binding Theme.Text}" />
+			<Entry
+                x:Name="username"
+                BackgroundColor="White"
+                HorizontalOptions="FillAndExpand" />
+			<Label
+                Text="Password:"
+                TextColor="{Binding Theme.Text}" />
+			<Entry
+                x:Name="password"
+                IsPassword="true"
+                BackgroundColor="White"
+                HorizontalOptions="FillAndExpand" />
 			<StackLayout Orientation="Horizontal">
 				<Button
                     Text="Sign Up"
