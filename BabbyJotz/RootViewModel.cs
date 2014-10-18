@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Xamarin.Forms;
 
-// TODO: Add launch images.
 namespace BabbyJotz {
 	public class RootViewModel : BindableObject {
 		private IDataStore DataStore { get; set; }
@@ -68,7 +67,7 @@ namespace BabbyJotz {
             }
             Date = now - now.TimeOfDay;
 
-            Theme = Preferences.GetBool("light") ? Theme.Dark : Theme.Light;
+            Theme = Preferences.GetBool("light") ? Theme.Light : Theme.Dark;
 
             TryToSyncEventually();
         }
