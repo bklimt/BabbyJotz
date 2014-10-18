@@ -51,7 +51,7 @@ namespace BabbyJotz.Android
 			public const int ic_launcher = 2130837505;
 			
 			// aapt resource value: 0x7f020002
-			public const int Icon = 2130837506;
+			public const int splash = 2130837506;
 			
 			// aapt resource value: 0x7f020003
 			public const int toolbar_new_entry = 2130837507;
@@ -66,27 +66,11 @@ namespace BabbyJotz.Android
 			}
 		}
 		
-		public partial class Layout
-		{
-			
-			// aapt resource value: 0x7f030000
-			public const int Main = 2130903040;
-			
-			static Layout()
-			{
-				global::Android.Runtime.ResourceIdManager.UpdateIdValues();
-			}
-			
-			private Layout()
-			{
-			}
-		}
-		
 		public partial class String
 		{
 			
-			// aapt resource value: 0x7f040000
-			public const int app_name = 2130968576;
+			// aapt resource value: 0x7f030000
+			public const int app_name = 2130903040;
 			
 			static String()
 			{
@@ -101,14 +85,17 @@ namespace BabbyJotz.Android
 		public partial class Style
 		{
 			
-			// aapt resource value: 0x7f050001
-			public const int BabbyActionBar = 2131034113;
+			// aapt resource value: 0x7f040001
+			public const int BabbyActionBar = 2130968577;
 			
-			// aapt resource value: 0x7f050000
-			public const int BabbyTextView = 2131034112;
+			// aapt resource value: 0x7f040000
+			public const int BabbyTextView = 2130968576;
 			
-			// aapt resource value: 0x7f050002
-			public const int BabbyTheme = 2131034114;
+			// aapt resource value: 0x7f040002
+			public const int BabbyTheme = 2130968578;
+			
+			// aapt resource value: 0x7f040003
+			public const int Theme_Splash = 2130968579;
 			
 			static Style()
 			{

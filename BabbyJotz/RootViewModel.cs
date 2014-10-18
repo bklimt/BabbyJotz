@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Xamarin.Forms;
 
-// TODO: Make a new icon.
 // TODO: Add launch images.
-// TODO: Swap out toolbar icons on theme change.
 namespace BabbyJotz {
 	public class RootViewModel : BindableObject {
 		private IDataStore DataStore { get; set; }
@@ -39,7 +37,7 @@ namespace BabbyJotz {
         }
 
         public static readonly BindableProperty ThemeProperty =
-            BindableProperty.Create<RootViewModel, Theme>(p => p.Theme, Theme.Light);
+            BindableProperty.Create<RootViewModel, Theme>(p => p.Theme, Theme.Dark);
         public Theme Theme {
             get { return (Theme)base.GetValue(ThemeProperty); }
             set { SetValue(ThemeProperty, value); }
@@ -61,13 +59,19 @@ namespace BabbyJotz {
 			};
 
 			DataStore.Changed += (sender, e) => RefreshEntriesAsync();
-			var now = DateTime.Now;
-			Date = now - now.TimeOfDay;
+            var now = DateTime.Now;
+            if (Device.OS == TargetPlatform.Android) {
+                // Fix a Xamarin.Android bug.
+                if (TimeZoneInfo.Local.IsDaylightSavingTime(now)) {
+                    now += TimeSpan.FromHours(1);
+                }
+            }
+            Date = now - now.TimeOfDay;
 
-            Theme = Preferences.GetBool("dark") ? Theme.Dark : Theme.Light;
+            Theme = Preferences.GetBool("light") ? Theme.Dark : Theme.Light;
 
-			TryToSyncEventually();
-		}
+            TryToSyncEventually();
+        }
 
 		public async Task SyncAsync() {
 			await syncQueue.EnqueueAsync(async toAwait => {
@@ -185,10 +189,10 @@ namespace BabbyJotz {
         public void ToggleTheme() {
             if (Theme == Theme.Light) {
                 Theme = Theme.Dark;
-                Preferences.SetBool("dark", true);
+                Preferences.SetBool("light", false);
             } else {
                 Theme = Theme.Light;
-                Preferences.SetBool("dark", false);
+                Preferences.SetBool("light", true);
             }
 
             // This is just a hack to make the ListView redraw with the right colors.

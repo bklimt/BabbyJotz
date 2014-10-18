@@ -90,6 +90,7 @@
     <Compile Include="BabbyJotzIntentService.cs" />
     <Compile Include="BabbyJotzApplication.cs" />
     <Compile Include="Preferences.cs" />
+    <Compile Include="SplashActivity.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -98,22 +99,21 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\Main.axml" />
     <AndroidResource Include="Resources\values\Strings.xml" />
-    <AndroidResource Include="Resources\drawable\Icon.png" />
     <AndroidResource Include="Resources\drawable-hdpi\content_new_event.png" />
     <AndroidResource Include="Resources\drawable-mdpi\content_new_event.png" />
     <AndroidResource Include="Resources\drawable-xhdpi\content_new_event.png" />
     <AndroidResource Include="Resources\values\Attrs.xml" />
     <AndroidResource Include="Resources\values\Styles.xml" />
+    <AndroidResource Include="Resources\drawable-hdpi\toolbar_new_entry.png" />
+    <AndroidResource Include="Resources\drawable-mdpi\toolbar_new_entry.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\toolbar_new_entry.png" />
     <AndroidResource Include="Resources\drawable-hdpi\ic_launcher.png" />
     <AndroidResource Include="Resources\drawable-mdpi\ic_launcher.png" />
     <AndroidResource Include="Resources\drawable-xhdpi\ic_launcher.png" />
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_launcher.png" />
     <AndroidResource Include="Resources\drawable-xxxhdpi\ic_launcher.png" />
-    <AndroidResource Include="Resources\drawable-hdpi\toolbar_new_entry.png" />
-    <AndroidResource Include="Resources\drawable-mdpi\toolbar_new_entry.png" />
-    <AndroidResource Include="Resources\drawable-xhdpi\toolbar_new_entry.png" />
+    <AndroidResource Include="Resources\drawable\splash.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Novell\Novell.MonoDroid.CSharp.targets" />
   <Import Project="..\packages\Xamarin.Forms.1.2.3.6257\build\portable-win+net45+wp80+MonoAndroid10+MonoTouch10\Xamarin.Forms.targets" Condition="Exists('..\packages\Xamarin.Forms.1.2.3.6257\build\portable-win+net45+wp80+MonoAndroid10+MonoTouch10\Xamarin.Forms.targets')" />
@@ -126,5 +126,6 @@
   <ItemGroup>
     <Folder Include="Resources\drawable-xxhdpi\" />
     <Folder Include="Resources\drawable-xxxhdpi\" />
+    <Folder Include="Resources\layout\" />
   </ItemGroup>
 </Project>

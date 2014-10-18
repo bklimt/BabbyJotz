@@ -94,6 +94,7 @@ namespace BabbyJotz.Android {
 
         private class ParsePushData {
             public string Alert { get; set; }
+            public string ObjectId { get; set; }
         }
 
         private async Task HandleMessage(Context context, Intent intent) {
@@ -106,7 +107,17 @@ namespace BabbyJotz.Android {
 
             var json = intent.GetStringExtra("data") ?? "{}";
             var data = JsonConvert.DeserializeObject<ParsePushData>(json);
-            var desc = data.Alert ?? "<empty>";
+            var desc = data.Alert;
+            var objectId = data.ObjectId;
+            int id = objectId.GetHashCode();
+
+            var manager = (NotificationManager)GetSystemService(Context.NotificationService);
+
+            if (desc == null) {
+                // It's a delete operation.
+                manager.Cancel(id);
+                return;
+            }
 
             var notification = new NotificationCompat.Builder(context)
                 .SetContentTitle("Babby Jotz")
@@ -121,11 +132,8 @@ namespace BabbyJotz.Android {
             // TODO: Don't show alert if the app is open?
             // TODO: Settings for notifications.
             // TODO: Does this run before the app is opened?
-            // TODO: Deal with deleted items correctly.
 
-            var manager = (NotificationManager)GetSystemService(Context.NotificationService);
-            // TODO: Figure out how to deal with this id.
-            manager.Notify(314159265, notification);
+            manager.Notify(id, notification);
         }
     }
 }
