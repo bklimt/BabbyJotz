@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 using Android.App;
 using Android.Content;
@@ -107,29 +109,42 @@ namespace BabbyJotz.Android {
 
             var json = intent.GetStringExtra("data") ?? "{}";
             var data = JsonConvert.DeserializeObject<ParsePushData>(json);
+            var title = "New Babby Jotz";
             var desc = data.Alert;
-            var objectId = data.ObjectId;
-            int id = objectId.GetHashCode();
+            // var objectId = data.ObjectId;
+            // int id = objectId.GetHashCode();
+            int id = 123;
 
             var manager = (NotificationManager)GetSystemService(Context.NotificationService);
 
-            if (desc == null) {
-                // It's a delete operation.
+            var unreadEnumerator = await app.RootViewModel.FetchUnreadAsync();
+            var unread = (from entry in unreadEnumerator
+                          select entry).ToList();
+            if (unread.Count == 0) {
                 manager.Cancel(id);
                 return;
+            } else if (unread.Count > 1) {
+                title = String.Format("{0} New Babby Jotz", unread.Count);
             }
 
+            var resultIntent = new Intent(this, typeof(SplashActivity));
+
+            var stackBuilder = TaskStackBuilder.Create(this);
+            stackBuilder.AddParentStack(Java.Lang.Class.FromType(typeof(SplashActivity)));
+            stackBuilder.AddNextIntent(resultIntent);
+
+            var pendingIntent = stackBuilder.GetPendingIntent(0, (int)PendingIntentFlags.UpdateCurrent);
+
+            // TODO: Make a correct icon for this.
             var notification = new NotificationCompat.Builder(context)
-                .SetContentTitle("Babby Jotz")
+                .SetContentTitle(title)
                 .SetSmallIcon(Resource.Drawable.ic_launcher)
                 .SetContentText(desc)
+                .SetAutoCancel(true)
+                .SetContentIntent(pendingIntent)
+                .SetVibrate(new long[] { 0, 750 })
                 .Build();
 
-            // TODO: An intent to open the app.
-            // TODO: A better title.
-            // TODO: Vibrate?
-            // TODO: Collapse?
-            // TODO: Don't show alert if the app is open?
             // TODO: Settings for notifications.
             // TODO: Does this run before the app is opened?
 

@@ -16,7 +16,6 @@ namespace BabbyJotz {
 			try {
 				await rootViewModel.LogInAsync(username.Text, password.Text);
 				await Navigation.PopAsync();
-                rootViewModel.TryToSyncEventually();
 			} catch (Exception e) {
                 var message = String.Format("Unable to log in.\n{0}", e);
 				await DisplayAlert("Error", message, "OK");
@@ -27,7 +26,6 @@ namespace BabbyJotz {
 			try {
 				await rootViewModel.SignUpAsync(username.Text, password.Text);
 				await Navigation.PopAsync();
-                rootViewModel.TryToSyncEventually();
             } catch (Exception e) {
                 var message = String.Format("Unable to sign up.\n{0}", e);
                 await DisplayAlert("Error", message, "OK");

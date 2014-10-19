@@ -24,6 +24,16 @@ namespace BabbyJotz.Android {
             var app = (BabbyJotzApplication)this.Application;
             SetPage(App.GetMainPage(app.RootViewModel));
         }
+
+        protected override void OnResume() {
+            base.OnResume();
+
+            // Remove all notifications and mark all entries as read.
+            var manager = (NotificationManager)GetSystemService(Context.NotificationService);
+            manager.CancelAll();
+            var app = (BabbyJotzApplication)this.Application;
+            app.RootViewModel.MarkAllAsReadAsync();
+        }
     }
 }
 

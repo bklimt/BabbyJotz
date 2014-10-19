@@ -159,6 +159,8 @@ namespace BabbyJotz {
 			} finally {
 				CloudUserName = DataStore.CloudUserName;
 			}
+            TryToSyncEventually();
+            // TODO: Mark all as read after this.
 		}
 
 		public async Task SignUpAsync(string username, string password) {
@@ -168,6 +170,7 @@ namespace BabbyJotz {
 			} finally {
 				CloudUserName = DataStore.CloudUserName;
 			}
+            TryToSyncEventually();
 		}
 
         public string CloudUserId {
@@ -183,6 +186,14 @@ namespace BabbyJotz {
 
         public async Task<List<LogEntry>> GetEntriesForStatisticsAsync() {
             return await DataStore.GetEntriesForStatisticsAsync();
+        }
+
+        public async Task MarkAllAsReadAsync() {
+            await DataStore.MarkAllAsReadAsync();
+        }
+
+        public async Task<IEnumerable<LogEntry>> FetchUnreadAsync() {
+            return await DataStore.FetchUnreadAsync();
         }
 
         public void ToggleTheme() {
