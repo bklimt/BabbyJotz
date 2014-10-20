@@ -118,9 +118,6 @@
   </ItemGroup>
   <ItemGroup>
     <BundleResource Include="Resources\Default-568h%402x.png" />
-    <BundleResource Include="Resources\action_settings.png" />
-    <BundleResource Include="Resources\collections_view_as_list.png" />
-    <BundleResource Include="Resources\content_new_event.png" />
     <BundleResource Include="Resources\Icon-76%402x.png" />
     <BundleResource Include="Resources\Icon-76.png" />
     <BundleResource Include="Resources\Icon-60%402x.png" />
