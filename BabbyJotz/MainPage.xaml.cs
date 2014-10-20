@@ -42,7 +42,7 @@ namespace BabbyJotz {
 
 		public async void OnSyncClicked(object sender, EventArgs args) {
 			try {
-				await rootViewModel.SyncAsync();
+				await rootViewModel.SyncAsync(true);
 			} catch (Exception e) {
 				await DisplayAlert("Error", String.Format("Unable to sync: {0}", e), "Ok");
 				// await DisplayAlert("Error", String.Format("Unable to sync. Check your network connection.", e), "Ok");

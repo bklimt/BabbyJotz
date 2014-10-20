@@ -21,7 +21,7 @@ namespace BabbyJotz {
 		Task LogInAsync(string username, string password);
 		Task SignUpAsync(string username, string password);
 		void LogOut();
-		Task SyncToCloudAsync();
+        Task SyncToCloudAsync(bool markNewAsRead);
         Task MarkAllAsReadAsync();
         Task<IEnumerable<LogEntry>> FetchUnreadAsync();
 	}

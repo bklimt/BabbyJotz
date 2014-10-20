@@ -106,7 +106,7 @@ namespace BabbyJotz {
             TryToSyncEventually();
         }
 
-		public async Task SyncAsync() {
+        public async Task SyncAsync(bool markNewAsRead) {
 			await syncQueue.EnqueueAsync(async toAwait => {
 				await toAwait;
 				if (CloudUserName == null) {
@@ -114,7 +114,7 @@ namespace BabbyJotz {
 				}
 				Syncing = true;
 				try {
-					await DataStore.SyncToCloudAsync();
+                    await DataStore.SyncToCloudAsync(markNewAsRead);
 				} finally {
 					Syncing = false;
 				}
@@ -124,7 +124,7 @@ namespace BabbyJotz {
 
 		public async void TryToSyncEventually() {
 			try {
-				await SyncAsync();
+				await SyncAsync(true);
 			} catch (Exception) {
 				// Just ignore it.
 			}

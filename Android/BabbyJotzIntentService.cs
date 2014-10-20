@@ -102,7 +102,7 @@ namespace BabbyJotz.Android {
         private async Task HandleMessage(Context context, Intent intent) {
             var app = (BabbyJotzApplication)Application;
             try {
-                await app.RootViewModel.SyncAsync();
+                await app.RootViewModel.SyncAsync(false);
             } catch {
                 // Well, we tried. :-(
             }

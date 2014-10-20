@@ -209,7 +209,7 @@ namespace BabbyJotz.iOS {
             cloudStore.LogOut();
         }
 
-        public async Task UpdateFromCloudAsync(LogEntry entry) {
+        private async Task UpdateFromCloudAsync(LogEntry entry, bool markAsRead) {
             await EnqueueAsync<bool>(async () => {
                 var conn = new SqliteConnection("Data Source=" + path);
                 await conn.OpenAsync();
@@ -226,7 +226,7 @@ namespace BabbyJotz.iOS {
                     new SqliteParameter("Asleep", entry.IsAsleep),
                     new SqliteParameter("Poop", entry.IsPoop),
                     new SqliteParameter("Formula", entry.FormulaEaten),
-                    new SqliteParameter("Read", false),
+                    new SqliteParameter("Read", markAsRead),
                     new SqliteParameter("Deleted", deleted),
                     new SqliteParameter("Synced", true)
                 };
@@ -272,7 +272,7 @@ namespace BabbyJotz.iOS {
             public long LocalVersion { get; set; }
         }
 
-        public async Task SyncToCloudAsync() {
+        public async Task SyncToCloudAsync(bool markNewAsRead) {
             IEnumerable<EntryAndVersion> unsavedEntries = null;
 
             await EnqueueAsync<bool>(async () => {
@@ -349,7 +349,7 @@ namespace BabbyJotz.iOS {
             var objs = objsAndLastUpdatedAt.Item1.ToList();
             lastUpdatedAt = objsAndLastUpdatedAt.Item2;
             foreach (var obj in objs) {
-                await UpdateFromCloudAsync(obj);
+                await UpdateFromCloudAsync(obj, markNewAsRead);
             }
 
             // Record that this sync completed.
@@ -383,7 +383,7 @@ namespace BabbyJotz.iOS {
 
             // If there were 1000 results, go ahead and try to sync again.
             if (objs.Count == 1000) {
-                await SyncToCloudAsync();
+                await SyncToCloudAsync(markNewAsRead);
             }
         }
 
