@@ -77,7 +77,7 @@ namespace BabbyJotz.iOS {
 
                 using (var command = connection.CreateCommand()) {
                     command.CommandText = "UPDATE LogEntry SET " +
-                    "Time=:Time, Text=:Text, Asleep=:Asleep, Poop=:Poop, Formula=:Formula, Read=:Read " +
+                    "Time=:Time, Text=:Text, Asleep=:Asleep, Poop=:Poop, Formula=:Formula, Read=:Read, " +
                     "Deleted=:Deleted, Synced=:Synced, LocalVersion=LocalVersion+1 WHERE Uuid=:Uuid";
                     command.Parameters.AddRange(parameters);
                     rowsChanged = await command.ExecuteNonQueryAsync();

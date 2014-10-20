@@ -136,8 +136,8 @@
     <BundleResource Include="Resources\graph%402x.png" />
     <BundleResource Include="Resources\graph%403x.png" />
     <BundleResource Include="Resources\log.png" />
-    <BundleResource Include="Resources\log%402x.png" />
     <BundleResource Include="Resources\log%403x.png" />
+    <BundleResource Include="Resources\log%402x.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
