@@ -129,6 +129,15 @@
     <BundleResource Include="Resources\toolbar_new_entry.png" />
     <BundleResource Include="Resources\toolbar_new_entry%402x.png" />
     <BundleResource Include="Resources\toolbar_new_entry%403x.png" />
+    <BundleResource Include="Resources\cloud.png" />
+    <BundleResource Include="Resources\cloud%402x.png" />
+    <BundleResource Include="Resources\cloud%403x.png" />
+    <BundleResource Include="Resources\graph.png" />
+    <BundleResource Include="Resources\graph%402x.png" />
+    <BundleResource Include="Resources\graph%403x.png" />
+    <BundleResource Include="Resources\log.png" />
+    <BundleResource Include="Resources\log%402x.png" />
+    <BundleResource Include="Resources\log%403x.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

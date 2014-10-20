@@ -12,6 +12,21 @@ namespace BabbyJotz {
         private IPreferences Preferences { get; set; }
 		private TaskQueue syncQueue = new TaskQueue();
 
+        private static void SaveTheme(BindableObject obj) {
+            var model = obj as RootViewModel;
+            model.Preferences.SetBool("light", model.Theme == Theme.Light);
+        }
+
+        private static void SaveNotificationsEnabled(BindableObject obj) {
+            var model = obj as RootViewModel;
+            model.Preferences.SetBool("dontNotify", !model.NotificationsEnabled);
+        }
+
+        private static void SaveVibrate(BindableObject obj) {
+            var model = obj as RootViewModel;
+            model.Preferences.SetBool("dontVibrate", !model.Vibrate);
+        }
+
 		public ObservableCollection<LogEntry> Entries { get; private set; }
 
 		public static readonly BindableProperty DateProperty =
@@ -36,10 +51,27 @@ namespace BabbyJotz {
         }
 
         public static readonly BindableProperty ThemeProperty =
-            BindableProperty.Create<RootViewModel, Theme>(p => p.Theme, Theme.Dark);
+            BindableProperty.Create<RootViewModel, Theme>(p => p.Theme, Theme.Dark,
+                BindingMode.Default, null, (p, _1, _2) => SaveTheme(p), null, null);
         public Theme Theme {
             get { return (Theme)base.GetValue(ThemeProperty); }
             set { SetValue(ThemeProperty, value); }
+        }
+
+        public static readonly BindableProperty NotificationsEnabledProperty =
+            BindableProperty.Create<RootViewModel, bool>(p => p.NotificationsEnabled, true,
+                BindingMode.Default, null, (p, _1, _2) => SaveNotificationsEnabled(p), null, null);
+        public bool NotificationsEnabled {
+            get { return (bool)base.GetValue(NotificationsEnabledProperty); }
+            set { SetValue(NotificationsEnabledProperty, value); }
+        }
+
+        public static readonly BindableProperty VibrateProperty =
+            BindableProperty.Create<RootViewModel, bool>(p => p.Vibrate, true,
+                BindingMode.Default, null, (p, _1, _2) => SaveVibrate(p), null, null);
+        public bool Vibrate {
+            get { return (bool)base.GetValue(VibrateProperty); }
+            set { SetValue(VibrateProperty, value); }
         }
 
         public RootViewModel(IDataStore dataStore, IPreferences preferences) {
@@ -68,6 +100,8 @@ namespace BabbyJotz {
             Date = now - now.TimeOfDay;
 
             Theme = Preferences.GetBool("light") ? Theme.Light : Theme.Dark;
+            NotificationsEnabled = !Preferences.GetBool("dontNotify");
+            Vibrate = !Preferences.GetBool("dontVibrate");
 
             TryToSyncEventually();
         }
@@ -199,10 +233,8 @@ namespace BabbyJotz {
         public void ToggleTheme() {
             if (Theme == Theme.Light) {
                 Theme = Theme.Dark;
-                Preferences.SetBool("light", false);
             } else {
                 Theme = Theme.Light;
-                Preferences.SetBool("light", true);
             }
 
             // This is just a hack to make the ListView redraw with the right colors.

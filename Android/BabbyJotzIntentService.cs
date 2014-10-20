@@ -136,14 +136,18 @@ namespace BabbyJotz.Android {
             var pendingIntent = stackBuilder.GetPendingIntent(0, (int)PendingIntentFlags.UpdateCurrent);
 
             // TODO: Make a correct icon for this.
-            var notification = new NotificationCompat.Builder(context)
+            var builder = new NotificationCompat.Builder(context)
                 .SetContentTitle(title)
                 .SetSmallIcon(Resource.Drawable.ic_launcher)
                 .SetContentText(desc)
                 .SetAutoCancel(true)
-                .SetContentIntent(pendingIntent)
-                .SetVibrate(new long[] { 0, 750 })
-                .Build();
+                .SetContentIntent(pendingIntent);
+
+            if (app.RootViewModel.Vibrate) {
+                builder.SetVibrate(new long[] { 0, 750 });
+            }
+
+            var notification = builder.Build();
 
             // TODO: Settings for notifications.
             // TODO: Does this run before the app is opened?
