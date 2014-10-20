@@ -17,7 +17,7 @@ namespace BabbyJotz {
         padding: 0px;
         margin: 8px;
         font-family: Helvetica;
-        background-color: ""{Binding Background}"";
+        background-color: {Binding Background};
       }
       h2 {
         font-size: 12pt;
@@ -27,16 +27,18 @@ namespace BabbyJotz {
         padding: 0px;
         margin: 0px;
         border-collapse: collapse;
-        border: solid black 1px;
+        border: solid {Binding Text} 1px;
         width: 100%;
       }
       th {
         font-size: 8pt;
         border; 0px;
+        color: {Binding Text};
       }
       td {
         padding: 0px;
         font-size: 4pt;
+        color: black;
         width: 1%;
         height: 4px;
         border-right: none;
@@ -50,28 +52,28 @@ namespace BabbyJotz {
       .black { background-color: #000022; }
 
       .top {
-        border-left: solid black 1px;
-        border-right: solid black 1px;
-        border-bottom: solid black 1px;
+        border-left: solid {Binding Text} 1px;
+        border-right: solid {Binding Text} 1px;
+        border-bottom: solid {Binding Text} 1px;
         text-align: left;
       }
       .top-cell {
-        border-top: solid black 1px;
+        border-top: solid {Binding Text} 1px;
       }
       .left {
-        border-left: solid black 1px;
-        border-right: solid black 1px;
+        border-left: solid {Binding Text} 1px;
+        border-right: solid {Binding Text} 1px;
         width: 4%;
       }
       .right {
-        border-right: solid black 1px;
+        border-right: solid {Binding Text} 1px;
       }
       .right-label {
-        border-right: solid black 1px;
+        border-right: solid {Binding Text} 1px;
         font-size: 8pt;
       }
       .bottom {
-        border-bottom: solid black 1px;
+        border-bottom: solid {Binding Text} 1px;
       }
     </style>
   </head>
@@ -89,12 +91,15 @@ namespace BabbyJotz {
         }
 
         private static string ToHexString(Color color) {
-            return String.Format("#{0:x2}{1:x2}{2:x2}", (int)color.R, (int)color.G, (int)color.B);
+            return String.Format("#{0:x2}{1:x2}{2:x2}",
+                (int)(color.R * 255), (int)(color.G * 255), (int)(color.B * 255));
         }
 
         private static string Header(Theme theme) {
-            // TODO: Why doesn't this work?
-            return header.Replace("{Binding Background}", ToHexString(theme.Background));
+            var result = header;
+            result = result.Replace("{Binding Background}", ToHexString(theme.Background));
+            result = result.Replace("{Binding Text}", ToHexString(theme.Text));
+            return result;
         }
 
         private delegate void HtmlBuilderFunc(StringBuilder html, List<LogEntry> entries);
