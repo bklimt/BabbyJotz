@@ -6,6 +6,11 @@
 	x:Class="BabbyJotz.EntryPage"
     IsBusy="{Binding RootViewModel.Syncing}"
 	Title="Edit Entry">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <local:NumberConverter x:Key="numberConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
 	<ScrollView
 		HorizontalOptions="FillAndExpand"
 		VerticalOptions="FillAndExpand">
@@ -18,7 +23,8 @@
                     Text="Date"
                     TextColor="{Binding RootViewModel.Theme.Text}" />
 				<DatePicker
-					Date="{Binding LogEntry.Date}"
+                    BindingContext="{Binding LogEntry}"
+					Date="{Binding Date}"
                     BackgroundColor="White"
 					WidthRequest="150"
 					HorizontalOptions="EndAndExpand" />
@@ -28,7 +34,8 @@
                     Text="Time"
                     TextColor="{Binding RootViewModel.Theme.Text}" />
 				<TimePicker
-                    Time="{Binding LogEntry.Time}"
+                    BindingContext="{Binding LogEntry}"
+                    Time="{Binding Time}"
                     BackgroundColor="White"
                     WidthRequest="150"
                     HorizontalOptions="EndAndExpand" />
@@ -37,7 +44,8 @@
                 Text="Notes"
                 TextColor="{Binding RootViewModel.Theme.Text}" />
 			<Editor
-				Text="{Binding LogEntry.Text}"
+                BindingContext="{Binding LogEntry}"
+				Text="{Binding Text}"
                 BackgroundColor="White"
 				Focused="OnNotesFocused"
 				HeightRequest="100"
@@ -57,11 +65,12 @@
 				<Switch IsToggled="{Binding LogEntry.IsPoop}" />
 			</StackLayout>
 			<StackLayout Orientation="Horizontal" Spacing="8" HorizontalOptions="FillAndExpand">
-				<Label
-                    Text="🍼 Eaten?"
+                <Label
+                    Text="🍼 Formula"
                     TextColor="{Binding RootViewModel.Theme.Text}" />
-				<Entry
-                    Text="{Binding LogEntry.FormulaEaten}"
+                <Entry
+                    BindingContext="{Binding LogEntry}"
+                    Text="{Binding FormulaEaten, Converter={StaticResource numberConverter}}"
                     BackgroundColor="White"
                     Keyboard="Numeric"
                     WidthRequest="75"
