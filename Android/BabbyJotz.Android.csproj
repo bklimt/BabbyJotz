@@ -85,7 +85,6 @@
     <Compile Include="..\iOS\LocalStore.cs">
       <Link>LocalStore.cs</Link>
     </Compile>
-    <Compile Include="KeyboardPlaceholderRenderer.cs" />
     <Compile Include="BabbyJotzBroadcastReceiver.cs" />
     <Compile Include="BabbyJotzIntentService.cs" />
     <Compile Include="BabbyJotzApplication.cs" />

@@ -135,7 +135,6 @@ namespace BabbyJotz.Android {
 
             var pendingIntent = stackBuilder.GetPendingIntent(0, (int)PendingIntentFlags.UpdateCurrent);
 
-            // TODO: Make a correct icon for this.
             var builder = new NotificationCompat.Builder(context)
                 .SetContentTitle(title)
                 .SetSmallIcon(Resource.Drawable.ic_stat_notify)
@@ -149,7 +148,6 @@ namespace BabbyJotz.Android {
 
             var notification = builder.Build();
 
-            // TODO: Settings for notifications.
             // TODO: Does this run before the app is opened?
 
             manager.Notify(id, notification);

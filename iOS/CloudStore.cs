@@ -159,9 +159,22 @@ namespace BabbyJotz.iOS {
         }
 
         public async Task LogInAsync(string username, string password) {
-            // Fix this weird issue with a NPE half the time when logging in.
             LogOut();
-            await ParseUser.LogInAsync(username, password);
+            var retries = 3;
+            var runAgain = true;
+            while (runAgain) {
+                runAgain = false;
+                try {
+                    await ParseUser.LogInAsync(username, password);
+                } catch (NullReferenceException nre) {
+                    retries--;
+                    if (retries > 0) {
+                        runAgain = true;
+                    } else {
+                        throw;
+                    }
+                }
+            }
             RegisterForPush();
         }
 

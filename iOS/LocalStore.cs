@@ -16,7 +16,7 @@ namespace BabbyJotz.iOS {
         private Task<T> EnqueueAsync<T>(Func<Task<T>> func) {
             return queue.EnqueueAsync(async toAwait => {
                 await toAwait;
-                return await func();
+                return await Task.Run(async () => await func());
             });
         }
 
@@ -139,10 +139,9 @@ namespace BabbyJotz.iOS {
                         "SELECT * FROM LogEntry WHERE Deleted IS NULL ORDER BY Time DESC";
                     command.Parameters.AddRange(parameters);
                     var reader = await command.ExecuteReaderAsync();
-                    // TODO: Do this in a more async-friendly way.
                     var results = from obj in reader.Cast<IDataRecord>()
                         select CreateEntryFromDataRecord(obj);
-                    entries = results.Reverse().ToList();
+                    entries = await Task.Run(() => results.Reverse().ToList());
                     reader.Close();
                 }
 
@@ -176,7 +175,7 @@ namespace BabbyJotz.iOS {
 
                     results = from obj in reader.Cast<IDataRecord>()
                                              select CreateEntryFromDataRecord(obj);
-                    results = results.ToList();
+                    results = await Task.Run(() => results.ToList());
                     reader.Close();
                 }
 
@@ -215,8 +214,6 @@ namespace BabbyJotz.iOS {
                 await conn.OpenAsync();
 
                 var deleted = entry.Deleted.HasValue ? entry.Deleted.Value.ToString("O") : null;
-
-                // TODO: Be smarter about whether entries have been read.
 
                 var parameters = new SqliteParameter[] {
                     new SqliteParameter("Uuid", entry.Uuid),
@@ -288,7 +285,7 @@ namespace BabbyJotz.iOS {
                         Entry = CreateEntryFromDataRecord(obj),
                         LocalVersion = (long)obj["LocalVersion"]
                     };
-                    // It would be nice to do this in an async-friendly way.
+                    // TODO: It would be nice to do this in an async-friendly way.
                     unsavedEntries = results.ToList();
                     reader.Close();
                 }
@@ -335,7 +332,7 @@ namespace BabbyJotz.iOS {
                     var reader = await selectCommand.ExecuteReaderAsync();
                     var results = from obj in reader.Cast<IDataRecord>()
                                                  select (DateTime?)DateTime.Parse((string)obj["LastUpdatedAt"]);
-                    lastUpdatedAt = results.FirstOrDefault();
+                    lastUpdatedAt = await Task.Run(() => results.FirstOrDefault());
                     reader.Close();
                 }
                 connection.Close();
@@ -346,7 +343,7 @@ namespace BabbyJotz.iOS {
             // Yes, we do re-read everything we just wrote, but that won't be much, and at it
             // allows us to catch any changes the server may have made during the write.
             var objsAndLastUpdatedAt = await cloudStore.FetchChangesAsync(lastUpdatedAt);
-            var objs = objsAndLastUpdatedAt.Item1.ToList();
+            var objs = await Task.Run(() => objsAndLastUpdatedAt.Item1.ToList());
             lastUpdatedAt = objsAndLastUpdatedAt.Item2;
             foreach (var obj in objs) {
                 await UpdateFromCloudAsync(obj, markNewAsRead);
@@ -425,7 +422,7 @@ namespace BabbyJotz.iOS {
 
                     results = from obj in reader.Cast<IDataRecord>()
                         select CreateEntryFromDataRecord(obj);
-                    results = results.ToList();
+                    results = await Task.Run(() => results.ToList());
                     reader.Close();
                 }
 

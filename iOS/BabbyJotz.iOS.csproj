@@ -144,8 +144,6 @@
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
-    <Compile Include="KeyboardPlaceholderRenderer.cs" />
-    <Compile Include="ScrollingListRenderer.cs" />
     <Compile Include="CloudStore.cs" />
     <Compile Include="LocalStore.cs" />
     <Compile Include="Preferences.cs" />

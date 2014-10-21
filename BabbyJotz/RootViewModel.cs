@@ -127,6 +127,7 @@ namespace BabbyJotz {
 				await SyncAsync(true);
 			} catch (Exception) {
 				// Just ignore it.
+                // TODO: Add some logging here at least.
 			}
 		}
 
