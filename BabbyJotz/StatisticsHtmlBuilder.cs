@@ -369,13 +369,13 @@ namespace BabbyJotz {
             }
 
             var dailyTotal = dailyTotals.GetEnumerator();
-            dailyTotal.MoveNext();
+            var dailyTotalValid = dailyTotal.MoveNext();
             for (var date = minDate; date != endDate; date = date.AddDays(1)) {
-                while (dailyTotal.Current.Date < date) {
-                    dailyTotal.MoveNext();
+                while (dailyTotalValid && dailyTotal.Current.Date < date) {
+                    dailyTotalValid = dailyTotal.MoveNext();
                 }
                 var amount = 0.0m;
-                if (dailyTotal.Current.Date == date) {
+                if (dailyTotalValid && dailyTotal.Current.Date == date) {
                     amount = dailyTotal.Current.Amount;
                 }
 
