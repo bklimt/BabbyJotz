@@ -12,9 +12,6 @@ namespace BabbyJotz {
 			this.BindingContext = rootViewModel;
 			InitializeComponent();
 
-            // Seems like a bug with WebView binding.
-            // webview.BindingContext = BindingContext;
-
             // TODO: Bind this icon to a theme.
 			ToolbarItems.Add(new ToolbarItem("Add", "toolbar_new_entry", async () => {
 				await OnAddClicked();
@@ -28,8 +25,8 @@ namespace BabbyJotz {
 		public async void OnEntryTapped(object sender, EventArgs args) {
 			var tappedArgs = args as ItemTappedEventArgs;
 			var entry = tappedArgs.Item as LogEntry;
-            // TODO: Copy the entry so that navigating back cancels changes.
-			await Navigation.PushAsync(new EntryPage(rootViewModel, entry));
+            await Navigation.PushAsync(new EntryPage(rootViewModel, new LogEntry(entry)));
+            ((ListView)sender).SelectedItem = null;
 		}
 
 		public void OnPreviousDayClicked(object sender, EventArgs args) {

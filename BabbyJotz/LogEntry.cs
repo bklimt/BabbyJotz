@@ -136,6 +136,17 @@ namespace BabbyJotz {
             DateTime = DateTime.Now;
             Uuid = uuid;
         }
+
+        public LogEntry(LogEntry other) {
+            DateTime = other.DateTime;
+            FormulaEaten = other.FormulaEaten;
+            IsPoop = other.IsPoop;
+            IsAsleep = other.IsAsleep;
+            Text = other.Text;
+            Uuid = other.Uuid;
+            ObjectId = other.ObjectId;
+            Deleted = other.Deleted;
+        }
     }
 }
 
