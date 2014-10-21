@@ -170,7 +170,7 @@ namespace BabbyJotz.iOS {
 
                 using (var command = connection.CreateCommand()) {
                     command.CommandText =
-                        "SELECT * FROM LogEntry WHERE Time>=:Date AND Time<=:NextDate AND Deleted IS NULL ORDER BY Time";
+                        "SELECT * FROM LogEntry WHERE Time>=:Date AND Time<=:NextDate AND Deleted IS NULL ORDER BY Time DESC";
                     command.Parameters.AddRange(parameters);
                     var reader = await command.ExecuteReaderAsync();
 

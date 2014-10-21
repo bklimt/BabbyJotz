@@ -166,8 +166,12 @@ namespace BabbyJotz {
 				Entries.Remove(entry);
 			}
 			foreach (var entry in newEntries) {
-				// TODO: This should really insert in sorted order.
-				Entries.Add(entry);
+                // Insert in sorted order.
+                var position = 0;
+                while (position < Entries.Count && Entries.ElementAt(position).DateTime > entry.DateTime) {
+                    position++;
+                }
+                Entries.Insert(position, entry);
 			}
 		}
 
