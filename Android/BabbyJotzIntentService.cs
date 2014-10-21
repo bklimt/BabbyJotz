@@ -138,7 +138,7 @@ namespace BabbyJotz.Android {
             // TODO: Make a correct icon for this.
             var builder = new NotificationCompat.Builder(context)
                 .SetContentTitle(title)
-                .SetSmallIcon(Resource.Drawable.ic_launcher)
+                .SetSmallIcon(Resource.Drawable.ic_stat_notify)
                 .SetContentText(desc)
                 .SetAutoCancel(true)
                 .SetContentIntent(pendingIntent);
