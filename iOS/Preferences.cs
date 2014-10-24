@@ -6,14 +6,24 @@ namespace BabbyJotz.iOS {
         public Preferences() {
         }
 
-        public bool GetBool(string key) {
+        public bool Get(PreferenceKey<bool> key) {
             var defaults = NSUserDefaults.StandardUserDefaults;
-            return defaults.BoolForKey(key);
+            return defaults.BoolForKey(key.Key);
         }
 
-        public void SetBool(string key, bool value) {
+        public void Set(PreferenceKey<bool> key, bool value) {
             var defaults = NSUserDefaults.StandardUserDefaults;
-            defaults.SetBool(value, key);
+            defaults.SetBool(value, key.Key);
+        }
+
+        public string Get(PreferenceKey<string> key) {
+            var defaults = NSUserDefaults.StandardUserDefaults;
+            return defaults.StringForKey(key.Key);
+        }
+
+        public void Set(PreferenceKey<string> key, string value) {
+            var defaults = NSUserDefaults.StandardUserDefaults;
+            defaults.SetString(value, key.Key);
         }
     }
 }

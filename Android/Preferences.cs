@@ -10,12 +10,20 @@ namespace BabbyJotz.Android {
             prefs = context.GetSharedPreferences("prefs", FileCreationMode.Private);
         }
 
-        public bool GetBool(string key) {
-            return prefs.GetBoolean(key, false);
+        public bool Get(PreferenceKey<bool> key) {
+            return prefs.GetBoolean(key.Key, false);
         }
 
-        public void SetBool(string key, bool value) {
-            prefs.Edit().PutBoolean(key, value).Commit();
+        public void Set(PreferenceKey<bool> key, bool value) {
+            prefs.Edit().PutBoolean(key.Key, value).Commit();
+        }
+
+        public string Get(PreferenceKey<string> key) {
+            return prefs.GetString(key.Key, null);
+        }
+
+        public void Set(PreferenceKey<string> key, string value) {
+            prefs.Edit().PutString(key.Key, value).Commit();
         }
     }
 }

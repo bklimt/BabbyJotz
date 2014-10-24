@@ -14,17 +14,17 @@ namespace BabbyJotz {
 
         private static void SaveTheme(BindableObject obj) {
             var model = obj as RootViewModel;
-            model.Preferences.SetBool("light", model.Theme == Theme.Light);
+            model.Preferences.Set(PreferenceKey.LightTheme, model.Theme == Theme.Light);
         }
 
         private static void SaveNotificationsEnabled(BindableObject obj) {
             var model = obj as RootViewModel;
-            model.Preferences.SetBool("dontNotify", !model.NotificationsEnabled);
+            model.Preferences.Set(PreferenceKey.DoNotNotify, !model.NotificationsEnabled);
         }
 
         private static void SaveVibrate(BindableObject obj) {
             var model = obj as RootViewModel;
-            model.Preferences.SetBool("dontVibrate", !model.Vibrate);
+            model.Preferences.Set(PreferenceKey.DoNotVibrate, !model.Vibrate);
         }
 
 		public ObservableCollection<LogEntry> Entries { get; private set; }
@@ -99,9 +99,9 @@ namespace BabbyJotz {
             }
             Date = now - now.TimeOfDay;
 
-            Theme = Preferences.GetBool("light") ? Theme.Light : Theme.Dark;
-            NotificationsEnabled = !Preferences.GetBool("dontNotify");
-            Vibrate = !Preferences.GetBool("dontVibrate");
+            Theme = Preferences.Get(PreferenceKey.LightTheme) ? Theme.Light : Theme.Dark;
+            NotificationsEnabled = !Preferences.Get(PreferenceKey.DoNotNotify);
+            Vibrate = !Preferences.Get(PreferenceKey.DoNotVibrate);
 
             TryToSyncEventually();
         }

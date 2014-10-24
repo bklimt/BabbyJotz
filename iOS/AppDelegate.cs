@@ -13,6 +13,7 @@ namespace BabbyJotz.iOS {
     public partial class AppDelegate : UIApplicationDelegate {
         UIWindow window;
         RootViewModel model;
+        Preferences prefs;
 
         private void UpdateForTheme(Theme theme) {
             UITabBar.Appearance.BarTintColor = theme.Title.ToUIColor();
@@ -43,7 +44,8 @@ namespace BabbyJotz.iOS {
             var cloudStore = new CloudStore();
             var localStore = new LocalStore(cloudStore);
 
-            model = new RootViewModel(localStore, new Preferences());
+            prefs = new Preferences();
+            model = new RootViewModel(localStore, prefs);
             model.PropertyChanged += (object sender, PropertyChangedEventArgs e) => {
                 if (e.PropertyName == "Theme") {
                     UpdateForTheme(model.Theme);
@@ -69,8 +71,7 @@ namespace BabbyJotz.iOS {
             // NOTE: Don't call the base implementation on a Model class
             // see http://docs.xamarin.com/guides/ios/application_fundamentals/delegates,_protocols,_and_events
             try {
-                var userDefaultsKey = "ParseInstallationObjectId";
-                var objectId = NSUserDefaults.StandardUserDefaults.StringForKey(userDefaultsKey);
+                var objectId = prefs.Get(PreferenceKey.ParseInstallationObjectId);
 
                 // TODO: Move this logic into CloudStore.
                 var obj = (objectId == null)
@@ -89,7 +90,7 @@ namespace BabbyJotz.iOS {
                 obj["userId"] = model.CloudUserId;
                 await obj.SaveAsync();
 
-                NSUserDefaults.StandardUserDefaults.SetString(userDefaultsKey, obj.ObjectId);
+                prefs.Set(PreferenceKey.ParseInstallationObjectId, obj.ObjectId);
             } catch (Exception e) {
                 Console.WriteLine("Unable to save device token. {0}", e);
             }

@@ -166,7 +166,7 @@ namespace BabbyJotz.iOS {
                 runAgain = false;
                 try {
                     await ParseUser.LogInAsync(username, password);
-                } catch (NullReferenceException nre) {
+                } catch (NullReferenceException) {
                     retries--;
                     if (retries > 0) {
                         runAgain = true;

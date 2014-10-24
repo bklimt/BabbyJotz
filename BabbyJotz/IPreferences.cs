@@ -2,8 +2,11 @@
 
 namespace BabbyJotz {
     public interface IPreferences {
-        bool GetBool(string key);
-        void SetBool(string key, bool value);
+        bool Get(PreferenceKey<bool> key);
+        void Set(PreferenceKey<bool> key, bool value);
+
+        string Get(PreferenceKey<string> key);
+        void Set(PreferenceKey<string> key, string value);
     }
 }
 

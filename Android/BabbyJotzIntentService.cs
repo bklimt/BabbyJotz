@@ -107,6 +107,10 @@ namespace BabbyJotz.Android {
                 // Well, we tried. :-(
             }
 
+            if (!app.RootViewModel.NotificationsEnabled) {
+                return;
+            }
+
             var json = intent.GetStringExtra("data") ?? "{}";
             var data = JsonConvert.DeserializeObject<ParsePushData>(json);
             var title = "New Babby Jotz";
