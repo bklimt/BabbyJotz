@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+
 using MonoTouch.Foundation;
 using MonoTouch.UIKit;
 using Parse;
 using Xamarin.Forms;
+using Xamarin.Forms.Labs.iOS.Services.Media;
 using Xamarin.Forms.Platform.iOS;
 
 namespace BabbyJotz.iOS {
@@ -14,6 +16,10 @@ namespace BabbyJotz.iOS {
         UIWindow window;
         RootViewModel model;
         Preferences prefs;
+
+        public MediaPicker UnusedMediaPicker() {
+            return new MediaPicker();
+        }
 
         private void UpdateForTheme(Theme theme) {
             UITabBar.Appearance.BarTintColor = theme.Title.ToUIColor();

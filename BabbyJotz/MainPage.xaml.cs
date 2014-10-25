@@ -5,11 +5,11 @@ using Xamarin.Forms;
 
 namespace BabbyJotz {
 	public partial class MainPage : TabbedPage {
-		private RootViewModel rootViewModel;
+        private RootViewModel RootViewModel { get; set; }
 
 		public MainPage(RootViewModel model) {
-			rootViewModel = model;
-			this.BindingContext = rootViewModel;
+			RootViewModel = model;
+			BindingContext = RootViewModel;
 			InitializeComponent();
 
             // TODO: Bind this icon to a theme.
@@ -18,28 +18,40 @@ namespace BabbyJotz {
 			}));
 		}
 
+        protected override void OnAppearing() {
+            base.OnAppearing();
+            // TODO: Change this to a bindable model property on the root view model.
+            if (RootViewModel.Preferences.Get(PreferenceKey.CurrentBabyUUID) == null) {
+                var page = new NavigationPage(new NuxPage(RootViewModel));
+                page.BindingContext = RootViewModel;
+                page.SetBinding(NavigationPage.BarBackgroundColorProperty, "Theme.Title");
+                page.SetBinding(NavigationPage.BarTextColorProperty, "Theme.Text");
+                Navigation.PushModalAsync(page);
+            }
+        }
+
 		private async Task OnAddClicked() {
-			await Navigation.PushAsync(new EntryPage(rootViewModel, new LogEntry()));
+			await Navigation.PushAsync(new EntryPage(RootViewModel, new LogEntry()));
 		}
 
 		public async void OnEntryTapped(object sender, EventArgs args) {
 			var tappedArgs = args as ItemTappedEventArgs;
 			var entry = tappedArgs.Item as LogEntry;
-            await Navigation.PushAsync(new EntryPage(rootViewModel, new LogEntry(entry)));
+            await Navigation.PushAsync(new EntryPage(RootViewModel, new LogEntry(entry)));
             ((ListView)sender).SelectedItem = null;
 		}
 
 		public void OnPreviousDayClicked(object sender, EventArgs args) {
-			rootViewModel.Date -= TimeSpan.FromDays(1);
+			RootViewModel.Date -= TimeSpan.FromDays(1);
 		}
 
 		public void OnNextDayClicked(object sender, EventArgs args) {
-			rootViewModel.Date += TimeSpan.FromDays(1);
+			RootViewModel.Date += TimeSpan.FromDays(1);
 		}
 
 		public async void OnSyncClicked(object sender, EventArgs args) {
 			try {
-				await rootViewModel.SyncAsync(true);
+				await RootViewModel.SyncAsync(true);
 			} catch (Exception e) {
 				await DisplayAlert("Error", String.Format("Unable to sync: {0}", e), "Ok");
 				// await DisplayAlert("Error", String.Format("Unable to sync. Check your network connection.", e), "Ok");
@@ -47,59 +59,59 @@ namespace BabbyJotz {
 		}
 
 		public void OnLogInClicked(object sender, EventArgs args) {
-			Navigation.PushAsync(new LogInPage(rootViewModel));
+			Navigation.PushAsync(new LogInPage(RootViewModel));
 		}
 
 		public async void OnLogOutClicked(object sender, EventArgs args) {
             // TODO: Maybe remove synced items on log out?
 			var ok = await DisplayAlert("Are you sure?", "Future syncing may fail.", "OK", "Cancel");
 			if (ok) {
-				rootViewModel.LogOut();
+				RootViewModel.LogOut();
 			}
 		}
 
         public async void OnToggleThemeClicked(object sender, EventArgs args) {
-            rootViewModel.ToggleTheme();
+            RootViewModel.ToggleTheme();
             if (Device.OS == TargetPlatform.iOS) {
                 // This is a stupid hack to force the tabs on the bottom to update.
                 // On Android, this breaks everything. Go figure.
-                await Navigation.PushAsync(new VanishingPage(rootViewModel));
+                await Navigation.PushAsync(new VanishingPage(RootViewModel));
             }
         }
 
         public async void OnSleepingBarChartClicked(object sender, EventArgs args) {
             await Navigation.PushAsync(new WebViewPage("Sleeping", () =>
-                StatisticsHtmlBuilder.GetSleepingBarChartHtmlAsync(rootViewModel)));
+                StatisticsHtmlBuilder.GetSleepingBarChartHtmlAsync(RootViewModel)));
         }
 
         public async void OnSleepingDayHeatMapClicked(object sender, EventArgs args) {
             await Navigation.PushAsync(new WebViewPage("Sleeping", () =>
-                StatisticsHtmlBuilder.GetSleepingDayHeatMapHtmlAsync(rootViewModel)));
+                StatisticsHtmlBuilder.GetSleepingDayHeatMapHtmlAsync(RootViewModel)));
         }
 
         public async void OnSleepingNightHeatMapClicked(object sender, EventArgs args) {
             await Navigation.PushAsync(new WebViewPage("Sleeping", () =>
-                StatisticsHtmlBuilder.GetSleepingNightHeatMapHtmlAsync(rootViewModel)));
+                StatisticsHtmlBuilder.GetSleepingNightHeatMapHtmlAsync(RootViewModel)));
         }
 
         public async void OnEatingBarChartClicked(object sender, EventArgs args) {
             await Navigation.PushAsync(new WebViewPage("Eating", () =>
-                StatisticsHtmlBuilder.GetEatingBarChartHtmlAsync(rootViewModel)));
+                StatisticsHtmlBuilder.GetEatingBarChartHtmlAsync(RootViewModel)));
         }
 
         public async void OnEatingHeatMapClicked(object sender, EventArgs args) {
             await Navigation.PushAsync(new WebViewPage("Eating", () =>
-                StatisticsHtmlBuilder.GetEatingHeatMapHtmlAsync(rootViewModel)));
+                StatisticsHtmlBuilder.GetEatingHeatMapHtmlAsync(RootViewModel)));
         }
 
         public async void OnPoopingBarChartClicked(object sender, EventArgs args) {
             await Navigation.PushAsync(new WebViewPage("Pooping", () =>
-                StatisticsHtmlBuilder.GetPoopingBarChartHtmlAsync(rootViewModel)));
+                StatisticsHtmlBuilder.GetPoopingBarChartHtmlAsync(RootViewModel)));
         }
 
         public async void OnPoopingHeatMapClicked(object sender, EventArgs args) {
             await Navigation.PushAsync(new WebViewPage("Pooping", () =>
-                StatisticsHtmlBuilder.GetPoopingHeatMapHtmlAsync(rootViewModel)));
+                StatisticsHtmlBuilder.GetPoopingHeatMapHtmlAsync(RootViewModel)));
         }
     }
 }

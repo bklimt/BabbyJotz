@@ -119,7 +119,6 @@ namespace BabbyJotz.iOS {
             }
         }
 
-        // Returns the ObjectId of the object.
         public async Task SaveAsync(LogEntry entry) {
             if (ParseUser.CurrentUser == null) {
                 throw new InvalidOperationException("Tried to sync without logging in.");
@@ -156,6 +155,23 @@ namespace BabbyJotz.iOS {
                 lastUpdatedAt = results[results.Count - 1].UpdatedAt;
             }
             return new Tuple<IEnumerable<LogEntry>, DateTime?>(objs.ToList(), lastUpdatedAt);
+        }
+
+        public async Task SaveAsync(Baby baby) {
+            if (ParseUser.CurrentUser == null) {
+                throw new InvalidOperationException("Tried to sync without logging in.");
+            }
+
+            var obj = baby.ObjectId != null
+                ? ParseObject.CreateWithoutData("Baby", baby.ObjectId)
+                : ParseObject.Create("Baby");
+            obj["uuid"] = baby.Uuid;
+            obj["name"] = baby.Name;
+            obj["profilePhoto"] = new ParseFile("photo.png", baby.ProfilePhotoStream());
+            obj["deleted"] = baby.Deleted;
+            obj.ACL = new ParseACL(ParseUser.CurrentUser);
+            await obj.SaveAsync();
+            baby.ObjectId = obj.ObjectId;
         }
 
         public async Task LogInAsync(string username, string password) {

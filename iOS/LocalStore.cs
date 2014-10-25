@@ -27,7 +27,7 @@ namespace BabbyJotz.iOS {
 
             path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Personal),
-                "database8.db3");
+                "database9.db3");
 
             EnqueueAsync(async () => {
                 if (!File.Exists(path)) {
@@ -35,6 +35,13 @@ namespace BabbyJotz.iOS {
 
                     var connection = new SqliteConnection("Data Source=" + path);
                     await connection.OpenAsync();
+                    using (var command = connection.CreateCommand()) {
+                        command.CommandText = "CREATE TABLE [Baby] (" +
+                            "[Uuid] varchar(255) PRIMARY KEY, [Name] varchar(255) NOT NULL, " +
+                            "[ObjectId] varchar(255), [Deleted] varchar(255), [Synced] bool, " +
+                            "[LocalVersion] integer NOT NULL);";
+                        await command.ExecuteNonQueryAsync();
+                    }
                     using (var command = connection.CreateCommand()) {
                         command.CommandText = "CREATE TABLE [LogEntry] (" +
                         "[Uuid] varchar(255) PRIMARY KEY, [Time] varchar(255), [Text] varchar(255), " +
@@ -175,6 +182,88 @@ namespace BabbyJotz.iOS {
 
                     results = from obj in reader.Cast<IDataRecord>()
                                              select CreateEntryFromDataRecord(obj);
+                    results = await Task.Run(() => results.ToList());
+                    reader.Close();
+                }
+
+                connection.Close();
+                return results;
+            });
+        }
+
+        public async Task SaveAsync(Baby baby) {
+            await EnqueueAsync(async () => {
+                var connection = new SqliteConnection("Data Source=" + path);
+                await connection.OpenAsync();
+
+                var deleted = (baby.Deleted.HasValue ? baby.Deleted.Value.ToString("O") : null);
+
+                // TODO: Figure out how to store the profile photo!
+                var parameters = new SqliteParameter[] {
+                    new SqliteParameter("Uuid", baby.Uuid),
+                    new SqliteParameter("Deleted", deleted),
+                    new SqliteParameter("Name", baby.Name),
+                    new SqliteParameter("Deleted", deleted),
+                    new SqliteParameter("Synced", false)
+                };
+                int rowsChanged = 0;
+
+                using (var command = connection.CreateCommand()) {
+                    command.CommandText = "UPDATE Baby SET " +
+                        "Name=:Name, " +
+                        "Deleted=:Deleted, Synced=:Synced, LocalVersion=LocalVersion+1 WHERE Uuid=:Uuid";
+                    command.Parameters.AddRange(parameters);
+                    rowsChanged = await command.ExecuteNonQueryAsync();
+                }
+
+                if (rowsChanged < 1) {
+                    using (var command = connection.CreateCommand()) {
+                        command.CommandText =
+                            "INSERT INTO Baby(Uuid, Name, Deleted, Synced, LocalVersion) " +
+                            "VALUES (:Uuid, :Name, :Deleted, :Synced, 1);";
+                        command.Parameters.AddRange(parameters);
+                        rowsChanged = await command.ExecuteNonQueryAsync();
+                    }
+
+                }
+
+                connection.Close();
+                return true;
+            });
+
+            if (Changed != null) {
+                Changed(this, EventArgs.Empty);
+            }
+        }
+
+        private Baby CreateBabyFromDataRecord(IDataRecord rec) {
+            var deleted = (rec["Deleted"] is DBNull) ? (DateTime?)null : DateTime.Parse((string)rec["Deleted"]);
+
+            return new Baby((string)rec["Uuid"]) {
+                Name = (string)rec["Name"],
+                Deleted = deleted,
+                ObjectId = rec["ObjectId"] as string
+            };
+        }
+
+        public async Task<IEnumerable<Baby>> FetchBabiesAsync() {
+            return await EnqueueAsync(async () => {
+                var connection = new SqliteConnection("Data Source=" + path);
+                await connection.OpenAsync();
+
+                var parameters = new SqliteParameter[] {
+                };
+
+                IEnumerable<Baby> results = null;
+
+                using (var command = connection.CreateCommand()) {
+                    command.CommandText =
+                        "SELECT * FROM Baby WHERE Deleted IS NULL";
+                    command.Parameters.AddRange(parameters);
+                    var reader = await command.ExecuteReaderAsync();
+
+                    results = from obj in reader.Cast<IDataRecord>()
+                        select CreateBabyFromDataRecord(obj);
                     results = await Task.Run(() => results.ToList());
                     reader.Close();
                 }

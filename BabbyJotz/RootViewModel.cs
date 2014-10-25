@@ -9,7 +9,6 @@ using Xamarin.Forms;
 namespace BabbyJotz {
 	public class RootViewModel : BindableObject {
 		private IDataStore DataStore { get; set; }
-        private IPreferences Preferences { get; set; }
 		private TaskQueue syncQueue = new TaskQueue();
 
         private static void SaveTheme(BindableObject obj) {
@@ -27,6 +26,7 @@ namespace BabbyJotz {
             model.Preferences.Set(PreferenceKey.DoNotVibrate, !model.Vibrate);
         }
 
+        public IPreferences Preferences { get; private set; }
 		public ObservableCollection<LogEntry> Entries { get; private set; }
 
 		public static readonly BindableProperty DateProperty =
@@ -181,10 +181,15 @@ namespace BabbyJotz {
 			UpdateEntries(newEntries);
 		}
 
-		public async Task SaveAsync(LogEntry entry) {
-			await DataStore.SaveAsync(entry);
-			TryToSyncEventually();
-		}
+        public async Task SaveAsync(LogEntry entry) {
+            await DataStore.SaveAsync(entry);
+            TryToSyncEventually();
+        }
+
+        public async Task SaveAsync(Baby baby) {
+            await DataStore.SaveAsync(baby);
+            TryToSyncEventually();
+        }
 
 		public async Task DeleteAsync(LogEntry entry) {
 			await DataStore.DeleteAsync(entry);

@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentPage
+    xmlns ="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="BabbyJotz.LogOutPage"
+    BackgroundColor="{Binding Theme.Background}">
+    <ContentPage.Content>
+        <StackLayout
+            Spacing="8"
+            VerticalOptions="CenterAndExpand" >
+            <StackLayout.Padding>
+                <Thickness Top="20" Bottom="20" Left="20" Right="20" />
+            </StackLayout.Padding>
+            <Label
+                Text="Are you sure?"
+                TextColor="{Binding Theme.Text}"
+                HorizontalOptions="CenterAndExpand" />
+            <StackLayout
+                Orientation="Horizontal"
+                Spacing="8"
+                HorizontalOptions="CenterAndExpand">
+                <Button
+                    Text="Log out"
+                    Clicked="OnLogOutClicked"
+                    TextColor="{Binding Theme.ButtonText}"
+                    HorizontalOptions="FillAndExpand" />
+                <Button
+                    Text="Cancel"
+                    Clicked="OnCancelClicked"
+                    TextColor="{Binding Theme.ButtonText}"
+                    HorizontalOptions="FillAndExpand" />
+            </StackLayout>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

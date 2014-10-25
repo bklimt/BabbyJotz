@@ -8,6 +8,9 @@ namespace BabbyJotz {
 
         public static readonly PreferenceKey<string> ParseInstallationObjectId =
             new PreferenceKey<string>("ParseInstallationObjectId");
+
+        public static readonly PreferenceKey<string> CurrentBabyUUID =
+            new PreferenceKey<string>("CurrentBabyUUID");
     }
 
     public class PreferenceKey<T> {

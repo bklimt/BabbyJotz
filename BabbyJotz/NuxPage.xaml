@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentPage
+    xmlns ="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="BabbyJotz.NuxPage"
+    BackgroundColor="{Binding Theme.Background}">
+    <ContentPage.Padding>
+        <Thickness Left="8" Right="8" Bottom="8" Top="28" />
+    </ContentPage.Padding>
+    <StackLayout VerticalOptions="CenterAndExpand">
+        <Label
+            TextColor="{Binding Theme.Text}"
+            HorizontalOptions="CenterAndExpand"
+            Text="Welcome to" />
+        <Image Source="logo.png" />
+        <Label
+            TextColor="{Binding Theme.Text}"
+            HorizontalOptions="FillAndExpand"
+            XAlign="Center">
+            <Label.Text>
+                Would you like to create a new baby or link to an existing baby already synced to the Babby Cloud?
+            </Label.Text>
+        </Label>
+        <Label HorizontalOptions="FillAndExpand" Text=" " />
+        <Button
+            Text="Create New Baby"
+            Clicked="OnNewBabyClicked"
+            TextColor="{Binding Theme.ButtonText}"
+            HorizontalOptions="FillAndExpand" />
+        <Button
+            Text="Link Existing Baby"
+            Clicked="OnLinkExistingBabyClicked"
+            TextColor="{Binding Theme.ButtonText}"
+            HorizontalOptions="FillAndExpand" />
+    </StackLayout>
+</ContentPage>
