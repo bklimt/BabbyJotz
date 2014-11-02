@@ -34,14 +34,15 @@ Parse.Promise.as().then(function() {
 
 }).then(function() {
   var q = new Parse.Query("LogEntry");
+  q.doesNotExist("babyUuid");
   //q.doesNotExist("datetime");
-  q.equalTo("deleted", null);
+  //q.equalTo("deleted", null);
   q.ascending("updatedAt");
   q.limit(1000);
   return q.find();
 
 }).then(function(entries) {
-  console.log("fixing " + entries.length + " dates...");
+  console.log("fixing " + entries.length + " entries...");
   var p = Parse.Promise.as();
   _.each(entries, function(obj) {
     p = p.then(function() {
@@ -49,7 +50,8 @@ Parse.Promise.as().then(function() {
       //    new Date(Date.parse(
       //        obj.get("time").toUTCString().replace(" GMT", " PDT"))));
       //obj.set("deleted", null);
-      obj.unset("deleted");
+      //obj.unset("deleted");
+      obj.set("babyUuid", "AN OLD PLACEHOLDER");
       return obj.save();
     });
   });
