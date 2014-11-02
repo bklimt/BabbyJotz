@@ -13,7 +13,7 @@ namespace BabbyJotz {
         }
 
         public async void OnNewBabyClicked(object sender, EventArgs args) {
-            var page = new NewBabyPage(RootViewModel);
+            var page = new EditBabyPage(RootViewModel, null);
             await Navigation.PushAsync(page);
         }
 

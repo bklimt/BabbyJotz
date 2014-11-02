@@ -105,7 +105,7 @@ namespace BabbyJotz {
         private delegate void HtmlBuilderFunc(StringBuilder html, List<LogEntry> entries);
 
         private static async Task<string> GetHtmlAsync(RootViewModel model, HtmlBuilderFunc func) {
-            var entries = await model.GetEntriesForStatisticsAsync();
+            var entries = await model.LocalStore.GetEntriesForStatisticsAsync(model.Baby);
             return await Task.Run(() => {
                 var html = new StringBuilder(5000);
                 html.Append(Header(model.Theme));
@@ -119,6 +119,8 @@ namespace BabbyJotz {
                 return html.ToString();
             });
         }
+
+        // TODO: Add charts for pumped milk and breast-feeding.
 
         public static async Task<string> GetSleepingBarChartHtmlAsync(RootViewModel model) {
             return await GetHtmlAsync(model, (html, entries) => GenerateBarChart(html, entries, Metric.Sleeping, 50));
@@ -167,7 +169,7 @@ namespace BabbyJotz {
             }
             html.Append("</tr>\n");
 
-            var maxEaten = 0.0m;
+            var maxEaten = 0.0;
             if (metric == Metric.Eating) {
                 maxEaten = (from e in entries
                             group e.FormulaEaten by DatetimeModMinutes(e.DateTime, quantum) into day
@@ -207,7 +209,7 @@ namespace BabbyJotz {
                 var nextTime = day;
                 for (var time = day; time != nextDay; time = nextTime) {
                     nextTime = time.AddMinutes(quantum);
-                    var eaten = 0.0m;
+                    var eaten = 0.0;
                     var pooped = false;
                     // If the entry lines up perfectly with the time, don't use the last asleep value.
                     if (entry.Current.DateTime == time) {
@@ -229,12 +231,12 @@ namespace BabbyJotz {
                     var cssClass = "white";
 
                     if (metric == Metric.Eating) {
-                        var eatenRatio = Math.Min(eaten / maxEaten, 1.0m);
+                        var eatenRatio = Math.Min(eaten / maxEaten, 1.0);
 
                         // TODO: Make this grayscale or something.
-                        if (eatenRatio > 0.66m) {
+                        if (eatenRatio > 0.66) {
                             cssClass = "black";
-                        } else if (eatenRatio >= 0.33m) {
+                        } else if (eatenRatio >= 0.33) {
                             cssClass = "dark";
                         } else if (eatenRatio > 0) {
                             cssClass = "light";
@@ -275,7 +277,7 @@ namespace BabbyJotz {
 
         private struct DailyTotal {
             public DateTime Date;
-            public decimal Amount;
+            public double Amount;
         }
 
         // TODO: Separate out day sleep and night sleep.
@@ -313,7 +315,7 @@ namespace BabbyJotz {
 
                 totals.Add(new DailyTotal() {
                     Date = day,
-                    Amount = (decimal)timeSlept.TotalMinutes
+                    Amount = (double)timeSlept.TotalMinutes
                 });
             }
 
@@ -327,7 +329,7 @@ namespace BabbyJotz {
 
             if (metric == Metric.Eating) {
                 dailyTotals = from entry in entries
-                              where entry.FormulaEaten > 0.0m
+                              where entry.FormulaEaten > 0.0
                               group entry.FormulaEaten by entry.Date into day
                               select new DailyTotal {
                     Date = day.Key,
@@ -355,7 +357,7 @@ namespace BabbyJotz {
             var maxDate = entries[entries.Count - 1].Date;
 
             if (metric == Metric.Pooping) {
-                maxAmount += 1.0m;
+                maxAmount += 1.0;
                 steps = (int)maxAmount;
             }
             var step = maxAmount / steps;
@@ -374,7 +376,7 @@ namespace BabbyJotz {
                 while (dailyTotalValid && dailyTotal.Current.Date < date) {
                     dailyTotalValid = dailyTotal.MoveNext();
                 }
-                var amount = 0.0m;
+                var amount = 0.0;
                 if (dailyTotalValid && dailyTotal.Current.Date == date) {
                     amount = dailyTotal.Current.Amount;
                 }

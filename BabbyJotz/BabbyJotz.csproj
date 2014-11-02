@@ -35,74 +35,87 @@
     <Compile Include="LogEntry.cs" />
     <Compile Include="RootViewModel.cs" />
     <Compile Include="TaskQueue.cs" />
-    <Compile Include="MainPage.xaml.cs">
-      <DependentUpon>MainPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="IDataStore.cs" />
-    <Compile Include="NotConverter.cs" />
-    <Compile Include="NullConverter.cs" />
-    <Compile Include="NotNullConverter.cs" />
-    <Compile Include="LogInPage.xaml.cs">
-      <DependentUpon>LogInPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="EntryPage.xaml.cs">
-      <DependentUpon>EntryPage.xaml</DependentUpon>
-    </Compile>
     <Compile Include="StatisticsHtmlBuilder.cs" />
     <Compile Include="Theme.cs" />
-    <Compile Include="IPreferences.cs" />
-    <Compile Include="WebViewPage.xaml.cs">
-      <DependentUpon>WebViewPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="VanishingPage.xaml.cs">
-      <DependentUpon>VanishingPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="NumberConverter.cs" />
     <Compile Include="PreferenceKey.cs" />
-    <Compile Include="NuxPage.xaml.cs">
-      <DependentUpon>NuxPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="NewBabyPage.xaml.cs">
-      <DependentUpon>NewBabyPage.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Baby.cs" />
-    <Compile Include="LinkExistingBabyPage.xaml.cs">
+    <Compile Include="Converters\NotConverter.cs" />
+    <Compile Include="Converters\NotNullConverter.cs" />
+    <Compile Include="Converters\NullConverter.cs" />
+    <Compile Include="Converters\NumberConverter.cs" />
+    <Compile Include="Pages\EditBabyPage.xaml.cs">
+      <DependentUpon>EditBabyPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\EntryPage.xaml.cs">
+      <DependentUpon>EntryPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\LinkExistingBabyPage.xaml.cs">
       <DependentUpon>LinkExistingBabyPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="LogOutPage.xaml.cs">
+    <Compile Include="Pages\LogInPage.xaml.cs">
+      <DependentUpon>LogInPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\LogOutPage.xaml.cs">
       <DependentUpon>LogOutPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\MainPage.xaml.cs">
+      <DependentUpon>MainPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\NuxPage.xaml.cs">
+      <DependentUpon>NuxPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\VanishingPage.xaml.cs">
+      <DependentUpon>VanishingPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\WebViewPage.xaml.cs">
+      <DependentUpon>WebViewPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\SharePage.xaml.cs">
+      <DependentUpon>SharePage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Interfaces\CloudFetchChangesResponse.cs" />
+    <Compile Include="Interfaces\ICloudStore.cs" />
+    <Compile Include="Interfaces\IPreferences.cs" />
+    <Compile Include="Interfaces\CloudFetchChangesRequest.cs" />
+    <Compile Include="Invite.cs" />
+    <Compile Include="StorableObject.cs" />
+    <Compile Include="Photo.cs" />
+    <Compile Include="Converters\PhotoConverter.cs" />
+    <Compile Include="Interfaces\ILocalStore.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <Import Project="..\packages\Xamarin.Forms.1.2.3.6257\build\portable-win+net45+wp80+MonoAndroid10+MonoTouch10\Xamarin.Forms.targets" Condition="Exists('..\packages\Xamarin.Forms.1.2.3.6257\build\portable-win+net45+wp80+MonoAndroid10+MonoTouch10\Xamarin.Forms.targets')" />
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="MainPage.xaml">
+    <EmbeddedResource Include="Pages\EditBabyPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Include="LogInPage.xaml">
+    <EmbeddedResource Include="Pages\EntryPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Include="EntryPage.xaml">
+    <EmbeddedResource Include="Pages\LinkExistingBabyPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Include="WebViewPage.xaml">
+    <EmbeddedResource Include="Pages\LogInPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Include="VanishingPage.xaml">
+    <EmbeddedResource Include="Pages\LogOutPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Include="NuxPage.xaml">
+    <EmbeddedResource Include="Pages\MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Include="NewBabyPage.xaml">
+    <EmbeddedResource Include="Pages\NuxPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Include="LinkExistingBabyPage.xaml">
+    <EmbeddedResource Include="Pages\VanishingPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Include="LogOutPage.xaml">
+    <EmbeddedResource Include="Pages\WebViewPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Pages\SharePage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
   </ItemGroup>
@@ -122,5 +135,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Converters\" />
+    <Folder Include="Pages\" />
+    <Folder Include="Interfaces\" />
   </ItemGroup>
 </Project>

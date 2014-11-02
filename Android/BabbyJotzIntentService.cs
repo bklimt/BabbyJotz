@@ -64,30 +64,8 @@ namespace BabbyJotz.Android {
 
             if (registrationId != null) {
                 try {
-                    var prefsKey = "ParseInstallationObjectId";
-                    var prefs = GetSharedPreferences("default", FileCreationMode.Private);
-                    var objectId = prefs.GetString(prefsKey, null);
-
-                    // TODO: Move this logic into CloudStore.
-                    var obj = (objectId == null)
-                        ? ParseObject.Create("_Installation")
-                        : ParseObject.CreateWithoutData("_Installation", objectId);
-                    // From https://groups.google.com/forum/#!topic/parse-developers/pPatDDkzcEc
-                    // And https://gist.github.com/gfosco/a526cbc3061398d50e8b
-                    obj["deviceToken"] = registrationId;
-                    obj["deviceType"] = "android";
-                    obj["pushType"] = "gcm";
-                    obj["appIdentifier"] = "com.bklimt.BabbyJotz";
-                    // obj["timeZone"] = TimeZone.CurrentTimeZone.ToString();
-                    obj["appName"] = "BabbyJotz";
-                    obj["appVersion"] = "1.0.0";
-                    obj["parseVersion"] = "1.3.0";
-                    // TODO: It sucks having to hook into Parse directly here.
-                    // It would be better to go through the CloudStore interface.
-                    obj["userId"] = ParseUser.CurrentUser.ObjectId;
-                    await obj.SaveAsync();
-
-                    prefs.Edit().PutString(prefsKey, obj.ObjectId).Commit();
+                    var app = (BabbyJotzApplication)Application;
+                    await app.RootViewModel.CloudStore.RegisterForPushAsync(registrationId);
                 } catch (Exception e) {
                     Console.WriteLine("Unable to save device token. {0}", e);
                 }
@@ -121,7 +99,7 @@ namespace BabbyJotz.Android {
 
             var manager = (NotificationManager)GetSystemService(Context.NotificationService);
 
-            var unreadEnumerator = await app.RootViewModel.FetchUnreadAsync();
+            var unreadEnumerator = await app.RootViewModel.LocalStore.FetchUnreadAsync();
             var unread = (from entry in unreadEnumerator
                           select entry).ToList();
             if (unread.Count == 0) {

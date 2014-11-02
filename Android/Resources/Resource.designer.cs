@@ -172,10 +172,13 @@ namespace BabbyJotz.Android
 			public const int ic_stat_notify = 2130837508;
 			
 			// aapt resource value: 0x7f020005
-			public const int splash = 2130837509;
+			public const int logo = 2130837509;
 			
 			// aapt resource value: 0x7f020006
-			public const int toolbar_new_entry = 2130837510;
+			public const int splash = 2130837510;
+			
+			// aapt resource value: 0x7f020007
+			public const int toolbar_new_entry = 2130837511;
 			
 			static Drawable()
 			{

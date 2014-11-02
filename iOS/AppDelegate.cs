@@ -15,7 +15,6 @@ namespace BabbyJotz.iOS {
     public partial class AppDelegate : UIApplicationDelegate {
         UIWindow window;
         RootViewModel model;
-        Preferences prefs;
 
         public MediaPicker UnusedMediaPicker() {
             return new MediaPicker();
@@ -44,14 +43,10 @@ namespace BabbyJotz.iOS {
 
             Forms.Init();
 
-            ParseClient.Initialize(
-                "dRJrkKFywmUEYJx10K96Sw848juYyFF01Zlno6Uf",
-                "0ICNGpRDtEswmZw8E3nfS08W8RNWbFLExIIw2IvS");
-            var cloudStore = new CloudStore();
-            var localStore = new LocalStore(cloudStore);
-
-            prefs = new Preferences();
-            model = new RootViewModel(localStore, prefs);
+            var prefs = new Preferences();
+            var cloudStore = new ParseStore(prefs);
+            var localStore = new LocalStore();
+            model = new RootViewModel(localStore, cloudStore, prefs);
             model.PropertyChanged += (object sender, PropertyChangedEventArgs e) => {
                 if (e.PropertyName == "Theme") {
                     UpdateForTheme(model.Theme);
@@ -77,26 +72,10 @@ namespace BabbyJotz.iOS {
             // NOTE: Don't call the base implementation on a Model class
             // see http://docs.xamarin.com/guides/ios/application_fundamentals/delegates,_protocols,_and_events
             try {
-                var objectId = prefs.Get(PreferenceKey.ParseInstallationObjectId);
-
-                // TODO: Move this logic into CloudStore.
-                var obj = (objectId == null)
-                    ? ParseObject.Create("_Installation")
-                    : ParseObject.CreateWithoutData("_Installation", objectId);
                 // From https://groups.google.com/forum/#!topic/parse-developers/pPatDDkzcEc
                 // And https://gist.github.com/gfosco/a526cbc3061398d50e8b
                 string dt = deviceToken.ToString().Replace("<", "").Replace(">", "").Replace(" ", "");
-                obj["deviceToken"] = dt;
-                obj["deviceType"] = "ios";
-                obj["appIdentifier"] = "com.bklimt.BabbyJotz";
-                // obj["timeZone"] = TimeZone.CurrentTimeZone.ToString();
-                obj["appName"] = "BabbyJotz";
-                obj["appVersion"] = "1.0.0";
-                obj["parseVersion"] = "1.3.0";
-                obj["userId"] = model.CloudUserId;
-                await obj.SaveAsync();
-
-                prefs.Set(PreferenceKey.ParseInstallationObjectId, obj.ObjectId);
+                await model.CloudStore.RegisterForPushAsync(dt);
             } catch (Exception e) {
                 Console.WriteLine("Unable to save device token. {0}", e);
             }

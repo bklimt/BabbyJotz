@@ -14,7 +14,7 @@ namespace BabbyJotz {
 
         public async void OnLogInClicked(object sender, EventArgs args) {
             try {
-                await rootViewModel.LogInAsync(username.Text, password.Text);
+                await rootViewModel.CloudStore.LogInAsync(username.Text, password.Text);
                 await Navigation.PopAsync();
             } catch (Exception e) {
                 var message = String.Format("Unable to log in.\n{0}", e);
@@ -22,15 +22,15 @@ namespace BabbyJotz {
             }
         }
 
-		public async void OnSignUpClicked(object sender, EventArgs args) {
-			try {
-				await rootViewModel.SignUpAsync(username.Text, password.Text);
-				await Navigation.PopAsync();
+        public async void OnSignUpClicked(object sender, EventArgs args) {
+            try {
+                await rootViewModel.CloudStore.SignUpAsync(username.Text, password.Text);
+                await Navigation.PopAsync();
             } catch (Exception e) {
                 var message = String.Format("Unable to sign up.\n{0}", e);
                 await DisplayAlert("Error", message, "OK");
-			}
-		}
-	}
+            }
+        }
+    }
 }
 

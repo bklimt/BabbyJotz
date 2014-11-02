@@ -2,7 +2,7 @@
 using Xamarin.Forms;
 
 namespace BabbyJotz {
-    public class LogEntry : BindableObject {
+    public class LogEntry : StorableObject {
         private bool updatingDateTime = false;
 
         private static void UpdateDateTime(BindableObject obj) {
@@ -34,17 +34,18 @@ namespace BabbyJotz {
                 entry.DateTime.ToString("hh:mm tt") + " - " +
                 (entry.IsAsleep ? "\ud83d\udca4 " : "") +
                 (entry.IsPoop ? "\ud83d\udca9 " : "") +
-                (entry.FormulaEaten > 0 ? ("\ud83c\udf7c " + entry.FormulaEaten + "oz ") : "") +
+                ((entry.FormulaEaten + entry.PumpedEaten) > 0
+                    ? String.Format("\ud83c\udf7c {0}oz ", entry.FormulaEaten + entry.PumpedEaten)
+                    : "") +
+                ((entry.RightBreastEaten.Minutes + entry.LeftBreastEaten.Minutes) > 0
+                    ? String.Format("[bf {0}min] ", entry.RightBreastEaten.TotalMinutes + entry.LeftBreastEaten.TotalMinutes)
+                    : "") +
                 entry.Text;
         }
 
         // Properties
 
-        public string Uuid { get; private set; }
-
-        public string ObjectId { get; set; }
-
-        public DateTime? Deleted { get; set; }
+        public Baby Baby { get; private set; }
 
         public static readonly BindableProperty TextProperty =
             BindableProperty.Create<LogEntry, string>(p => p.Text, "",
@@ -92,13 +93,39 @@ namespace BabbyJotz {
         }
 
         public static readonly BindableProperty FormulaEatenProperty =
-            BindableProperty.Create<LogEntry, decimal>(p => p.FormulaEaten, 0.0m,
+            BindableProperty.Create<LogEntry, double>(p => p.FormulaEaten, 0.0,
                 BindingMode.Default, null, (p, _1, _2) => UpdateDescription(p), null, null);
 
-        // TODO: Get rid of decimal everywhere.
-        public decimal FormulaEaten {
-            get { return (decimal)base.GetValue(FormulaEatenProperty); }
+        public double FormulaEaten {
+            get { return (double)base.GetValue(FormulaEatenProperty); }
             set { SetValue(FormulaEatenProperty, value); }
+        }
+
+        public static readonly BindableProperty PumpedEatenProperty =
+            BindableProperty.Create<LogEntry, double>(p => p.PumpedEaten, 0.0,
+                BindingMode.Default, null, (p, _1, _2) => UpdateDescription(p), null, null);
+
+        public double PumpedEaten {
+            get { return (double)base.GetValue(PumpedEatenProperty); }
+            set { SetValue(PumpedEatenProperty, value); }
+        }
+
+        public static readonly BindableProperty LeftBreastEatenProperty =
+            BindableProperty.Create<LogEntry, TimeSpan>(p => p.LeftBreastEaten, TimeSpan.FromMinutes(0),
+                BindingMode.Default, null, (p, _1, _2) => UpdateDescription(p), null, null);
+
+        public TimeSpan LeftBreastEaten {
+            get { return (TimeSpan)base.GetValue(LeftBreastEatenProperty); }
+            set { SetValue(LeftBreastEatenProperty, value); }
+        }
+
+        public static readonly BindableProperty RightBreastEatenProperty =
+            BindableProperty.Create<LogEntry, TimeSpan>(p => p.RightBreastEaten, TimeSpan.FromMinutes(0),
+                BindingMode.Default, null, (p, _1, _2) => UpdateDescription(p), null, null);
+      
+        public TimeSpan RightBreastEaten {
+            get { return (TimeSpan)base.GetValue(RightBreastEatenProperty); }
+            set { SetValue(RightBreastEatenProperty, value); }
         }
 
         // Derived properties
@@ -120,25 +147,31 @@ namespace BabbyJotz {
             private set { SetValue(DescriptionProperty, value); }
         }
 
-        public LogEntry() {
+        public LogEntry(Baby baby) {
+            Baby = baby;
             DateTime = DateTime.Now;
-            if (Device.OS == TargetPlatform.Android) {
+            //if (Device.OS == TargetPlatform.Android) {
                 // Work around a bug in Xamarin.Android.
-                if (TimeZoneInfo.Local.IsDaylightSavingTime(DateTime)) {
-                    DateTime += TimeSpan.FromHours(1);
-                }
-            }
+                //if (TimeZoneInfo.Local.IsDaylightSavingTime(DateTime)) {
+                //    DateTime += TimeSpan.FromHours(1);
+                //}
+            //}
             Uuid = Guid.NewGuid().ToString("D");
         }
 
-        public LogEntry(string uuid) {
+        public LogEntry(Baby baby, string uuid) {
             DateTime = DateTime.Now;
+            Baby = baby;
             Uuid = uuid;
         }
 
         public LogEntry(LogEntry other) {
+            Baby = other.Baby;
             DateTime = other.DateTime;
             FormulaEaten = other.FormulaEaten;
+            PumpedEaten = other.PumpedEaten;
+            RightBreastEaten = other.RightBreastEaten;
+            LeftBreastEaten = other.LeftBreastEaten;
             IsPoop = other.IsPoop;
             IsAsleep = other.IsAsleep;
             Text = other.Text;

@@ -17,6 +17,12 @@ namespace BabbyJotz {
                 }
                 return String.Format("{0}", value);
             }
+            if (value is TimeSpan && targetType == typeof(string)) {
+                if (((TimeSpan)value).TotalMinutes == 0.0) {
+                    return "";
+                }
+                return String.Format("{0}", ((TimeSpan)value).TotalMinutes);
+            }
             throw new InvalidOperationException();
         }
 
@@ -30,6 +36,11 @@ namespace BabbyJotz {
                 var result = 0.0;
                 Double.TryParse((string)value, out result);
                 return result;
+            }
+            if (value is string && targetType == typeof(TimeSpan)) {
+                var result = 0.0;
+                Double.TryParse((string)value, out result);
+                return TimeSpan.FromMinutes(result);
             }
             throw new InvalidOperationException();
         }

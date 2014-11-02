@@ -1,18 +1,66 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<TabbedPage
-    xmlns ="http://xamarin.com/schemas/2014/forms"
+<MasterDetailPage
+    xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:BabbyJotz;assembly=BabbyJotz"
     x:Class="BabbyJotz.MainPage"
     Title="Babby Jotz">
-    <TabbedPage.Resources>
+    <MasterDetailPage.Resources>
         <ResourceDictionary>
             <local:NotConverter x:Key="notConverter" />
             <local:NullConverter x:Key="nullConverter" />
             <local:NotNullConverter x:Key="notNullConverter" />
+            <local:PhotoConverter x:Key="photoConverter" />
             <OnPlatform x:Key="showNotificationOptions" x:TypeArguments="x:Boolean" iOS="false" Android="true" />
         </ResourceDictionary>
-    </TabbedPage.Resources>
+    </MasterDetailPage.Resources>
+    <MasterDetailPage.Master>
+        <ContentPage
+            Title="Babies"
+            BackgroundColor="{Binding Theme.Background}">
+            <StackLayout Spacing="8" BackgroundColor="{Binding Theme.ListBackground}">
+                <StackLayout.Padding>
+                    <Thickness Top="8" Bottom="0" Left="0" Right="0" />
+                </StackLayout.Padding>
+                <ListView
+                    ItemsSource="{Binding Babies}"
+                    ItemTapped="OnBabyListTapped"
+                    BackgroundColor="{Binding Theme.ListBackground}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <!--<ImageCell
+                                ImageSource="{Binding ProfilePhotoSource}"
+                                Text="{Binding Name}"
+                                TextColor="#cccccc" />-->
+                            <ViewCell>
+                                <StackLayout
+                                    Orientation="Horizontal"
+                                    Padding="8">
+                                    <StackLayout.Padding>
+                                        <Thickness Top="0" Bottom="0" Left="16" Right="8" />
+                                    </StackLayout.Padding>
+                                    <Image
+                                        Source="{Binding ProfilePhoto, Converter={StaticResource photoConverter}}"
+                                        HeightRequest="38"
+                                        WidthRequest="38"
+                                        VerticalOptions="CenterAndExpand"
+                                        Aspect="AspectFill" />
+                                    <Label
+                                        Text="{Binding Name}"
+                                        TextColor="#cccccc"
+                                        LineBreakMode="TailTruncation"
+                                        HorizontalOptions="FillAndExpand"
+                                        VerticalOptions="CenterAndExpand" />
+                                </StackLayout>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackLayout>
+        </ContentPage>
+    </MasterDetailPage.Master>
+    <MasterDetailPage.Detail>
+    <TabbedPage>
     <TabbedPage.Children>
         <ContentPage
             Title="Log"
@@ -22,16 +70,54 @@
                 <StackLayout.Padding>
                     <Thickness Top="8" Bottom="0" Left="0" Right="0" />
                 </StackLayout.Padding>
-                <StackLayout Orientation="Horizontal" Spacing="0">
+                <StackLayout Orientation="Horizontal" Spacing="8">
                     <StackLayout.Padding>
                         <Thickness Left="8" Right="8" />
                     </StackLayout.Padding>
-                    <Button Text="◀" Clicked="OnPreviousDayClicked" />
+                    <Image
+                        BindingContext="{Binding Baby}"
+                        Source="{Binding ProfilePhoto, Converter={StaticResource photoConverter}}"
+                        HeightRequest="50"
+                        WidthRequest="50"
+                        Aspect="AspectFill">
+                        <Image.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnBabyTapped"/>
+                        </Image.GestureRecognizers>
+                    </Image>
+                    <Label
+                        Text="{Binding Baby.Name}"
+                        TextColor="#cccccc"
+                        LineBreakMode="TailTruncation"
+                        VerticalOptions="CenterAndExpand"
+                        HorizontalOptions="FillAndExpand">
+                        <Image.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnBabyTapped"/>
+                        </Image.GestureRecognizers>
+                    </Label>
+                    <Button
+                        Text="Manage"
+                        Clicked="OnManageBabyClicked"
+                        TextColor="{Binding Theme.ButtonText}"
+                        VerticalOptions="CenterAndExpand"
+                        HorizontalOptions="End">
+                    </Button>
+                </StackLayout>
+                <StackLayout Orientation="Horizontal" Spacing="8">
+                    <StackLayout.Padding>
+                        <Thickness Left="8" Right="8" />
+                    </StackLayout.Padding>
+                    <Button
+                        Text="◀"
+                        Clicked="OnPreviousDayClicked"
+                        WidthRequest="50" />
                     <DatePicker
                         Date="{Binding Date}"
                         BackgroundColor="White"
                         HorizontalOptions="FillAndExpand" />
-                    <Button Text="▶" Clicked="OnNextDayClicked" />
+                    <Button
+                        Text="▶"
+                        Clicked="OnNextDayClicked"
+                        WidthRequest="50" />
                 </StackLayout>
                 <ListView
                     ItemsSource="{Binding Entries}"
@@ -39,7 +125,6 @@
                     BackgroundColor="{Binding Theme.ListBackground}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <!--<TextCell TextColor="Black" Text="{Binding Description}" />-->
                             <ViewCell>
                                 <StackLayout>
                                     <StackLayout.Padding>
@@ -184,4 +269,6 @@
             </StackLayout>
         </ContentPage>
     </TabbedPage.Children>
-</TabbedPage>
+    </TabbedPage>
+    </MasterDetailPage.Detail>
+</MasterDetailPage>

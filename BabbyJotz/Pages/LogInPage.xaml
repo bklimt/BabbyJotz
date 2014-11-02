@@ -1,41 +1,41 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <ContentPage
-	xmlns ="http://xamarin.com/schemas/2014/forms"
-	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-	x:Class="BabbyJotz.LogInPage"
+    xmlns ="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="BabbyJotz.LogInPage"
     BackgroundColor="{Binding Theme.Background}">
-	<ContentPage.Content>
-		<StackLayout Spacing="8">
-			<StackLayout.Padding>
-				<Thickness Top="20" Bottom="20" Left="20" Right="20" />
-			</StackLayout.Padding>
-			<Label
+    <ContentPage.Content>
+        <StackLayout Spacing="8">
+            <StackLayout.Padding>
+                <Thickness Top="20" Bottom="20" Left="20" Right="20" />
+            </StackLayout.Padding>
+            <Label
                 Text="Username:"
                 TextColor="{Binding Theme.Text}" />
-			<Entry
+            <Entry
                 x:Name="username"
                 BackgroundColor="White"
                 HorizontalOptions="FillAndExpand" />
-			<Label
+            <Label
                 Text="Password:"
                 TextColor="{Binding Theme.Text}" />
-			<Entry
+            <Entry
                 x:Name="password"
                 IsPassword="true"
                 BackgroundColor="White"
                 HorizontalOptions="FillAndExpand" />
-			<StackLayout Orientation="Horizontal">
-				<Button
+            <StackLayout Orientation="Horizontal">
+                <Button
                     Text="Sign Up"
                     Clicked="OnSignUpClicked"
                     TextColor="{Binding Theme.ButtonText}"
                     HorizontalOptions="FillAndExpand" />
-				<Button
+                <Button
                     Text="Log In"
                     Clicked="OnLogInClicked"
                     TextColor="{Binding Theme.ButtonText}"
                     HorizontalOptions="FillAndExpand" />
-			</StackLayout>
-		</StackLayout>
-	</ContentPage.Content>
+            </StackLayout>
+        </StackLayout>
+    </ContentPage.Content>
 </ContentPage>

@@ -13,7 +13,8 @@ namespace BabbyJotz {
         }
 
         public async void OnLogOutClicked(object sender, EventArgs args) {
-            RootViewModel.LogOut();
+            RootViewModel.CloudStore.LogOut();
+            await RootViewModel.LocalStore.RecreateDatabaseAsync();
             await Navigation.PopAsync();
         }
 

@@ -4,23 +4,23 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace BabbyJotz {
-	public partial class MainPage : TabbedPage {
+    public partial class MainPage : MasterDetailPage {
         private RootViewModel RootViewModel { get; set; }
 
-		public MainPage(RootViewModel model) {
-			RootViewModel = model;
-			BindingContext = RootViewModel;
-			InitializeComponent();
+        public MainPage(RootViewModel model) {
+            RootViewModel = model;
+            BindingContext = RootViewModel;
+            InitializeComponent();
 
-            // TODO: Bind this icon to a theme.
-			ToolbarItems.Add(new ToolbarItem("Add", "toolbar_new_entry", async () => {
-				await OnAddClicked();
-			}));
-		}
+            ToolbarItems.Add(new ToolbarItem("Add", "toolbar_new_entry", async () => {
+                await OnAddClicked();
+            }));
+        }
 
         protected override void OnAppearing() {
             base.OnAppearing();
             // TODO: Change this to a bindable model property on the root view model.
+            // TODO: If the user has linked babies before, we should be able to skip this.
             if (RootViewModel.Preferences.Get(PreferenceKey.CurrentBabyUUID) == null) {
                 var page = new NavigationPage(new NuxPage(RootViewModel));
                 page.BindingContext = RootViewModel;
@@ -30,16 +30,41 @@ namespace BabbyJotz {
             }
         }
 
-		private async Task OnAddClicked() {
-			await Navigation.PushAsync(new EntryPage(RootViewModel, new LogEntry()));
-		}
+        private void OnBabiesClicked() {
+            IsPresented = !IsPresented;
+        }
 
-		public async void OnEntryTapped(object sender, EventArgs args) {
-			var tappedArgs = args as ItemTappedEventArgs;
-			var entry = tappedArgs.Item as LogEntry;
+        private void OnBabyTapped(object sender, EventArgs args) {
+            OnBabiesClicked();
+        }
+
+        private async Task OnAddClicked() {
+            await Navigation.PushAsync(new EntryPage(RootViewModel, new LogEntry(RootViewModel.Baby)));
+        }
+
+        private async void OnManageBabyClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new EditBabyPage(RootViewModel, new Baby(RootViewModel.Baby)));
+        }
+
+        public async void OnBabyListTapped(object sender, EventArgs args) {
+            var tappedArgs = args as ItemTappedEventArgs;
+            var baby = tappedArgs.Item as Baby;
+            if (baby.Uuid == null) {
+                await Navigation.PushAsync(new NuxPage(RootViewModel));
+            } else {
+                RootViewModel.Baby = baby;
+                IsPresented = false;
+            }
+            ((ListView)sender).SelectedItem = null;
+        }
+
+        public async void OnEntryTapped(object sender, EventArgs args) {
+            var tappedArgs = args as ItemTappedEventArgs;
+            var entry = tappedArgs.Item as LogEntry;
+            // TODO: Fix the baby on this to be actually loaded.
             await Navigation.PushAsync(new EntryPage(RootViewModel, new LogEntry(entry)));
             ((ListView)sender).SelectedItem = null;
-		}
+        }
 
 		public void OnPreviousDayClicked(object sender, EventArgs args) {
 			RootViewModel.Date -= TimeSpan.FromDays(1);
@@ -49,26 +74,22 @@ namespace BabbyJotz {
 			RootViewModel.Date += TimeSpan.FromDays(1);
 		}
 
-		public async void OnSyncClicked(object sender, EventArgs args) {
-			try {
-				await RootViewModel.SyncAsync(true);
-			} catch (Exception e) {
-				await DisplayAlert("Error", String.Format("Unable to sync: {0}", e), "Ok");
-				// await DisplayAlert("Error", String.Format("Unable to sync. Check your network connection.", e), "Ok");
-			}
-		}
+        public async void OnSyncClicked(object sender, EventArgs args) {
+            try {
+                await RootViewModel.SyncAsync(true);
+            } catch (Exception e) {
+                await DisplayAlert("Error", String.Format("Unable to sync: {0}", e), "Ok");
+                // await DisplayAlert("Error", String.Format("Unable to sync. Check your network connection.", e), "Ok");
+            }
+        }
 
-		public void OnLogInClicked(object sender, EventArgs args) {
-			Navigation.PushAsync(new LogInPage(RootViewModel));
-		}
+        public void OnLogInClicked(object sender, EventArgs args) {
+            Navigation.PushAsync(new LogInPage(RootViewModel));
+        }
 
-		public async void OnLogOutClicked(object sender, EventArgs args) {
-            // TODO: Maybe remove synced items on log out?
-			var ok = await DisplayAlert("Are you sure?", "Future syncing may fail.", "OK", "Cancel");
-			if (ok) {
-				RootViewModel.LogOut();
-			}
-		}
+        public async void OnLogOutClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new LogOutPage(RootViewModel));
+        }
 
         public async void OnToggleThemeClicked(object sender, EventArgs args) {
             RootViewModel.ToggleTheme();

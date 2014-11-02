@@ -32,7 +32,7 @@ namespace BabbyJotz.Android {
             var manager = (NotificationManager)GetSystemService(Context.NotificationService);
             manager.CancelAll();
             var app = (BabbyJotzApplication)this.Application;
-            app.RootViewModel.MarkAllAsReadAsync();
+            app.RootViewModel.LocalStore.MarkAllAsReadAsync();
         }
     }
 }

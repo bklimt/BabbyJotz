@@ -7,13 +7,19 @@ using System.Windows.Input;
 using Xamarin.Forms;
 
 namespace BabbyJotz {
-	public class RootViewModel : BindableObject {
-		private IDataStore DataStore { get; set; }
-		private TaskQueue syncQueue = new TaskQueue();
+    public class RootViewModel : BindableObject {
+        public ILocalStore LocalStore { get; set; }
+        public ICloudStore CloudStore { get; set; }
+        private TaskQueue syncQueue = new TaskQueue();
 
         private static void SaveTheme(BindableObject obj) {
             var model = obj as RootViewModel;
             model.Preferences.Set(PreferenceKey.LightTheme, model.Theme == Theme.Light);
+        }
+
+        private static void SaveCurrentBaby(BindableObject obj) {
+            var model = obj as RootViewModel;
+            model.Preferences.Set(PreferenceKey.CurrentBabyUUID, model.Baby.Uuid);
         }
 
         private static void SaveNotificationsEnabled(BindableObject obj) {
@@ -27,21 +33,30 @@ namespace BabbyJotz {
         }
 
         public IPreferences Preferences { get; private set; }
-		public ObservableCollection<LogEntry> Entries { get; private set; }
+        public ObservableCollection<Baby> Babies { get; private set; }
+        public ObservableCollection<LogEntry> Entries { get; private set; }
 
-		public static readonly BindableProperty DateProperty =
-			BindableProperty.Create<RootViewModel, DateTime>(p => p.Date, default(DateTime));
-		public DateTime Date {
-			get { return (DateTime)base.GetValue(DateProperty); }
-			set { SetValue(DateProperty, value); }
-		}
+        public static readonly BindableProperty DateProperty =
+            BindableProperty.Create<RootViewModel, DateTime>(p => p.Date, default(DateTime));
+        public DateTime Date {
+            get { return (DateTime)base.GetValue(DateProperty); }
+            set { SetValue(DateProperty, value); }
+        }
 
-		public static readonly BindableProperty SyncingProperty =
-			BindableProperty.Create<RootViewModel, bool>(p => p.Syncing, false);
-		public bool Syncing {
-			get { return (bool)base.GetValue(SyncingProperty); }
-			set { SetValue(SyncingProperty, value); }
-		}
+        public static readonly BindableProperty BabyProperty =
+            BindableProperty.Create<RootViewModel, Baby>(p => p.Baby, null,
+                BindingMode.Default, null, (p, _1, _2) => SaveCurrentBaby(p), null, null);
+        public Baby Baby {
+            get { return (Baby)base.GetValue(BabyProperty); }
+            set { SetValue(BabyProperty, value); }
+        }
+
+        public static readonly BindableProperty SyncingProperty =
+            BindableProperty.Create<RootViewModel, bool>(p => p.Syncing, false);
+        public bool Syncing {
+            get { return (bool)base.GetValue(SyncingProperty); }
+            set { SetValue(SyncingProperty, value); }
+        }
 
         public static readonly BindableProperty CloudUserNameProperty =
             BindableProperty.Create<RootViewModel, string>(p => p.CloudUserName, null);
@@ -74,22 +89,30 @@ namespace BabbyJotz {
             set { SetValue(VibrateProperty, value); }
         }
 
-        public RootViewModel(IDataStore dataStore, IPreferences preferences) {
-			DataStore = dataStore;
+        public RootViewModel(ILocalStore dataStore, ICloudStore cloudStore, IPreferences preferences) {
+            LocalStore = dataStore;
+            CloudStore = cloudStore;
             Preferences = preferences;
-			Entries = new ObservableCollection<LogEntry>();
-			CloudUserName = DataStore.CloudUserName;
+            Entries = new ObservableCollection<LogEntry>();
+            Babies = new ObservableCollection<Baby>();
+            CloudUserName = CloudStore.UserName;
 
-			PropertyChanged += (sender, e) => {
-				if (e.PropertyName == "Date") {
-					Entries.Clear();
-					// RefreshEntriesAsync is too slow, and this sleep lets the rest of the UI update.
-					// await Task.Delay(10);
-					RefreshEntriesAsync();
-				}
-			};
+            Baby = new Baby(Preferences.Get(PreferenceKey.CurrentBabyUUID));
 
-			DataStore.Changed += (sender, e) => RefreshEntriesAsync();
+            LocalStore.RemotelyChanged += (sender, e) => RefreshAsync();
+
+            LocalStore.LocallyChanged += (sender, e) => {
+                RefreshAsync();
+                TryToSyncEventually();
+            };
+
+            CloudStore.UserChanged += (sender, e) => {
+                CloudUserName = CloudStore.UserName;
+                if (CloudUserName != null) {
+                    TryToSyncEventually();
+                }
+            };
+
             var now = DateTime.Now;
             if (Device.OS == TargetPlatform.Android) {
                 // Fix a Xamarin.Android bug.
@@ -99,145 +122,173 @@ namespace BabbyJotz {
             }
             Date = now - now.TimeOfDay;
 
+            PropertyChanged += (sender, e) => {
+                if (e.PropertyName == "Date") {
+                    Entries.Clear();
+                    RefreshEntriesAsync();
+                }
+                if (e.PropertyName == "Baby") {
+                    Preferences.Set(PreferenceKey.CurrentBabyUUID, Baby.Uuid);
+                    Entries.Clear();
+                    RefreshEntriesAsync();
+                }
+            };
+
             Theme = Preferences.Get(PreferenceKey.LightTheme) ? Theme.Light : Theme.Dark;
             NotificationsEnabled = !Preferences.Get(PreferenceKey.DoNotNotify);
             Vibrate = !Preferences.Get(PreferenceKey.DoNotVibrate);
 
             TryToSyncEventually();
+            RefreshBabiesAsync();
+            RefreshEntriesAsync();
         }
 
         public async Task SyncAsync(bool markNewAsRead) {
-			await syncQueue.EnqueueAsync(async toAwait => {
-				await toAwait;
-				if (CloudUserName == null) {
-					return false;
-				}
-				Syncing = true;
-				try {
-                    await DataStore.SyncToCloudAsync(markNewAsRead);
-				} finally {
-					Syncing = false;
-				}
-				return true;
-			});
-		}
+            await syncQueue.EnqueueAsync(async toAwait => {
+                await toAwait;
+                if (CloudUserName == null) {
+                    return false;
+                }
+                Syncing = true;
+                try {
+                    await LocalStore.SyncToCloudAsync(CloudStore, markNewAsRead);
+                } finally {
+                    Syncing = false;
+                }
+                return true;
+            });
+        }
 
-		public async void TryToSyncEventually() {
-			try {
-				await SyncAsync(true);
-			} catch (Exception) {
-				// Just ignore it.
-                // TODO: Add some logging here at least.
-			}
-		}
+        public async void TryToSyncEventually() {
+            try {
+                await SyncAsync(true);
+            } catch (Exception e) {
+                // Just ignore it.
+                System.Diagnostics.Debug.WriteLine(String.Format("Error syncing: {0}", e));
+            }
+        }
 
-		private void UpdateEntries(IEnumerable<LogEntry> updatedEntries) {
-			var sameEntries = from entry1 in Entries
-			              	  join entry2 in updatedEntries on entry1.Uuid equals entry2.Uuid
-			               	  select new {
-				OldEntry = entry1,
-				NewEntry = entry2
-			};
+        private void UpdateEntries(IEnumerable<LogEntry> updatedEntries) {
+            var sameEntries = from entry1 in Entries
+                join entry2 in updatedEntries on entry1.Uuid equals entry2.Uuid
+                select new {
+                OldEntry = entry1,
+                NewEntry = entry2
+            };
 
-			var sameUuids = from item in sameEntries
-							select item.NewEntry.Uuid;
+            var sameUuids = from item in sameEntries
+                select item.NewEntry.Uuid;
 
-			var oldUuids = (from entry in Entries
-			                select entry.Uuid).Except(sameUuids);
+            var oldUuids = (from entry in Entries
+                select entry.Uuid).Except(sameUuids);
 
-			var oldEntries = from entry in Entries
-			                 join uuid in oldUuids on entry.Uuid equals uuid
-			                 select entry;
+            var oldEntries = from entry in Entries
+                join uuid in oldUuids on entry.Uuid equals uuid
+                select entry;
 
-			var newUuids = (from entry in updatedEntries
-			                select entry.Uuid).Except(sameUuids);
+            var newUuids = (from entry in updatedEntries
+                select entry.Uuid).Except(sameUuids);
 
-			var newEntries = from entry in updatedEntries
-				join uuid in newUuids on entry.Uuid equals uuid
-				select entry;
+            var newEntries = from entry in updatedEntries
+                join uuid in newUuids on entry.Uuid equals uuid
+                select entry;
 
-			sameEntries = sameEntries.ToList();
-			oldEntries = oldEntries.ToList();
-			newEntries = newEntries.ToList();
+            sameEntries = sameEntries.ToList();
+            oldEntries = oldEntries.ToList();
+            newEntries = newEntries.ToList();
 
-			foreach (var item in sameEntries) {
-				Entries[Entries.IndexOf(item.OldEntry)] = item.NewEntry;
-			}
-			foreach (var entry in oldEntries) {
-				Entries.Remove(entry);
-			}
-			foreach (var entry in newEntries) {
+            foreach (var item in sameEntries) {
+                Entries[Entries.IndexOf(item.OldEntry)] = item.NewEntry;
+            }
+            foreach (var entry in oldEntries) {
+                Entries.Remove(entry);
+            }
+            foreach (var entry in newEntries) {
                 // Insert in sorted order.
                 var position = 0;
                 while (position < Entries.Count && Entries.ElementAt(position).DateTime > entry.DateTime) {
                     position++;
                 }
                 Entries.Insert(position, entry);
-			}
-		}
-
-		public async void RefreshEntriesAsync() {
-			var newEntries = await DataStore.FetchAsync(Date);
-			UpdateEntries(newEntries);
-		}
-
-        public async Task SaveAsync(LogEntry entry) {
-            await DataStore.SaveAsync(entry);
-            TryToSyncEventually();
-        }
-
-        public async Task SaveAsync(Baby baby) {
-            await DataStore.SaveAsync(baby);
-            TryToSyncEventually();
-        }
-
-		public async Task DeleteAsync(LogEntry entry) {
-			await DataStore.DeleteAsync(entry);
-			TryToSyncEventually();
-		}
-
-		public async Task LogInAsync(string username, string password) {
-			CloudUserName = null;
-			try {
-				await DataStore.LogInAsync(username, password);
-			} finally {
-				CloudUserName = DataStore.CloudUserName;
-			}
-            TryToSyncEventually();
-            // TODO: Mark all as read after this.
-		}
-
-		public async Task SignUpAsync(string username, string password) {
-			CloudUserName = null;
-			try {
-				await DataStore.SignUpAsync(username, password);
-			} finally {
-				CloudUserName = DataStore.CloudUserName;
-			}
-            TryToSyncEventually();
-		}
-
-        public string CloudUserId {
-            get {
-                return DataStore.CloudUserId;
             }
         }
 
-		public void LogOut() {
-			CloudUserName = null;
-			DataStore.LogOut();
-		}
+        private void UpdateBabies(IEnumerable<Baby> updatedBabies) {
+            var sameBabies = from baby1 in Babies
+                join baby2 in updatedBabies on baby1.Uuid equals baby2.Uuid
+                select new {
+                OldBaby = baby1,
+                NewBaby = baby2
+            };
 
-        public async Task<List<LogEntry>> GetEntriesForStatisticsAsync() {
-            return await DataStore.GetEntriesForStatisticsAsync();
+            var sameUuids = from item in sameBabies
+                select item.NewBaby.Uuid;
+
+            var oldUuids = (from baby in Babies
+                select baby.Uuid).Except(sameUuids);
+
+            var oldBabies = from baby in Babies
+                join uuid in oldUuids on baby.Uuid equals uuid
+                select baby;
+
+            var newUuids = (from baby in updatedBabies
+                select baby.Uuid).Except(sameUuids);
+
+            var newBabies = from baby in updatedBabies
+                join uuid in newUuids on baby.Uuid equals uuid
+                select baby;
+
+            sameBabies = sameBabies.ToList();
+            oldBabies = oldBabies.ToList();
+            newBabies = newBabies.ToList();
+
+            foreach (var item in sameBabies) {
+                // TODO: Maybe copy in place?
+                Babies[Babies.IndexOf(item.OldBaby)] = item.NewBaby;
+            }
+            foreach (var baby in oldBabies) {
+                Babies.Remove(baby);
+            }
+            foreach (var baby in newBabies) {
+                Babies.Add(baby);
+            }
+
+            foreach (var baby in Babies) {
+                if (baby.Uuid == null) {
+                    Babies.Remove(baby);
+                    break;
+                }
+            }
+            Babies.Add(new Baby((string)null) {
+                Name = "Add Baby"
+            });
+
+            // Update the current baby.
+            foreach (var baby in updatedBabies) {
+                if (Baby.Uuid == baby.Uuid) {
+                    Baby.CopyFrom(baby);
+                }
+            }
+
+            // TODO: Deal with the current baby disappearing.
+            // TODO: Deal with all babies disappearing.
         }
 
-        public async Task MarkAllAsReadAsync() {
-            await DataStore.MarkAllAsReadAsync();
+        public async void RefreshBabiesAsync() {
+            var newBabies = await LocalStore.FetchBabiesAsync();
+            UpdateBabies(newBabies);
         }
 
-        public async Task<IEnumerable<LogEntry>> FetchUnreadAsync() {
-            return await DataStore.FetchUnreadAsync();
+        public async void RefreshEntriesAsync() {
+            var newEntries = await LocalStore.FetchEntriesAsync(Baby, Date);
+            UpdateEntries(newEntries);
+        }
+
+        public async void RefreshAsync() {
+            var newBabies = await LocalStore.FetchBabiesAsync();
+            UpdateBabies(newBabies);
+            var newEntries = await LocalStore.FetchEntriesAsync(Baby, Date);
+            UpdateEntries(newEntries);
         }
 
         public void ToggleTheme() {
@@ -252,6 +303,6 @@ namespace BabbyJotz {
             Date = originalDate.AddDays(1);
             Date = originalDate;
         }
-	}
+    }
 }
 
