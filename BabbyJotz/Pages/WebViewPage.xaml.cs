@@ -9,7 +9,23 @@ namespace BabbyJotz {
         public WebViewPage(string title, Func<Task<string>> htmlFunc) {
             InitializeComponent();
             Title = title;
-            ((HtmlWebViewSource)webview.Source).Html = "<html><body>Loading...</body></html>";
+            ((HtmlWebViewSource)webview.Source).Html = @"
+<html>
+  <head>
+    <style>
+      body {
+        padding: 0px;
+        margin: 8px;
+        font-family: Helvetica;
+        background-color: #333333;
+        color: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    Loading...
+  </body>
+</html>";
             doFunc(htmlFunc);
         }
 
