@@ -12,6 +12,14 @@ namespace BabbyJotz {
             InitializeComponent();
         }
 
+        protected override async void OnAppearing() {
+            base.OnAppearing();
+            if (rootViewModel.CloudStore.UserName != null) {
+                // They're already logged in, so don't show this page.
+                await Navigation.PopAsync();
+            }
+        }
+
         public async void OnLogInClicked(object sender, EventArgs args) {
             try {
                 await rootViewModel.CloudStore.LogInAsync(username.Text, password.Text);
@@ -23,13 +31,8 @@ namespace BabbyJotz {
         }
 
         public async void OnSignUpClicked(object sender, EventArgs args) {
-            try {
-                await rootViewModel.CloudStore.SignUpAsync(username.Text, password.Text);
-                await Navigation.PopAsync();
-            } catch (Exception e) {
-                var message = String.Format("Unable to sign up.\n{0}", e);
-                await DisplayAlert("Error", message, "OK");
-            }
+            var page = new SignUpPage(rootViewModel, username.Text, password.Text);
+            await Navigation.PushAsync(page);
         }
     }
 }
