@@ -157,17 +157,21 @@ namespace BabbyJotz {
         }
 
         private static void GenerateHeatMap(StringBuilder html, List<LogEntry> entries, Metric metric, bool night, int quantum) {
-            html.Append("<table><tr><th>&nbsp;</th>\n");
+            html.Append("<table>");
+
+            var headerRowBuilder = new StringBuilder(500);
+            headerRowBuilder.Append("<tr><th>&nbsp;</th>\n");
             for (int i = 0; i < 2; ++i) {
                 if ((night ? (1 - i) : i) == 0) {
-                    html.AppendFormat("<th class=\"top\" colspan=\"{0}\">Midnight</th>\n", (7 * 60) / quantum);
-                    html.AppendFormat("<th class=\"top\" colspan=\"{0}\">7am</th>\n", (5 * 60) / quantum);
+                    headerRowBuilder.AppendFormat("<th class=\"top\" colspan=\"{0}\">Midnight</th>\n", (7 * 60) / quantum);
+                    headerRowBuilder.AppendFormat("<th class=\"top\" colspan=\"{0}\">7am</th>\n", (5 * 60) / quantum);
                 } else {
-                    html.AppendFormat("<th class=\"top\" colspan=\"{0}\">Noon</th>\n", (7 * 60) / quantum);
-                    html.AppendFormat("<th class=\"top\" colspan=\"{0}\">7pm</th>\n", (5 * 60) / quantum);
+                    headerRowBuilder.AppendFormat("<th class=\"top\" colspan=\"{0}\">Noon</th>\n", (7 * 60) / quantum);
+                    headerRowBuilder.AppendFormat("<th class=\"top\" colspan=\"{0}\">7pm</th>\n", (5 * 60) / quantum);
                 }
             }
-            html.Append("</tr>\n");
+            headerRowBuilder.Append("</tr>\n");
+            var headerRow = headerRowBuilder.ToString();
 
             var maxEaten = 0.0;
             if (metric == Metric.Eating) {
@@ -203,7 +207,11 @@ namespace BabbyJotz {
             var entryValid = entry.MoveNext();
 
             var nextDay = startDay;
+            int rowNumber = 0;
             for (var day = startDay; day != endDay; day = nextDay) {
+                if (rowNumber++ % 30 == 0) {
+                    html.Append(headerRow);
+                }
                 html.AppendFormat("<tr><th class=\"left\">{0}</th>\n", day.ToString("MM/dd"));
                 nextDay = day.AddDays(1);
                 var nextTime = day;
