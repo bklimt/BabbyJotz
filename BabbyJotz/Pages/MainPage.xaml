@@ -225,6 +225,11 @@
                         Text="{Binding CloudUserName, StringFormat='Logged in as {0}'}"
                         TextColor="{Binding Theme.Text}"
                         HorizontalOptions="Center" />
+                    <Label
+                        Text="Syncing..."
+                        TextColor="{Binding Theme.Text}"
+                        IsVisible="{Binding Syncing}"
+                        HorizontalOptions="Center" />
                     <Button
                         Text="Sync Now"
                         Clicked="OnSyncClicked"
@@ -234,6 +239,7 @@
                     <Button
                         Text="Log out of Cloud Sync"
                         Clicked="OnLogOutClicked"
+                        IsEnabled="{Binding Syncing, Converter={StaticResource notConverter}}"
                         TextColor="{Binding Theme.ButtonText}"
                         HorizontalOptions="FillAndExpand" />
                     <StackLayout

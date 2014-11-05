@@ -20,7 +20,7 @@
                 TextColor="{Binding Theme.Text}"
                 HorizontalOptions="CenterAndExpand" />
             <Label
-                Text="If you log out, all Babby Jotz data stored on this device, including any unsynced data will be erased, for security reasons. The data you have already synced to the Babby Cloud with this account will not be affected."
+                Text="If you log out, all Babby Jotz data stored on this device, including any unsynced data, will be erased for security reasons. The data you have already synced to the Babby Cloud with this account will not be affected."
                 TextColor="{Binding Theme.Text}"
                 XAlign="Center"
                 HorizontalOptions="CenterAndExpand" />

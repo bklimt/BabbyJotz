@@ -179,28 +179,38 @@ namespace BabbyJotz.iOS {
         #endregion
         #region Syncing
 
-        private struct FetchSinceResult<T> {
-            public List<T> Results;
-            public DateTime? NewUpdatedAt;
-            public bool MaybeHasMore;
+        public async Task<List<Baby>> FetchAllBabiesAsync() {
+            var results = new List<Baby>();
+
+            var query = new ParseQuery<ParseObject>("Baby");
+            query = query.Limit(1000);
+            var enumerator = await query.FindAsync();
+            var objs = await Task.Run(() => enumerator.ToList());
+            foreach (var result in objs) {
+                results.Add(CreateBaby(result));
+            }
+
+            return results;
         }
 
         private struct FetchSinceRequest<T> {
             public string ClassName;
+            public Baby Baby;
             public int Limit;
             public DateTime? LastUpdatedAt;
             public Func<ParseObject, Task<T>> CreateAsync;
         }
 
-        private async Task<FetchSinceResult<T>> FetchSinceAsync<T>(FetchSinceRequest<T> request)  {
-            var response = new FetchSinceResult<T>();
+        private async Task<CloudFetchSinceResponse<T>> FetchSinceAsync<T>(FetchSinceRequest<T> request)  {
+            var response = new CloudFetchSinceResponse<T>();
             response.Results = new List<T>();
             response.NewUpdatedAt = null;
             response.MaybeHasMore = false;
 
-            var query = from entry in ParseObject.GetQuery(request.ClassName)
-                orderby entry.UpdatedAt ascending
-                select entry;
+            var query = from obj in ParseObject.GetQuery(request.ClassName)
+                where obj.Get<string>("babyUuid") == request.Baby.Uuid
+                orderby obj.UpdatedAt ascending
+                select obj;
             query = query.Limit(request.Limit);
             if (request.LastUpdatedAt != null) {
                 query = query.WhereGreaterThanOrEqualTo(
@@ -223,44 +233,32 @@ namespace BabbyJotz.iOS {
             return response;
         }
 
-        public async Task<CloudFetchChangesResponse> FetchChangesAsync(CloudFetchChangesRequest req) {
-            var response = new CloudFetchChangesResponse();
-            response.MaybeHasMore = false;
+        public async Task<CloudFetchSinceResponse<LogEntry>> FetchEntriesSinceAsync(
+            Baby baby, DateTime? lastUpdatedAt) {
 
-            var entryResponse = await FetchSinceAsync(new FetchSinceRequest<LogEntry>() {
+            var request = new FetchSinceRequest<LogEntry>() {
                 ClassName = "LogEntry",
+                Baby = baby,
                 Limit = 200,
-                LastUpdatedAt = req.LastEntryUpdatedAt,
+                LastUpdatedAt = lastUpdatedAt,
                 CreateAsync = (obj) => Task.FromResult(CreateLogEntry(obj))
-            });
+            };
 
-            response.Entries = entryResponse.Results;
-            response.LastEntryUpdatedAt = entryResponse.NewUpdatedAt;
-            response.MaybeHasMore = response.MaybeHasMore || entryResponse.MaybeHasMore;
+            return await FetchSinceAsync(request);
+        }
 
-            var photoResponse = await FetchSinceAsync(new FetchSinceRequest<Photo>() {
+        public async Task<CloudFetchSinceResponse<Photo>> FetchPhotosSinceAsync(
+            Baby baby, DateTime? lastUpdatedAt) {
+
+            var request = new FetchSinceRequest<Photo>() {
                 ClassName = "Photo",
+                Baby = baby,
                 Limit = 10,
-                LastUpdatedAt = req.LastPhotoUpdatedAt,
+                LastUpdatedAt = lastUpdatedAt,
                 CreateAsync = CreatePhotoAsync
-            });
+            };
 
-            response.Photos = photoResponse.Results;
-            response.LastPhotoUpdatedAt = photoResponse.NewUpdatedAt;
-            response.MaybeHasMore = response.MaybeHasMore || photoResponse.MaybeHasMore;
-
-            var babyResponse = await FetchSinceAsync(new FetchSinceRequest<Baby>() {
-                ClassName = "Baby",
-                Limit = 200,
-                LastUpdatedAt = req.LastBabyUpdatedAt,
-                CreateAsync = (obj) => Task.FromResult(CreateBaby(obj))
-            });
-
-            response.Babies = babyResponse.Results;
-            response.LastBabyUpdatedAt = babyResponse.NewUpdatedAt;
-            response.MaybeHasMore = response.MaybeHasMore || babyResponse.MaybeHasMore;
-
-            return response;
+            return await FetchSinceAsync(request);
         }
 
         #endregion

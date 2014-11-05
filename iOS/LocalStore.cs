@@ -9,7 +9,7 @@ using Mono.Data.Sqlite;
 
 namespace BabbyJotz.iOS {
     public class LocalStore : ILocalStore {
-        private static readonly string databaseFile = "database17.db3";
+        private static readonly string databaseFile = "database.db3";
         private string path;
 
         public event EventHandler LocallyChanged;
@@ -45,62 +45,74 @@ namespace BabbyJotz.iOS {
             if (!File.Exists(path)) {
                 SqliteConnection.CreateFile(path);
 
+                string UUID = "varchar(72)";
+                string DATE_TIME = "varchar(72)";
+                string OBJECT_ID = "varchar(72)";
+
                 var connection = new SqliteConnection("Data Source=" + path);
                 await connection.OpenAsync();
                 using (var command = connection.CreateCommand()) {
                     command.CommandText = "CREATE TABLE [Baby] (" +
-                        "[Uuid] varchar(255) PRIMARY KEY, " +
+                        "[Uuid] " + UUID + " PRIMARY KEY, " +
                         "[Name] varchar(255) NOT NULL, " +
-                        "[Birthday] varchar(255) NOT NULL, " +
+                        "[Birthday] " + DATE_TIME + " NOT NULL, " +
                         "[ShowBreastfeeding] bool NOT NULL, " +
                         "[ShowPumped] bool NOT NULL, " +
                         "[ShowFormula] bool NOT NULL, " +
-                        "[ProfilePhotoUuid] varchar(255), " +
-                        "[ObjectId] varchar(255), " +
-                        "[Deleted] varchar(255), " +
+                        "[ProfilePhotoUuid] " + UUID + ", " +
+                        "[ObjectId] " + OBJECT_ID + ", " +
+                        "[Deleted] " + DATE_TIME + ", " +
+                        "[LastSyncDate] " + DATE_TIME + ", " +
                         "[Synced] bool, " +
+                        "[Extra] text, " +
                         "[LocalVersion] integer NOT NULL);";
                     await command.ExecuteNonQueryAsync();
                 }
                 using (var command = connection.CreateCommand()) {
                     command.CommandText = "CREATE TABLE [LogEntry] (" +
-                        "[Uuid] varchar(255) PRIMARY KEY, " +
-                        "[BabyUuid] varchar(255) NOT NULL, " +
-                        "[Time] varchar(255), " +
-                        "[Text] varchar(255), " +
+                        "[Uuid] " + UUID + " PRIMARY KEY, " +
+                        "[BabyUuid] " + UUID + " NOT NULL, " +
+                        "[Time] " + DATE_TIME + ", " +
+                        "[Text] text, " +
                         "[Asleep] bool, " +
                         "[Poop] bool, " +
                         "[FormulaEatenOunces] double, " +
                         "[PumpedEatenOunces] double, " +
                         "[LeftBreastEatenMinutes] double, " +
                         "[RightBreastEatenMinutes] double, " +
-                        "[ObjectId] varchar(255), " +
+                        "[ObjectId] " + OBJECT_ID + ", " +
                         "[Read] bool, " +
-                        "[Deleted] varchar(255), " +
+                        "[Deleted] " + DATE_TIME + ", " +
                         "[Synced] bool, " +
+                        "[Extra] text, " +
                         "[LocalVersion] integer NOT NULL);";
                     await command.ExecuteNonQueryAsync();
                 }
                 using (var command = connection.CreateCommand()) {
                     command.CommandText = "CREATE TABLE [Photo] (" +
-                        "[Uuid] varchar(255) PRIMARY KEY, " +
-                        "[BabyUuid] varchar(255) NOT NULL, " +
-                        "[ObjectId] varchar(255), " +
-                        "[Deleted] varchar(255), " +
+                        "[Uuid] " + UUID + " PRIMARY KEY, " +
+                        "[BabyUuid] " + UUID + " NOT NULL, " +
+                        "[ObjectId] " + OBJECT_ID + ", " +
+                        "[Deleted] " + DATE_TIME + ", " +
                         "[Synced] bool, " +
+                        "[Extra] text, " +
                         "[LocalVersion] integer NOT NULL);";
                     await command.ExecuteNonQueryAsync();
                 }
                 using (var command = connection.CreateCommand()) {
                     command.CommandText = "CREATE TABLE [Sync] (" +
-                        "[Uuid] varchar(255) PRIMARY KEY, " +
-                        "[Finished] varchar(255) NOT NULL, " +
-                        "[LastEntryUpdatedAt] varchar(255), " +
-                        "[LastBabyUpdatedAt] varchar(255), " +
-                        "[LastPhotoUpdatedAt] varchar(255), " +
-                        "[EntryCount] integer NOT NULL, " +
-                        "[PhotoCount] integer NOT NULL, " +
-                        "[BabyCount] integer NOT NULL);";
+                        "[Uuid] " + UUID + " PRIMARY KEY, " +
+                        "[Started] " + DATE_TIME + " NOT NULL, " +
+                        "[Finished] " + DATE_TIME + " NOT NULL, " +
+                        "[Extra] text);";
+                    await command.ExecuteNonQueryAsync();
+                }
+                using (var command = connection.CreateCommand()) {
+                    command.CommandText = "CREATE TABLE [BabySync] (" +
+                        "[ClassName] varchar(255) NOT NULL, " +
+                        "[BabyUuid] " + UUID + " NOT NULL, " +
+                        "[LastUpdatedAt] " + DATE_TIME + " NULL, " +
+                        "PRIMARY KEY (ClassName, BabyUuid));";
                     await command.ExecuteNonQueryAsync();
                 }
                 connection.Close();
@@ -300,7 +312,8 @@ namespace BabbyJotz.iOS {
         #endregion
         #region Baby
 
-        private SqliteParameter[] CreateSqliteParameters(Baby baby, bool synced) {
+        private SqliteParameter[] CreateSqliteParameters(Baby baby, string lastSyncDate) {
+            var synced = (lastSyncDate != null);
             var deleted = (baby.Deleted.HasValue ? baby.Deleted.Value.ToString("O") : null);
             var profilePhotoUuid = (baby.ProfilePhoto != null ? baby.ProfilePhoto.Uuid : null);
             return new SqliteParameter[] {
@@ -312,6 +325,7 @@ namespace BabbyJotz.iOS {
                 new SqliteParameter("ShowFormula", baby.ShowFormula),
                 new SqliteParameter("ProfilePhotoUuid", profilePhotoUuid),
                 new SqliteParameter("ObjectId", baby.ObjectId),
+                new SqliteParameter("lastSyncDate", lastSyncDate),
                 new SqliteParameter("Deleted", deleted),
                 new SqliteParameter("Synced", synced)
             };
@@ -341,7 +355,7 @@ namespace BabbyJotz.iOS {
         }
 
         public async Task SaveAsync(Baby baby) {
-            await SaveAsync("Baby", CreateSqliteParameters(baby, false));
+            await SaveAsync("Baby", CreateSqliteParameters(baby, null));
         }
 
         public async Task DeleteAsync(Baby baby) {
@@ -349,8 +363,8 @@ namespace BabbyJotz.iOS {
             await SaveAsync(baby);
         }
 
-        private async Task UpdateFromCloudAsync(Baby baby) {
-            await UpdateFromCloudAsync("Baby", CreateSqliteParameters(baby, true));
+        private async Task UpdateFromCloudAsync(Baby baby, string syncDate) {
+            await UpdateFromCloudAsync("Baby", CreateSqliteParameters(baby, syncDate));
         }
 
         public async Task<List<Baby>> FetchBabiesAsync() {
@@ -552,7 +566,7 @@ namespace BabbyJotz.iOS {
             });
         }
 
-        public async Task SyncToCloudAsync(ICloudStore cloudStore, bool markNewAsRead) {
+        private async Task SaveChangesToCloudAsync(ICloudStore cloudStore) {
             List<ObjectAndVersion<Baby>> unsavedBabies =
                 await GetUnsyncedAsync("Baby", CreateBaby);
 
@@ -583,84 +597,166 @@ namespace BabbyJotz.iOS {
                 await cloudStore.SaveAsync(entry);
                 await MarkAsSyncedAsync(item, "LogEntry");
             }
+        }
 
-            var req = new CloudFetchChangesRequest {
-                LastEntryUpdatedAt = null,
-                LastBabyUpdatedAt = null,
-                LastPhotoUpdatedAt = null
-            };
+        private async Task DeleteBabiesNotSeenSinceAsync(ICloudStore cloudStore, string syncDate) {
+            await EnqueueAsync<bool>(async () => {
+                var connection = new SqliteConnection("Data Source=" + path);
+                await connection.OpenAsync();
+                using (var command = connection.CreateCommand()) {
+                    var parameters = new SqliteParameter[] {
+                        new SqliteParameter("lastSyncDate", syncDate),
+                    };
 
-            // Get the record of when the last sync was.
+                    command.CommandText = "DELETE FROM Baby " +
+                        "WHERE lastSyncDate IS NOT NULL " +
+                        "AND lastSyncDate <> :lastSyncDate;";
+                    command.Parameters.AddRange(parameters);
+                    await command.ExecuteNonQueryAsync();
+                }
+                connection.Close();
+                return true;
+            });
+        }
+
+        private async Task<DateTime?> GetLastUpdatedAtAsync(
+            ICloudStore cloudStore, string className, Baby baby) {
+
+            DateTime? lastUpdatedAt = null;
             await EnqueueAsync<bool>(async () => {
                 var connection = new SqliteConnection("Data Source=" + path);
                 await connection.OpenAsync();
 
                 // First, save all of the local objects that need to be saved to the cloud.
                 using (var selectCommand = connection.CreateCommand()) {
+                    var parameters = new SqliteParameter[] {
+                        new SqliteParameter("ClassName", className),
+                        new SqliteParameter("BabyUuid", baby.Uuid)
+                    };
+
                     selectCommand.CommandText =
-                        "SELECT " +
-                        "MAX(LastEntryUpdatedAt) AS e, " +
-                        "MAX(LastBabyUpdatedAt) AS b, " +
-                        "MAX(LastPhotoUpdatedAt) AS p " +
-                        "FROM Sync";
+                        "SELECT LastUpdatedAt FROM BabySync " +
+                        "WHERE ClassName=:ClassName " +
+                        "AND BabyUuid=:BabyUuid";
+                    selectCommand.Parameters.AddRange(parameters);
+
                     var reader = await selectCommand.ExecuteReaderAsync();
                     var results = from obj in reader.Cast<IDataRecord>()
-                                  select new {
-                        LastBabyUpdatedAtString = obj["b"] as string,
-                        LastEntryUpdatedAtString = obj["e"] as string,
-                        LastPhotoUpdatedAtString = obj["p"] as string
-                    };
-                    var max = await Task.Run(() => results.FirstOrDefault());
-                    if (max.LastBabyUpdatedAtString != null) {
-                        req.LastBabyUpdatedAt = (DateTime?)DateTime.Parse(max.LastBabyUpdatedAtString);
-                    }
-                    if (max.LastEntryUpdatedAtString != null) {
-                        req.LastEntryUpdatedAt = (DateTime?)DateTime.Parse(max.LastEntryUpdatedAtString);
-                    }
-                    if (max.LastPhotoUpdatedAtString != null) {
-                        req.LastPhotoUpdatedAt = (DateTime?)DateTime.Parse(max.LastPhotoUpdatedAtString);
+                        select obj["LastUpdatedAt"] as string;
+                    var lastUpdatedAtString = await Task.Run(() => results.FirstOrDefault());
+                    if (lastUpdatedAtString != null) {
+                        lastUpdatedAt = (DateTime?)DateTime.Parse(lastUpdatedAtString);
                     }
                     reader.Close();
                 }
                 connection.Close();
                 return true;
             });
+            return lastUpdatedAt;
+        }
 
-            // Now, read everything from the cloud and add it to the local store.
-            // Yes, we do re-read everything we just wrote, but that won't be much, and at it
-            // allows us to catch any changes the server may have made during the write.
-            var changes = await cloudStore.FetchChangesAsync(req);
-            foreach (var baby in changes.Babies) {
-                await UpdateFromCloudAsync(baby);
-            }
-            foreach (var entry in changes.Entries) {
-                await UpdateFromCloudAsync(entry, markNewAsRead);
-            }
-            foreach (var photo in changes.Photos) {
-                await UpdateFromCloudAsync(photo);
-            }
+        private async Task SetLastUpdatedAtAsync(
+            ICloudStore cloudStore, string className, Baby baby, DateTime? lastUpdatedAt) {
 
-            // Record that this sync completed.
-            {
-                var lastEntryUpdatedAt = (changes.LastEntryUpdatedAt.HasValue
-                    ? changes.LastEntryUpdatedAt.Value.ToString("O")
-                    : null);
-                var lastBabyUpdatedAt = (changes.LastBabyUpdatedAt.HasValue
-                    ? changes.LastBabyUpdatedAt.Value.ToString("O")
-                    : null);
-                var lastPhotoUpdatedAt = (changes.LastPhotoUpdatedAt.HasValue
-                    ? changes.LastPhotoUpdatedAt.Value.ToString("O")
-                    : null);
+            await EnqueueAsync<bool>(async () => {
+                var connection = new SqliteConnection("Data Source=" + path);
+                await connection.OpenAsync();
+                bool isNew = false;
+
+                string lastUpdatedAtString = null;
+                if (lastUpdatedAt != null) {
+                    lastUpdatedAtString = lastUpdatedAt.Value.ToString("O");
+                }
 
                 var parameters = new SqliteParameter[] {
+                    new SqliteParameter("ClassName", className),
+                    new SqliteParameter("BabyUuid", baby.Uuid),
+                    new SqliteParameter("LastUpdatedAt", lastUpdatedAtString)
+                };
+
+                var fields = (from param in parameters
+                    select param.ParameterName).ToArray();
+
+                // There is no race condition with this approach because all of these steps
+                // are parts of one block in a serial queue.
+                using (var command = connection.CreateCommand()) {
+                    command.CommandText = "SELECT COUNT(*) FROM BabySync " +
+                        "WHERE ClassName=:ClassName " +
+                        "AND BabyUuid=:BabyUuid;";
+                    command.Parameters.AddRange(parameters);
+                    var count = await command.ExecuteScalarAsync();
+                    isNew = (((long)count) == 0);
+                }
+
+                if (isNew) {
+                    using (var command = connection.CreateCommand()) {
+                        command.CommandText = "INSERT INTO BabySync (" +
+                            CreateInsertString(fields) +
+                            ") VALUES (" +
+                            CreateValuesString(fields) +
+                            ");";
+                        command.Parameters.AddRange(parameters);
+                        await command.ExecuteNonQueryAsync();
+                    }
+                } else {
+                    using (var command = connection.CreateCommand()) {
+                        // The WHERE Synced clause keeps us from overwriting local changes made since the sync started.
+                        command.CommandText = "UPDATE BabySync SET " +
+                            "LastUpdatedAt=:LastUpdatedAt " +
+                            "WHERE ClassName=:ClassName AND BabyUuid=:BabyUuid;";
+                        command.Parameters.AddRange(parameters);
+                        await command.ExecuteNonQueryAsync();
+                    }
+                }
+
+                return true;
+            });
+        }
+
+        private async Task<bool> SyncEntriesForBaby(ICloudStore cloudStore, Baby baby, bool markAsRead) {
+            var lastUpdatedAt = await GetLastUpdatedAtAsync(cloudStore, "LogEntry", baby);
+            var response = await cloudStore.FetchEntriesSinceAsync(baby, lastUpdatedAt);
+            foreach (var entry in response.Results) {
+                await UpdateFromCloudAsync(entry, markAsRead);
+            }
+            await SetLastUpdatedAtAsync(cloudStore, "LogEntry", baby, response.NewUpdatedAt);
+            return response.MaybeHasMore;
+        }
+
+        private async Task<bool> SyncPhotosForBaby(ICloudStore cloudStore, Baby baby) {
+            var lastUpdatedAt = await GetLastUpdatedAtAsync(cloudStore, "Photo", baby);
+            var response = await cloudStore.FetchPhotosSinceAsync(baby, lastUpdatedAt);
+            foreach (var photo in response.Results) {
+                await UpdateFromCloudAsync(photo);
+            }
+            await SetLastUpdatedAtAsync(cloudStore, "Photo", baby, response.NewUpdatedAt);
+            return response.MaybeHasMore;
+        }
+
+        private async Task SyncBabiesFromCloudAsync(ICloudStore cloudStore, bool markAsRead) {
+            var syncDate = DateTime.Now.ToString("O");
+            var babies = await cloudStore.FetchAllBabiesAsync();
+            foreach (var baby in babies) {
+                await UpdateFromCloudAsync(baby, syncDate);
+                while (await SyncEntriesForBaby(cloudStore, baby, markAsRead)) {
+                }
+                while (await SyncPhotosForBaby(cloudStore, baby)) {
+                }
+            }
+            await DeleteBabiesNotSeenSinceAsync(cloudStore, syncDate);
+        }
+
+        public async Task SyncToCloudAsync(ICloudStore cloudStore, bool markNewAsRead) {
+            DateTime startTime = DateTime.Now;
+            await SaveChangesToCloudAsync(cloudStore);
+            await SyncBabiesFromCloudAsync(cloudStore, markNewAsRead);
+            DateTime finishedTime = DateTime.Now;
+
+            {
+                var parameters = new SqliteParameter[] {
                     new SqliteParameter("Uuid", Guid.NewGuid().ToString("D")),
-                    new SqliteParameter("Finished", DateTime.Now.ToString("O")),
-                    new SqliteParameter("LastEntryUpdatedAt", lastEntryUpdatedAt),
-                    new SqliteParameter("LastPhotoUpdatedAt", lastPhotoUpdatedAt),
-                    new SqliteParameter("LastBabyUpdatedAt", lastBabyUpdatedAt),
-                    new SqliteParameter("EntryCount", changes.Entries.Count),
-                    new SqliteParameter("PhotoCount", changes.Photos.Count),
-                    new SqliteParameter("BabyCount", changes.Babies.Count)
+                    new SqliteParameter("Started", startTime.ToString("O")),
+                    new SqliteParameter("Finished", finishedTime.ToString("O"))
                 };
 
                 await EnqueueAsync<bool>(async () => {
@@ -669,22 +765,12 @@ namespace BabbyJotz.iOS {
                     using (var command = connection.CreateCommand()) {
                         command.CommandText = "INSERT INTO Sync (" +
                             "Uuid, " +
-                            "Finished, " +
-                            "LastEntryUpdatedAt, " +
-                            "LastBabyUpdatedAt, " +
-                            "LastPhotoUpdatedAt, " +
-                            "EntryCount, " +
-                            "PhotoCount, " +
-                            "BabyCount" +
+                            "Started, " +
+                            "Finished" +
                             ") VALUES (" +
                             ":Uuid, " +
-                            ":Finished, " +
-                            ":LastEntryUpdatedAt, " +
-                            ":LastBabyUpdatedAt, " +
-                            ":LastPhotoUpdatedAt, " +
-                            ":EntryCount, " +
-                            ":PhotoCount, " +
-                            ":BabyCount);";
+                            ":Started, " +
+                            ":Finished);";
                         command.Parameters.AddRange(parameters);
                         await command.ExecuteNonQueryAsync();
                     }
@@ -696,10 +782,6 @@ namespace BabbyJotz.iOS {
             // Signal listeners that the database has been updated.
             if (RemotelyChanged != null) {
                 RemotelyChanged(this, EventArgs.Empty);
-            }
-
-            if (changes.MaybeHasMore) {
-                await SyncToCloudAsync(cloudStore, markNewAsRead);
             }
         }
 

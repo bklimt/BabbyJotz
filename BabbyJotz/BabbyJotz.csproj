@@ -73,15 +73,14 @@
     <Compile Include="Pages\SharePage.xaml.cs">
       <DependentUpon>SharePage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Interfaces\CloudFetchChangesResponse.cs" />
     <Compile Include="Interfaces\ICloudStore.cs" />
     <Compile Include="Interfaces\IPreferences.cs" />
-    <Compile Include="Interfaces\CloudFetchChangesRequest.cs" />
     <Compile Include="Invite.cs" />
     <Compile Include="StorableObject.cs" />
     <Compile Include="Photo.cs" />
     <Compile Include="Converters\PhotoConverter.cs" />
     <Compile Include="Interfaces\ILocalStore.cs" />
+    <Compile Include="Interfaces\CloudFetchSinceResponse.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <Import Project="..\packages\Xamarin.Forms.1.2.3.6257\build\portable-win+net45+wp80+MonoAndroid10+MonoTouch10\Xamarin.Forms.targets" Condition="Exists('..\packages\Xamarin.Forms.1.2.3.6257\build\portable-win+net45+wp80+MonoAndroid10+MonoTouch10\Xamarin.Forms.targets')" />

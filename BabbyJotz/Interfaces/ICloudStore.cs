@@ -18,7 +18,10 @@ namespace BabbyJotz {
         Task AcceptInviteAsync(Invite invite);
         Task UnlinkAsync(Baby baby);
 
-        Task<CloudFetchChangesResponse> FetchChangesAsync(CloudFetchChangesRequest req);
+        Task<List<Baby>> FetchAllBabiesAsync();
+        Task<CloudFetchSinceResponse<LogEntry>> FetchEntriesSinceAsync(Baby baby, DateTime? lastUpdatedAt);
+        Task<CloudFetchSinceResponse<Photo>> FetchPhotosSinceAsync(Baby baby, DateTime? lastUpdatedAt);
+
         Task SaveAsync(LogEntry entry);
         Task SaveAsync(Baby baby);
         Task SaveAsync(Photo photo);
