@@ -242,9 +242,12 @@ namespace BabbyJotz.iOS {
             };
         }
 
-        private LogEntry CreateLogEntry(IDataRecord rec) {
+        private LogEntry CreateLogEntry(IDataRecord rec, Baby baby) {
             var deleted = (rec["Deleted"] is DBNull) ? (DateTime?)null : DateTime.Parse((string)rec["Deleted"]);
-            return new LogEntry(new Baby((string)rec["BabyUuid"]), (string)rec["Uuid"]) {
+            if (baby == null) {
+                baby = new Baby((string)rec["BabyUuid"]);
+            }
+            return new LogEntry(baby, (string)rec["Uuid"]) {
                 DateTime = DateTime.Parse((string)rec["Time"]),
                 Text = (string)rec["Text"],
                 IsPoop = (bool)rec["Poop"],
@@ -299,7 +302,7 @@ namespace BabbyJotz.iOS {
                     var reader = await command.ExecuteReaderAsync();
 
                     var enumerator = from obj in reader.Cast<IDataRecord>()
-                        select CreateLogEntry(obj);
+                        select CreateLogEntry(obj, baby);
                     results = await Task.Run(() => enumerator.ToList());
                     reader.Close();
                 }
@@ -491,7 +494,7 @@ namespace BabbyJotz.iOS {
                     command.Parameters.AddRange(parameters);
                     var reader = await command.ExecuteReaderAsync();
                     var results = from obj in reader.Cast<IDataRecord>()
-                        select CreateLogEntry(obj);
+                        select CreateLogEntry(obj, baby);
                     entries = await Task.Run(() => results.Reverse().ToList());
                     reader.Close();
                 }
@@ -578,7 +581,7 @@ namespace BabbyJotz.iOS {
             }
 
             List<ObjectAndVersion<LogEntry>> unsavedEntries =
-                await GetUnsyncedAsync("LogEntry", CreateLogEntry);
+                await GetUnsyncedAsync("LogEntry", (obj) => CreateLogEntry(obj, null));
 
             foreach (var item in unsavedBabies) {
                 var baby = item.Object;
@@ -827,7 +830,7 @@ namespace BabbyJotz.iOS {
                     // TODO: Fetch the baby too.
 
                     results = from obj in reader.Cast<IDataRecord>()
-                        select CreateLogEntry(obj);
+                        select CreateLogEntry(obj, null);
                     results = await Task.Run(() => results.ToList());
                     reader.Close();
                 }

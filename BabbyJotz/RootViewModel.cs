@@ -19,7 +19,11 @@ namespace BabbyJotz {
 
         private static void SaveCurrentBaby(BindableObject obj) {
             var model = obj as RootViewModel;
-            model.Preferences.Set(PreferenceKey.CurrentBabyUUID, model.Baby.Uuid);
+            if (model.Baby == null) {
+                model.Preferences.Set(PreferenceKey.CurrentBabyUUID, null);
+            } else {
+                model.Preferences.Set(PreferenceKey.CurrentBabyUUID, model.Baby.Uuid);
+            }
         }
 
         private static void SaveNotificationsEnabled(BindableObject obj) {
@@ -97,7 +101,10 @@ namespace BabbyJotz {
             Babies = new ObservableCollection<Baby>();
             CloudUserName = CloudStore.UserName;
 
-            Baby = new Baby(Preferences.Get(PreferenceKey.CurrentBabyUUID));
+            var babyUuid = Preferences.Get(PreferenceKey.CurrentBabyUUID);
+            if (babyUuid != null) {
+                Baby = new Baby(babyUuid);
+            }
 
             LocalStore.RemotelyChanged += (sender, e) => RefreshAsync();
 
@@ -128,7 +135,6 @@ namespace BabbyJotz {
                     RefreshEntriesAsync();
                 }
                 if (e.PropertyName == "Baby") {
-                    Preferences.Set(PreferenceKey.CurrentBabyUUID, Baby.Uuid);
                     Entries.Clear();
                     RefreshEntriesAsync();
                 }
@@ -214,6 +220,8 @@ namespace BabbyJotz {
         }
 
         private void UpdateBabies(IEnumerable<Baby> updatedBabies) {
+
+
             var sameBabies = from baby1 in Babies
                 join baby2 in updatedBabies on baby1.Uuid equals baby2.Uuid
                 select new {
@@ -264,31 +272,58 @@ namespace BabbyJotz {
             });
 
             // Update the current baby.
+            bool currentBabyFound = false;
             foreach (var baby in updatedBabies) {
                 if (Baby.Uuid == baby.Uuid) {
+                    currentBabyFound = true;
                     Baby.CopyFrom(baby);
                 }
             }
 
-            // TODO: Deal with the current baby disappearing.
-            // TODO: Deal with all babies disappearing.
+            if (!currentBabyFound) {
+                if (Babies.Count > 1) {
+                    Baby = Babies[0];
+                } else {
+                    Baby = null;
+                }
+            }
+        }
+
+        private Task DoOnMainThreadAsync(Action action) {
+            var tcs = new TaskCompletionSource<object>();
+            Device.BeginInvokeOnMainThread(() => {
+                try {
+                    action();
+                    tcs.SetResult(null);
+                } catch (Exception e) {
+                    tcs.SetException(e);
+                }
+            });
+            return tcs.Task;
         }
 
         public async void RefreshBabiesAsync() {
             var newBabies = await LocalStore.FetchBabiesAsync();
-            UpdateBabies(newBabies);
+            await DoOnMainThreadAsync(() => UpdateBabies(newBabies));
         }
 
         public async void RefreshEntriesAsync() {
-            var newEntries = await LocalStore.FetchEntriesAsync(Baby, Date);
-            UpdateEntries(newEntries);
+            var newEntries = new List<LogEntry>();
+            if (Baby != null) {
+                newEntries = await LocalStore.FetchEntriesAsync(Baby, Date);
+            }
+            await DoOnMainThreadAsync(() => UpdateEntries(newEntries));
         }
 
         public async void RefreshAsync() {
             var newBabies = await LocalStore.FetchBabiesAsync();
-            UpdateBabies(newBabies);
-            var newEntries = await LocalStore.FetchEntriesAsync(Baby, Date);
-            UpdateEntries(newEntries);
+            await DoOnMainThreadAsync(() => UpdateBabies(newBabies));
+
+            var newEntries = new List<LogEntry>();
+            if (Baby != null) {
+                newEntries = await LocalStore.FetchEntriesAsync(Baby, Date);
+            }
+            await DoOnMainThreadAsync(() => UpdateEntries(newEntries));
         }
 
         public void ToggleTheme() {

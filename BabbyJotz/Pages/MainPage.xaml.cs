@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 
@@ -15,19 +16,29 @@ namespace BabbyJotz {
             ToolbarItems.Add(new ToolbarItem("Add", "toolbar_new_entry", async () => {
                 await OnAddClicked();
             }));
+
+            RootViewModel.PropertyChanged += (object sender, PropertyChangedEventArgs e) =>  {
+                if (e.PropertyName == "Baby") {
+                    Device.BeginInvokeOnMainThread(() => {
+                        MaybeShowNux();
+                    });
+                }
+            };
         }
 
-        protected override void OnAppearing() {
-            base.OnAppearing();
-            // TODO: Change this to a bindable model property on the root view model.
-            // TODO: If the user has linked babies before, we should be able to skip this.
-            if (RootViewModel.Preferences.Get(PreferenceKey.CurrentBabyUUID) == null) {
+        private void MaybeShowNux() {
+            if (RootViewModel.Baby == null) {
                 var page = new NavigationPage(new NuxPage(RootViewModel));
                 page.BindingContext = RootViewModel;
                 page.SetBinding(NavigationPage.BarBackgroundColorProperty, "Theme.Title");
                 page.SetBinding(NavigationPage.BarTextColorProperty, "Theme.Text");
                 Navigation.PushModalAsync(page);
             }
+        }
+
+        protected override void OnAppearing() {
+            base.OnAppearing();
+            MaybeShowNux();
         }
 
         private void OnBabiesClicked() {
@@ -61,18 +72,17 @@ namespace BabbyJotz {
         public async void OnEntryTapped(object sender, EventArgs args) {
             var tappedArgs = args as ItemTappedEventArgs;
             var entry = tappedArgs.Item as LogEntry;
-            // TODO: Fix the baby on this to be actually loaded.
             await Navigation.PushAsync(new EntryPage(RootViewModel, new LogEntry(entry)));
             ((ListView)sender).SelectedItem = null;
         }
 
-		public void OnPreviousDayClicked(object sender, EventArgs args) {
-			RootViewModel.Date -= TimeSpan.FromDays(1);
-		}
+        public void OnPreviousDayClicked(object sender, EventArgs args) {
+            RootViewModel.Date -= TimeSpan.FromDays(1);
+        }
 
-		public void OnNextDayClicked(object sender, EventArgs args) {
-			RootViewModel.Date += TimeSpan.FromDays(1);
-		}
+        public void OnNextDayClicked(object sender, EventArgs args) {
+            RootViewModel.Date += TimeSpan.FromDays(1);
+        }
 
         public async void OnSyncClicked(object sender, EventArgs args) {
             try {

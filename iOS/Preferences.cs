@@ -23,7 +23,11 @@ namespace BabbyJotz.iOS {
 
         public void Set(PreferenceKey<string> key, string value) {
             var defaults = NSUserDefaults.StandardUserDefaults;
-            defaults.SetString(value, key.Key);
+            if (value == null) {
+                defaults.RemoveObject(key.Key);
+            } else {
+                defaults.SetString(value, key.Key);
+            }
         }
     }
 }

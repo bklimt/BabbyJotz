@@ -23,7 +23,11 @@ namespace BabbyJotz.Android {
         }
 
         public void Set(PreferenceKey<string> key, string value) {
-            prefs.Edit().PutString(key.Key, value).Commit();
+            if (value == null) {
+                prefs.Edit().Remove(key.Key).Commit();
+            } else {
+                prefs.Edit().PutString(key.Key, value).Commit();
+            }
         }
     }
 }
