@@ -8,6 +8,8 @@ namespace BabbyJotz {
     public partial class MainPage : MasterDetailPage {
         private RootViewModel RootViewModel { get; set; }
 
+        // TODO: Remove the statics for the feeding options that are disabled.
+
         public MainPage(RootViewModel model) {
             RootViewModel = model;
             BindingContext = RootViewModel;
@@ -125,14 +127,44 @@ namespace BabbyJotz {
                 StatisticsHtmlBuilder.GetSleepingNightHeatMapHtmlAsync(RootViewModel)));
         }
 
-        public async void OnEatingBarChartClicked(object sender, EventArgs args) {
+        public async void OnFormulaBarChartClicked(object sender, EventArgs args) {
             await Navigation.PushAsync(new WebViewPage("Eating", () =>
-                StatisticsHtmlBuilder.GetEatingBarChartHtmlAsync(RootViewModel)));
+                StatisticsHtmlBuilder.GetFormulaBarChartHtmlAsync(RootViewModel)));
         }
 
-        public async void OnEatingHeatMapClicked(object sender, EventArgs args) {
+        public async void OnFormulaHeatMapClicked(object sender, EventArgs args) {
             await Navigation.PushAsync(new WebViewPage("Eating", () =>
-                StatisticsHtmlBuilder.GetEatingHeatMapHtmlAsync(RootViewModel)));
+                StatisticsHtmlBuilder.GetFormulaHeatMapHtmlAsync(RootViewModel)));
+        }
+
+        public async void OnPumpedBarChartClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new WebViewPage("Eating", () =>
+                StatisticsHtmlBuilder.GetPumpedBarChartHtmlAsync(RootViewModel)));
+        }
+
+        public async void OnPumpedHeatMapClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new WebViewPage("Eating", () =>
+                StatisticsHtmlBuilder.GetPumpedHeatMapHtmlAsync(RootViewModel)));
+        }
+
+        public async void OnBottleBarChartClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new WebViewPage("Eating", () =>
+                StatisticsHtmlBuilder.GetBottleBarChartHtmlAsync(RootViewModel)));
+        }
+
+        public async void OnBottleHeatMapClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new WebViewPage("Eating", () =>
+                StatisticsHtmlBuilder.GetBottleHeatMapHtmlAsync(RootViewModel)));
+        }
+
+        public async void OnBreastfeedingBarChartClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new WebViewPage("Eating", () =>
+                StatisticsHtmlBuilder.GetBreastfeedingBarChartHtmlAsync(RootViewModel)));
+        }
+
+        public async void OnBreastfeedingHeatMapClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new WebViewPage("Eating", () =>
+                StatisticsHtmlBuilder.GetBreastfeedingHeatMapHtmlAsync(RootViewModel)));
         }
 
         public async void OnPoopingBarChartClicked(object sender, EventArgs args) {

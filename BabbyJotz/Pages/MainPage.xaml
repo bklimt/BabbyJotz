@@ -162,15 +162,36 @@
                         TextColor="{Binding Theme.ButtonText}"
                         Tapped="OnSleepingDayHeatMapClicked" />
                 </TableSection>
-                <TableSection Title="Eating">
+                <TableSection
+                    Title="Breastfeeding">
                     <TextCell
                         Text="Bar Chart"
                         TextColor="{Binding Theme.ButtonText}"
-                        Tapped="OnEatingBarChartClicked" />
+                        Tapped="OnBreastfeedingBarChartClicked" />
                     <TextCell
                         Text="Heat Map"
                         TextColor="{Binding Theme.ButtonText}"
-                        Tapped="OnEatingHeatMapClicked" />
+                        Tapped="OnBreastfeedingHeatMapClicked" />
+                </TableSection>
+                <TableSection Title="Pumped Milk Eaten">
+                    <TextCell
+                        Text="Bar Chart"
+                        TextColor="{Binding Theme.ButtonText}"
+                        Tapped="OnPumpedBarChartClicked" />
+                    <TextCell
+                        Text="Heat Map"
+                        TextColor="{Binding Theme.ButtonText}"
+                        Tapped="OnPumpedHeatMapClicked" />
+                </TableSection>
+                <TableSection Title="Formula Eaten">
+                    <TextCell
+                        Text="Bar Chart"
+                        TextColor="{Binding Theme.ButtonText}"
+                        Tapped="OnFormulaBarChartClicked" />
+                    <TextCell
+                        Text="Heat Map"
+                        TextColor="{Binding Theme.ButtonText}"
+                        Tapped="OnFormulaHeatMapClicked" />
                 </TableSection>
                 <TableSection Title="Pooping">
                     <TextCell

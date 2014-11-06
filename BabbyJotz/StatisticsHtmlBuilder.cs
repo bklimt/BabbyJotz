@@ -85,7 +85,7 @@ namespace BabbyJotz {
 </html>
 ";
 
-        private enum Metric { Sleeping, Eating, Pooping };
+        private enum Metric { Sleeping, Pooping, Breastfeeding, Formula, Pumped, Bottle };
 
         private StatisticsHtmlBuilder() {
         }
@@ -120,8 +120,6 @@ namespace BabbyJotz {
             });
         }
 
-        // TODO: Add charts for pumped milk and breast-feeding.
-
         public static async Task<string> GetSleepingBarChartHtmlAsync(RootViewModel model) {
             return await GetHtmlAsync(model, (html, entries) => GenerateBarChart(html, entries, Metric.Sleeping, 50));
         }
@@ -134,12 +132,36 @@ namespace BabbyJotz {
             return await GetHtmlAsync(model, (html, entries) => GenerateHeatMap(html, entries, Metric.Sleeping, false, 15));
         }
 
-        public static async Task<string> GetEatingBarChartHtmlAsync(RootViewModel model) {
-            return await GetHtmlAsync(model, (html, entries) => GenerateBarChart(html, entries, Metric.Eating, 50));
+        public static async Task<string> GetBreastfeedingBarChartHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateBarChart(html, entries, Metric.Breastfeeding, 50));
         }
 
-        public static async Task<string> GetEatingHeatMapHtmlAsync(RootViewModel model) {
-            return await GetHtmlAsync(model, (html, entries) => GenerateHeatMap(html, entries, Metric.Eating, false, 30));
+        public static async Task<string> GetFormulaBarChartHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateBarChart(html, entries, Metric.Formula, 50));
+        }
+
+        public static async Task<string> GetPumpedBarChartHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateBarChart(html, entries, Metric.Pumped, 50));
+        }
+
+        public static async Task<string> GetBottleBarChartHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateBarChart(html, entries, Metric.Bottle, 50));
+        }
+
+        public static async Task<string> GetBreastfeedingHeatMapHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateHeatMap(html, entries, Metric.Breastfeeding, false, 30));
+        }
+
+        public static async Task<string> GetPumpedHeatMapHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateHeatMap(html, entries, Metric.Pumped, false, 30));
+        }
+
+        public static async Task<string> GetFormulaHeatMapHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateHeatMap(html, entries, Metric.Formula, false, 30));
+        }
+
+        public static async Task<string> GetBottleHeatMapHtmlAsync(RootViewModel model) {
+            return await GetHtmlAsync(model, (html, entries) => GenerateHeatMap(html, entries, Metric.Bottle, false, 30));
         }
 
         public static async Task<string> GetPoopingBarChartHtmlAsync(RootViewModel model) {
@@ -174,10 +196,26 @@ namespace BabbyJotz {
             var headerRow = headerRowBuilder.ToString();
 
             var maxEaten = 0.0;
-            if (metric == Metric.Eating) {
+            if (metric == Metric.Formula) {
                 maxEaten = (from e in entries
-                            group e.FormulaEaten by DatetimeModMinutes(e.DateTime, quantum) into day
-                            select day.ToList().Sum()).Max();
+                    group e.FormulaEaten by DatetimeModMinutes(e.DateTime, quantum) into day
+                    select day.ToList().Sum()).Max();
+            } else if (metric == Metric.Pumped) {
+                maxEaten = (from e in entries
+                    group e.PumpedEaten by DatetimeModMinutes(e.DateTime, quantum) into day
+                    select day.ToList().Sum()).Max();
+            } else if (metric == Metric.Bottle) {
+                maxEaten = (from e in entries
+                    group e.PumpedEaten + e.FormulaEaten
+                    by DatetimeModMinutes(e.DateTime, quantum)
+                    into day
+                    select day.ToList().Sum()).Max();
+            } else if (metric == Metric.Breastfeeding) {
+                maxEaten = (from e in entries
+                    group e.LeftBreastEaten.TotalMinutes + e.RightBreastEaten.TotalMinutes
+                    by DatetimeModMinutes(e.DateTime, quantum)
+                    into day
+                    select day.ToList().Sum()).Max();
             }
 
             bool wasJustAsleep = false;
@@ -227,7 +265,16 @@ namespace BabbyJotz {
                     var wasAlwaysAsleep = wasJustAsleep;
                     var hadEntries = false;
                     while (entryValid && entry.Current.DateTime < nextTime) {
-                        eaten += entry.Current.FormulaEaten;
+                        if (metric == Metric.Formula || metric == Metric.Bottle) {
+                            eaten += entry.Current.FormulaEaten;
+                        }
+                        if (metric == Metric.Pumped || metric == Metric.Bottle) {
+                            eaten += entry.Current.PumpedEaten;
+                        }
+                        if (metric == Metric.Breastfeeding) {
+                            eaten += entry.Current.RightBreastEaten.TotalMinutes;
+                            eaten += entry.Current.LeftBreastEaten.TotalMinutes;
+                        }
                         pooped = pooped || entry.Current.IsPoop;
                         wasJustAsleep = entry.Current.IsAsleep;
                         wasEverAsleep = wasEverAsleep || entry.Current.IsAsleep;
@@ -238,7 +285,13 @@ namespace BabbyJotz {
 
                     var cssClass = "white";
 
-                    if (metric == Metric.Eating) {
+                    if (metric == Metric.Formula ||
+                        metric == Metric.Pumped ||
+                        metric == Metric.Bottle ||
+                        metric == Metric.Breastfeeding) {
+
+                        // TODO: Make this split formula and pumped if "bottle".
+
                         var eatenRatio = Math.Min(eaten / maxEaten, 1.0);
 
                         // TODO: Make this grayscale or something.
@@ -335,10 +388,42 @@ namespace BabbyJotz {
 
             IEnumerable<DailyTotal> dailyTotals = null;
 
-            if (metric == Metric.Eating) {
+            if (metric == Metric.Formula) {
                 dailyTotals = from entry in entries
                               where entry.FormulaEaten > 0.0
                               group entry.FormulaEaten by entry.Date into day
+                              select new DailyTotal {
+                    Date = day.Key,
+                    Amount = day.ToList().Sum()
+                };
+            }
+
+            if (metric == Metric.Pumped) {
+                dailyTotals = from entry in entries
+                              where entry.PumpedEaten > 0.0
+                              group entry.PumpedEaten by entry.Date into day
+                              select new DailyTotal {
+                    Date = day.Key,
+                    Amount = day.ToList().Sum()
+                };
+            }
+
+            if (metric == Metric.Bottle) {
+                // TODO: Separate bottle and pumped and add a legend.
+                dailyTotals = from entry in entries
+                              group entry.FormulaEaten + entry.PumpedEaten
+                              by entry.Date into day
+                              select new DailyTotal {
+                    Date = day.Key,
+                    Amount = day.ToList().Sum()
+                };
+            }
+
+            if (metric == Metric.Breastfeeding) {
+                dailyTotals = from entry in entries
+                              group entry.RightBreastEaten.TotalMinutes + 
+                                    entry.LeftBreastEaten.TotalMinutes
+                              by entry.Date into day
                               select new DailyTotal {
                     Date = day.Key,
                     Amount = day.ToList().Sum()
@@ -413,7 +498,7 @@ namespace BabbyJotz {
                 }
 
                 var amountString = String.Format("{0}", dailyTotal.Current.Amount);
-                if (metric == Metric.Sleeping) {
+                if (metric == Metric.Sleeping || metric == Metric.Breastfeeding) {
                     var span = TimeSpan.FromMinutes((double)dailyTotal.Current.Amount);
                     amountString = span.ToString(@"hh\:mm");
                 }
