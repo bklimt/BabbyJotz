@@ -145,6 +145,12 @@
     <BundleResource Include="Resources\log%403x.png" />
     <BundleResource Include="Resources\log%402x.png" />
     <BundleResource Include="Resources\logo.png" />
+    <BundleResource Include="Resources\toolbar_right.png" />
+    <BundleResource Include="Resources\toolbar_right%402x.png" />
+    <BundleResource Include="Resources\toolbar_right%403x.png" />
+    <BundleResource Include="Resources\toolbar_left.png" />
+    <BundleResource Include="Resources\toolbar_left%402x.png" />
+    <BundleResource Include="Resources\toolbar_left%403x.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

@@ -75,6 +75,16 @@
                         <Thickness Left="8" Right="8" />
                     </StackLayout.Padding>
                     <Image
+                        Source="toolbar_left.png"
+                        HeightRequest="22"
+                        WidthRequest="22"
+                        VerticalOptions="CenterAndExpand"
+                        Aspect="AspectFill">
+                        <Image.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnBabyTapped"/>
+                        </Image.GestureRecognizers>
+                    </Image>
+                    <Image
                         BindingContext="{Binding Baby}"
                         Source="{Binding ProfilePhoto, Converter={StaticResource photoConverter}}"
                         HeightRequest="50"
@@ -94,30 +104,46 @@
                             <TapGestureRecognizer Tapped="OnManageBabyClicked"/>
                         </Image.GestureRecognizers>
                     </Label>
-                    <Button
-                        Text=">"
-                        Clicked="OnBabyTapped"
-                        TextColor="{Binding Theme.ButtonText}"
+                    <Image
+                        Source="toolbar_right.png"
+                        HeightRequest="22"
+                        WidthRequest="22"
                         VerticalOptions="CenterAndExpand"
-                        HorizontalOptions="End">
-                    </Button>
+                        HorizontalOptions="EndAndExpand"
+                        Aspect="AspectFill">
+                        <Image.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnBabyTapped"/>
+                        </Image.GestureRecognizers>
+                    </Image>
                 </StackLayout>
                 <StackLayout Orientation="Horizontal" Spacing="8">
                     <StackLayout.Padding>
                         <Thickness Left="8" Right="8" />
                     </StackLayout.Padding>
-                    <Button
-                        Text="◀"
-                        Clicked="OnPreviousDayClicked"
-                        WidthRequest="50" />
+                    <Image
+                        Source="toolbar_left.png"
+                        HeightRequest="22"
+                        WidthRequest="22"
+                        VerticalOptions="CenterAndExpand"
+                        Aspect="AspectFill">
+                        <Image.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnPreviousDayClicked"/>
+                        </Image.GestureRecognizers>
+                    </Image>
                     <DatePicker
                         Date="{Binding Date}"
                         BackgroundColor="White"
                         HorizontalOptions="FillAndExpand" />
-                    <Button
-                        Text="▶"
-                        Clicked="OnNextDayClicked"
-                        WidthRequest="50" />
+                    <Image
+                        Source="toolbar_right.png"
+                        HeightRequest="22"
+                        WidthRequest="22"
+                        VerticalOptions="CenterAndExpand"
+                        Aspect="AspectFill">
+                        <Image.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnNextDayClicked"/>
+                        </Image.GestureRecognizers>
+                    </Image>
                 </StackLayout>
                 <ListView
                     ItemsSource="{Binding Entries}"

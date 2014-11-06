@@ -125,6 +125,12 @@
     <AndroidResource Include="Resources\drawable-xxxhdpi\ic_launcher.png" />
     <AndroidResource Include="Resources\drawable\ic_stat_notify.png" />
     <AndroidResource Include="Resources\drawable\logo.png" />
+    <AndroidResource Include="Resources\drawable-hdpi\toolbar_left.png" />
+    <AndroidResource Include="Resources\drawable-hdpi\toolbar_right.png" />
+    <AndroidResource Include="Resources\drawable-mdpi\toolbar_left.png" />
+    <AndroidResource Include="Resources\drawable-mdpi\toolbar_right.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\toolbar_left.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\toolbar_right.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Novell\Novell.MonoDroid.CSharp.targets" />
   <Import Project="..\packages\Xamarin.Forms.1.2.3.6257\build\portable-win+net45+wp80+MonoAndroid10+MonoTouch10\Xamarin.Forms.targets" Condition="Exists('..\packages\Xamarin.Forms.1.2.3.6257\build\portable-win+net45+wp80+MonoAndroid10+MonoTouch10\Xamarin.Forms.targets')" />
