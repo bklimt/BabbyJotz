@@ -4,7 +4,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="BabbyJotz.WebViewPage">
     <ContentPage.Content>
-        <WebView x:Name="webview" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
+        <WebView
+            x:Name="webview"
+            BackgroundColor="#333333"
+            VerticalOptions="FillAndExpand"
+            HorizontalOptions="FillAndExpand">
             <WebView.Source>
                 <HtmlWebViewSource Html=""/>
             </WebView.Source>
