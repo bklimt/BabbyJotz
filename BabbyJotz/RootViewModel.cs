@@ -12,6 +12,8 @@ namespace BabbyJotz {
         public ICloudStore CloudStore { get; set; }
         private TaskQueue syncQueue = new TaskQueue();
 
+        #region Property Helpers
+
         private static void SaveTheme(BindableObject obj) {
             var model = obj as RootViewModel;
             model.Preferences.Set(PreferenceKey.LightTheme, model.Theme == Theme.Light);
@@ -26,6 +28,11 @@ namespace BabbyJotz {
             }
         }
 
+        private static void SaveIsSyncingDisabled(BindableObject obj) {
+            var model = obj as RootViewModel;
+            model.Preferences.Set(PreferenceKey.DoNotSync, model.IsSyncingDisabled);
+        }
+
         private static void SaveNotificationsEnabled(BindableObject obj) {
             var model = obj as RootViewModel;
             model.Preferences.Set(PreferenceKey.DoNotNotify, !model.NotificationsEnabled);
@@ -36,9 +43,15 @@ namespace BabbyJotz {
             model.Preferences.Set(PreferenceKey.DoNotVibrate, !model.Vibrate);
         }
 
+        #endregion
+        #region Properties
+
         public IPreferences Preferences { get; private set; }
         public ObservableCollection<Baby> Babies { get; private set; }
         public ObservableCollection<LogEntry> Entries { get; private set; }
+
+        #endregion
+        #region Bindable Properties
 
         public static readonly BindableProperty DateProperty =
             BindableProperty.Create<RootViewModel, DateTime>(p => p.Date, default(DateTime));
@@ -77,6 +90,24 @@ namespace BabbyJotz {
             set { SetValue(ThemeProperty, value); }
         }
 
+        // This is whether it's been manually turned off.
+        public static readonly BindableProperty IsSyncingDisabledProperty =
+            BindableProperty.Create<RootViewModel, bool>(p => p.IsSyncingDisabled, false,
+                BindingMode.Default, null, (p, _1, _2) => SaveIsSyncingDisabled(p), null, null);
+        public bool IsSyncingDisabled {
+            get { return (bool)base.GetValue(IsSyncingDisabledProperty); }
+            set { SetValue(IsSyncingDisabledProperty, value); }
+        }
+
+        // This is !IsSyncingDisabled && CloudUserName != null.
+        public static readonly BindableProperty IsSyncingEnabledProperty =
+            BindableProperty.Create<RootViewModel, bool>(p => p.IsSyncingEnabled, false,
+                BindingMode.OneWay);
+        public bool IsSyncingEnabled {
+            get { return (bool)base.GetValue(IsSyncingEnabledProperty); }
+            private set { SetValue(IsSyncingEnabledProperty, value); }
+        }
+
         public static readonly BindableProperty NotificationsEnabledProperty =
             BindableProperty.Create<RootViewModel, bool>(p => p.NotificationsEnabled, true,
                 BindingMode.Default, null, (p, _1, _2) => SaveNotificationsEnabled(p), null, null);
@@ -92,6 +123,9 @@ namespace BabbyJotz {
             get { return (bool)base.GetValue(VibrateProperty); }
             set { SetValue(VibrateProperty, value); }
         }
+
+        #endregion
+        #region Constructor
 
         public RootViewModel(ILocalStore dataStore, ICloudStore cloudStore, IPreferences preferences) {
             LocalStore = dataStore;
@@ -116,7 +150,10 @@ namespace BabbyJotz {
             CloudStore.UserChanged += (sender, e) => {
                 CloudUserName = CloudStore.UserName;
                 if (CloudUserName != null) {
+                    IsSyncingEnabled = !IsSyncingDisabled;
                     TryToSyncEventually();
+                } else {
+                    IsSyncingEnabled = false;
                 }
             };
 
@@ -138,9 +175,14 @@ namespace BabbyJotz {
                     Entries.Clear();
                     RefreshEntriesAsync();
                 }
+                if (e.PropertyName == "IsSyncingDisabled") {
+                    IsSyncingEnabled = !IsSyncingDisabled && CloudStore.UserName != null;
+                }
             };
 
             Theme = Preferences.Get(PreferenceKey.LightTheme) ? Theme.Light : Theme.Dark;
+            IsSyncingDisabled = Preferences.Get(PreferenceKey.DoNotSync);
+            IsSyncingEnabled = !IsSyncingDisabled && CloudStore.UserName != null;
             NotificationsEnabled = !Preferences.Get(PreferenceKey.DoNotNotify);
             Vibrate = !Preferences.Get(PreferenceKey.DoNotVibrate);
 
@@ -149,7 +191,13 @@ namespace BabbyJotz {
             RefreshEntriesAsync();
         }
 
+        #endregion
+        #region Syncing
+
         public async Task SyncAsync(bool markNewAsRead) {
+            if (!IsSyncingEnabled) {
+                return;
+            }
             await syncQueue.EnqueueAsync(async toAwait => {
                 await toAwait;
                 if (CloudUserName == null) {
@@ -274,7 +322,7 @@ namespace BabbyJotz {
             // Update the current baby.
             bool currentBabyFound = false;
             foreach (var baby in updatedBabies) {
-                if (Baby.Uuid == baby.Uuid) {
+                if (Baby != null && Baby.Uuid == baby.Uuid) {
                     currentBabyFound = true;
                     Baby.CopyFrom(baby);
                 }
@@ -284,7 +332,9 @@ namespace BabbyJotz {
                 if (Babies.Count > 1) {
                     Baby = Babies[0];
                 } else {
-                    Baby = null;
+                    if (Baby != null) {
+                        Baby = null;
+                    }
                 }
             }
         }
@@ -325,6 +375,8 @@ namespace BabbyJotz {
             }
             await DoOnMainThreadAsync(() => UpdateEntries(newEntries));
         }
+
+        #endregion
 
         public void ToggleTheme() {
             if (Theme == Theme.Light) {

@@ -29,13 +29,13 @@
                 Spacing="8"
                 HorizontalOptions="FillAndExpand">
                 <Button
-                    Text="Log out"
-                    Clicked="OnLogOutClicked"
+                    Text="Cancel"
+                    Clicked="OnCancelClicked"
                     TextColor="{Binding Theme.ButtonText}"
                     HorizontalOptions="FillAndExpand" />
                 <Button
-                    Text="Cancel"
-                    Clicked="OnCancelClicked"
+                    Text="Log out"
+                    Clicked="OnLogOutClicked"
                     TextColor="{Binding Theme.ButtonText}"
                     HorizontalOptions="FillAndExpand" />
             </StackLayout>

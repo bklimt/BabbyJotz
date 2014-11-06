@@ -60,6 +60,12 @@ namespace BabbyJotz.iOS {
             return true;
         }
 
+        public override void WillEnterForeground(UIApplication application) {
+            // NOTE: Don't call the base implementation on a Model class
+            // see http://docs.xamarin.com/guides/ios/application_fundamentals/delegates,_protocols,_and_events
+            model.TryToSyncEventually();
+        }
+
         public override void DidRegisterUserNotificationSettings(
             UIApplication application, UIUserNotificationSettings notificationSettings) {
             // NOTE: Don't call the base implementation on a Model class

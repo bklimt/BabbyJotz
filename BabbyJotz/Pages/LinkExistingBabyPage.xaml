@@ -24,9 +24,19 @@
                 TextColor="{Binding RootViewModel.Theme.Text}"
                 HorizontalOptions="CenterAndExpand"
                 Text="Link an existing baby." />
+            <Label
+                HorizontalOptions="FillAndExpand"
+                XAlign="Center"
+                Text="To use Cloud Sync, you must log in or sign up with a free Babby Cloud account."
+                TextColor="{Binding RootViewModel.Theme.Text}" />
             <Button
-                Text="Log in to Babby Cloud"
+                Text="Log in / Sign up"
                 Clicked="OnLogInClicked"
+                TextColor="{Binding RootViewModel.Theme.ButtonText}"
+                HorizontalOptions="FillAndExpand" />
+            <Button
+                Text="View Privacy Policy"
+                Clicked="OnViewPrivacyPolicyClicked"
                 TextColor="{Binding RootViewModel.Theme.ButtonText}"
                 HorizontalOptions="FillAndExpand" />
         </StackLayout>
@@ -41,7 +51,7 @@
             <Label
                 HorizontalOptions="FillAndExpand"
                 XAlign="Center"
-                Text="Choose a baby from the list below. If the baby you are looking for is missing, ask one of the baby's caregivers to click Manage, then Share."
+                Text="Choose a baby from the list below. If the baby you are looking for is missing, ask one of the baby's caregivers to click on the baby, then click Share."
                 TextColor="{Binding RootViewModel.Theme.Text}" />
             <Button
                 Text="Log out of Babby Cloud"

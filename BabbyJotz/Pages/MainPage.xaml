@@ -229,40 +229,63 @@
             Icon="cloud"
             IsBusy="{Binding Syncing}"
             BackgroundColor="{Binding Theme.Background}">
-            <StackLayout VerticalOptions="Center">
+            <StackLayout
+                Spacing="20"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="FillAndExpand">
                 <StackLayout.Padding>
-                    <Thickness Top="8" Bottom="8" Left="8" Right="8" />
+                    <Thickness Top="40" Bottom="20" Left="20" Right="20" />
                 </StackLayout.Padding>
-                <Button
-                    Text="Log in to Cloud Sync"
-                    Clicked="OnLogInClicked"
-                    IsVisible="{Binding CloudUserName, Converter={StaticResource nullConverter}}"
-                    TextColor="{Binding Theme.ButtonText}"
-                    HorizontalOptions="FillAndExpand" />
                 <StackLayout
-                    IsVisible="{Binding CloudUserName, Converter={StaticResource notNullConverter}}"
-                    HorizontalOptions="FillAndExpand">
+                    Orientation="Horizontal">
+                    <Label
+                        Text="Sync with Babby Cloud"
+                        VerticalOptions="Center"
+                        TextColor="{Binding Theme.Text}" />
+                    <Switch
+                        Toggled="OnSyncToggled"
+                        IsEnabled="{Binding Syncing, Converter={StaticResource notConverter}}"
+                        IsToggled="{Binding IsSyncingEnabled}"
+                        VerticalOptions="Center"
+                        HorizontalOptions="EndAndExpand" />
+                </StackLayout>
+                <StackLayout
+                    IsVisible="{Binding IsSyncingEnabled}"
+                    Orientation="Horizontal">
                     <Label
                         Text="{Binding CloudUserName, StringFormat='Logged in as {0}'}"
-                        TextColor="{Binding Theme.Text}"
-                        HorizontalOptions="Center" />
+                        VerticalOptions="Center"
+                        TextColor="{Binding Theme.Text}" />
+                    <Button
+                        Text="Log out"
+                        Clicked="OnLogOutClicked"
+                        IsEnabled="{Binding Syncing, Converter={StaticResource notConverter}}"
+                        VerticalOptions="Center"
+                        TextColor="{Binding Theme.ButtonText}"
+                        HorizontalOptions="EndAndExpand" />
+                </StackLayout>
+                <StackLayout
+                    IsVisible="{Binding IsSyncingEnabled}"
+                    Orientation="Horizontal">
                     <Label
                         Text="Syncing..."
-                        TextColor="{Binding Theme.Text}"
                         IsVisible="{Binding Syncing}"
-                        HorizontalOptions="Center" />
+                        VerticalOptions="Center"
+                        TextColor="{Binding Theme.Text}" />
+                    <ActivityIndicator
+                        Color="{Binding Theme.Text}"
+                        IsRunning="{Binding Syncing}"
+                        VerticalOptions="Center" />
                     <Button
                         Text="Sync Now"
                         Clicked="OnSyncClicked"
                         IsEnabled="{Binding Syncing, Converter={StaticResource notConverter}}"
+                        VerticalOptions="Center"
                         TextColor="{Binding Theme.ButtonText}"
-                        HorizontalOptions="FillAndExpand" />
-                    <Button
-                        Text="Log out of Cloud Sync"
-                        Clicked="OnLogOutClicked"
-                        IsEnabled="{Binding Syncing, Converter={StaticResource notConverter}}"
-                        TextColor="{Binding Theme.ButtonText}"
-                        HorizontalOptions="FillAndExpand" />
+                        HorizontalOptions="EndAndExpand" />
+                </StackLayout>
+                <StackLayout
+                    IsVisible="{Binding IsSyncingEnabled}">
                     <StackLayout
                         IsVisible="{StaticResource showNotificationOptions}"
                         HorizontalOptions="FillAndExpand">
@@ -292,6 +315,12 @@
                     Clicked="OnToggleThemeClicked"
                     IsVisible="false"
                     TextColor="{Binding Theme.ButtonText}"
+                    HorizontalOptions="FillAndExpand" />
+                <Button
+                    Text="View Privacy Policy"
+                    Clicked="OnViewPrivacyPolicyClicked"
+                    TextColor="{Binding Theme.ButtonText}"
+                    VerticalOptions="EndAndExpand"
                     HorizontalOptions="FillAndExpand" />
             </StackLayout>
         </ContentPage>

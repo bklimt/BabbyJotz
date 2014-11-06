@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+
 using Xamarin.Forms;
 
 namespace BabbyJotz {	
@@ -32,6 +34,13 @@ namespace BabbyJotz {
 
         public async void OnSignUpClicked(object sender, EventArgs args) {
             var page = new SignUpPage(rootViewModel, username.Text, password.Text);
+            await Navigation.PushAsync(page);
+        }
+
+        public async void OnViewPrivacyPolicyClicked(object sender, EventArgs args) {
+            var page = new WebViewPage("Privacy Policy", () => {
+                return Task.FromResult(App.PrivacyPolicy);
+            });
             await Navigation.PushAsync(page);
         }
     }

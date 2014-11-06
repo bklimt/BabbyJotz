@@ -86,6 +86,36 @@ namespace BabbyJotz {
             RootViewModel.Date += TimeSpan.FromDays(1);
         }
 
+        public async void OnSyncToggled(object sender, EventArgs args) {
+            var toggle = sender as Switch;
+
+            // Bail if this was just updated by the binding.
+            if (toggle.IsToggled && RootViewModel.IsSyncingEnabled) {
+                return;
+            }
+            if (!toggle.IsToggled && !RootViewModel.IsSyncingEnabled) {
+                return;
+            }
+
+            if (!RootViewModel.IsSyncingEnabled) {
+                // It was turned off. First, turn off the forced override.
+                if (RootViewModel.IsSyncingDisabled) {
+                    RootViewModel.IsSyncingDisabled = false;
+                }
+                // Now check again, if it is on now, then they had already logged in.
+                if (RootViewModel.IsSyncingEnabled) {
+                    RootViewModel.TryToSyncEventually();
+                } else {
+                    // It's still not on, so they need to log in.
+                    toggle.IsToggled = false;
+                    await Navigation.PushAsync(new LogInPage(RootViewModel));
+                }
+            } else {
+                // If was turned on, so force it off.
+                RootViewModel.IsSyncingDisabled = true;
+            }
+        }
+
         public async void OnSyncClicked(object sender, EventArgs args) {
             try {
                 await RootViewModel.SyncAsync(true);
@@ -101,6 +131,13 @@ namespace BabbyJotz {
 
         public async void OnLogOutClicked(object sender, EventArgs args) {
             await Navigation.PushAsync(new LogOutPage(RootViewModel));
+        }
+
+        public async void OnViewPrivacyPolicyClicked(object sender, EventArgs args) {
+            var page = new WebViewPage("Privacy Policy", () => {
+                return Task.FromResult(App.PrivacyPolicy);
+            });
+            await Navigation.PushAsync(page);
         }
 
         public async void OnToggleThemeClicked(object sender, EventArgs args) {

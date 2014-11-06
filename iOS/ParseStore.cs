@@ -310,6 +310,7 @@ namespace BabbyJotz.iOS {
                 var user = new ParseUser();
                 user.Username = username;
                 user.Password = password;
+                user.Email = username;
                 user.ACL = new ParseACL();
                 await user.SignUpAsync();
             } finally {

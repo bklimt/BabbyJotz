@@ -10,7 +10,7 @@
                 <Thickness Top="20" Bottom="20" Left="20" Right="20" />
             </StackLayout.Padding>
             <Label
-                Text="Username:"
+                Text="Email:"
                 TextColor="{Binding Theme.Text}" />
             <Entry
                 x:Name="username"
@@ -36,6 +36,12 @@
                     TextColor="{Binding Theme.ButtonText}"
                     HorizontalOptions="FillAndExpand" />
             </StackLayout>
+            <Button
+                Text="View Privacy Policy"
+                Clicked="OnViewPrivacyPolicyClicked"
+                TextColor="{Binding Theme.ButtonText}"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="EndAndExpand" />
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

@@ -82,9 +82,12 @@ namespace BabbyJotz {
 
         public async void OnUnlinkClicked(object sender, EventArgs args) {
             // TODO: Disable the Save and Delete buttons while this is happening.
+            // TODO: Make this text scarier.
             var ok = await DisplayAlert("Are you sure?", "Unlink " + Baby.Name + "?", "Unlink", "Cancel");
             if (ok) {
                 await RootViewModel.CloudStore.UnlinkAsync(Baby);
+                await Navigation.PopAsync();
+                RootViewModel.TryToSyncEventually();
             }
         }
 
