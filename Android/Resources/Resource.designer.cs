@@ -181,10 +181,13 @@ namespace BabbyJotz.Android
 			public const int toolbar_left = 2130837511;
 			
 			// aapt resource value: 0x7f020008
-			public const int toolbar_new_entry = 2130837512;
+			public const int toolbar_menu = 2130837512;
 			
 			// aapt resource value: 0x7f020009
-			public const int toolbar_right = 2130837513;
+			public const int toolbar_new_entry = 2130837513;
+			
+			// aapt resource value: 0x7f02000a
+			public const int toolbar_right = 2130837514;
 			
 			static Drawable()
 			{

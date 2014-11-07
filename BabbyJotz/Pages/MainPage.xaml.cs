@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace BabbyJotz {
-    public partial class MainPage : MasterDetailPage {
+    public partial class MainPage : TabbedPage {
         private RootViewModel RootViewModel { get; set; }
 
-        // TODO: Remove the statics for the feeding options that are disabled.
+        // TODO: Remove the statistics for the feeding options that are disabled.
 
         public MainPage(RootViewModel model) {
             RootViewModel = model;
@@ -43,32 +43,12 @@ namespace BabbyJotz {
             MaybeShowNux();
         }
 
-        private void OnBabiesClicked() {
-            IsPresented = !IsPresented;
-        }
-
-        private void OnBabyTapped(object sender, EventArgs args) {
-            OnBabiesClicked();
-        }
-
         private async Task OnAddClicked() {
             await Navigation.PushAsync(new EntryPage(RootViewModel, new LogEntry(RootViewModel.Baby)));
         }
 
-        private async void OnManageBabyClicked(object sender, EventArgs args) {
+        private async void OnBabyTapped(object sender, EventArgs args) {
             await Navigation.PushAsync(new EditBabyPage(RootViewModel, new Baby(RootViewModel.Baby)));
-        }
-
-        public async void OnBabyListTapped(object sender, EventArgs args) {
-            var tappedArgs = args as ItemTappedEventArgs;
-            var baby = tappedArgs.Item as Baby;
-            if (baby.Uuid == null) {
-                await Navigation.PushAsync(new NuxPage(RootViewModel));
-            } else {
-                RootViewModel.Baby = baby;
-                IsPresented = false;
-            }
-            ((ListView)sender).SelectedItem = null;
         }
 
         public async void OnEntryTapped(object sender, EventArgs args) {

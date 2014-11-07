@@ -194,6 +194,8 @@ namespace BabbyJotz {
         #endregion
         #region Syncing
 
+        // TODO: Add ability to cancel syncing.
+
         public async Task SyncAsync(bool markNewAsRead) {
             if (!IsSyncingEnabled) {
                 return;
