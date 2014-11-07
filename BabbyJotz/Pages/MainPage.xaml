@@ -107,7 +107,10 @@
             Icon="graph"
             BackgroundColor="{Binding Theme.Background}"
             IsBusy="{Binding Syncing}">
-            <TableView Intent="Menu" BackgroundColor="#00000000">
+            <TableView
+                x:Name="statsMenu"
+                Intent="Menu"
+                BackgroundColor="#00000000">
                 <TableSection Title="Sleeping">
                     <TextCell
                         Text="Bar Chart"

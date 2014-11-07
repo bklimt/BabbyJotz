@@ -19,13 +19,38 @@ namespace BabbyJotz {
                 await OnAddClicked();
             }));
 
+            PropertyChangedEventHandler rebuild = (object sender, PropertyChangedEventArgs args) => {
+                if (sender != RootViewModel.Baby) {
+                    return;
+                }
+                RebuildStatsMenu();
+            };
+
+            RootViewModel.PropertyChanging += (object sender, PropertyChangingEventArgs e) => {
+                if (e.PropertyName == "Baby") {
+                    if (RootViewModel.Baby != null) {
+                        RootViewModel.Baby.PropertyChanged -= rebuild;
+                    }
+                }
+            };
+
             RootViewModel.PropertyChanged += (object sender, PropertyChangedEventArgs e) =>  {
                 if (e.PropertyName == "Baby") {
                     Device.BeginInvokeOnMainThread(() => {
                         MaybeShowNux();
+                        RebuildStatsMenu();
+                        if (RootViewModel.Baby != null) {
+                            RootViewModel.Baby.PropertyChanged += rebuild;
+                        }
                     });
                 }
             };
+
+            if (RootViewModel.Baby != null) {
+                RootViewModel.Baby.PropertyChanged += rebuild;
+            }
+
+            RebuildStatsMenu();
         }
 
         private void MaybeShowNux() {
@@ -47,9 +72,11 @@ namespace BabbyJotz {
             await Navigation.PushAsync(new EntryPage(RootViewModel, new LogEntry(RootViewModel.Baby)));
         }
 
-        private async void OnBabyTapped(object sender, EventArgs args) {
-            await Navigation.PushAsync(new EditBabyPage(RootViewModel, new Baby(RootViewModel.Baby)));
-        }
+        //private async void OnBabyTapped(object sender, EventArgs args) {
+        //    await Navigation.PushAsync(new EditBabyPage(RootViewModel, new Baby(RootViewModel.Baby)));
+        //}
+
+        #region Log Tab
 
         public async void OnEntryTapped(object sender, EventArgs args) {
             var tappedArgs = args as ItemTappedEventArgs;
@@ -65,6 +92,9 @@ namespace BabbyJotz {
         public void OnNextDayClicked(object sender, EventArgs args) {
             RootViewModel.Date += TimeSpan.FromDays(1);
         }
+
+        #endregion
+        #region Sync Tab
 
         public async void OnSyncToggled(object sender, EventArgs args) {
             var toggle = sender as Switch;
@@ -120,6 +150,8 @@ namespace BabbyJotz {
             await Navigation.PushAsync(page);
         }
 
+        #endregion
+
         public async void OnToggleThemeClicked(object sender, EventArgs args) {
             RootViewModel.ToggleTheme();
             if (Device.OS == TargetPlatform.iOS) {
@@ -127,6 +159,94 @@ namespace BabbyJotz {
                 // On Android, this breaks everything. Go figure.
                 await Navigation.PushAsync(new VanishingPage(RootViewModel));
             }
+        }
+
+        #region Stats Tab
+
+        // We could get rid of this if there was a binding to remove TableView sections.
+        private void RebuildStatsMenu() {
+            var sleepingBarChart = new TextCell { Text = "Bar Chart" };
+            sleepingBarChart.SetBinding(TextCell.TextColorProperty, "Theme.ButtonText");
+            sleepingBarChart.Tapped += OnSleepingBarChartClicked;
+
+            var sleepingNightHeatMap = new TextCell { Text = "Night Heat Map" };
+            sleepingNightHeatMap.SetBinding(TextCell.TextColorProperty, "Theme.ButtonText");
+            sleepingNightHeatMap.Tapped += OnSleepingNightHeatMapClicked;
+
+            var sleepingDayHeatMap = new TextCell { Text = "Day Heat Map" };
+            sleepingDayHeatMap.SetBinding(TextCell.TextColorProperty, "Theme.ButtonText");
+            sleepingDayHeatMap.Tapped += OnSleepingDayHeatMapClicked;
+
+            var sleepingSection = new TableSection("Sleeping") {
+                sleepingBarChart,
+                sleepingNightHeatMap,
+                sleepingDayHeatMap
+            };
+
+            var breastfeedingBarChart = new TextCell { Text = "Bar Chart" };
+            breastfeedingBarChart.SetBinding(TextCell.TextColorProperty, "Theme.ButtonText");
+            breastfeedingBarChart.Tapped += OnBreastfeedingBarChartClicked;
+
+            var breastfeedingHeatMap = new TextCell { Text = "Heat Map" };
+            breastfeedingHeatMap.SetBinding(TextCell.TextColorProperty, "Theme.ButtonText");
+            breastfeedingHeatMap.Tapped += OnBreastfeedingHeatMapClicked;
+
+            var breastfeedingSection = new TableSection("Breastfeeding") {
+                breastfeedingBarChart,
+                breastfeedingHeatMap
+            };
+
+            var pumpedBarChart = new TextCell { Text = "Bar Chart" };
+            pumpedBarChart.SetBinding(TextCell.TextColorProperty, "Theme.ButtonText");
+            pumpedBarChart.Tapped += OnPumpedBarChartClicked;
+
+            var pumpedHeatMap = new TextCell { Text = "Heat Map" };
+            pumpedHeatMap.SetBinding(TextCell.TextColorProperty, "Theme.ButtonText");
+            pumpedHeatMap.Tapped += OnPumpedHeatMapClicked;
+
+            var pumpedSection = new TableSection("Pumped") {
+                pumpedBarChart,
+                pumpedHeatMap
+            };
+
+            var formulaBarChart = new TextCell { Text = "Bar Chart" };
+            formulaBarChart.SetBinding(TextCell.TextColorProperty, "Theme.ButtonText");
+            formulaBarChart.Tapped += OnFormulaBarChartClicked;
+
+            var formulaHeatMap = new TextCell { Text = "Heat Map" };
+            formulaHeatMap.SetBinding(TextCell.TextColorProperty, "Theme.ButtonText");
+            formulaHeatMap.Tapped += OnFormulaHeatMapClicked;
+
+            var formulaSection = new TableSection("Formula") {
+                formulaBarChart,
+                formulaHeatMap
+            };
+
+            var poopingBarChart = new TextCell { Text = "Bar Chart" };
+            poopingBarChart.SetBinding(TextCell.TextColorProperty, "Theme.ButtonText");
+            poopingBarChart.Tapped += OnPoopingBarChartClicked;
+
+            var poopingHeatMap = new TextCell { Text = "Heat Map" };
+            poopingHeatMap.SetBinding(TextCell.TextColorProperty, "Theme.ButtonText");
+            poopingHeatMap.Tapped += OnPoopingHeatMapClicked;
+
+            var poopingSection = new TableSection("Pooping") {
+                poopingBarChart,
+                poopingHeatMap
+            };
+
+            statsMenu.Root.Clear();
+            statsMenu.Root.Add(sleepingSection);
+            if (RootViewModel.Baby == null || RootViewModel.Baby.ShowBreastfeeding) {
+                statsMenu.Root.Add(breastfeedingSection);
+            }
+            if (RootViewModel.Baby == null || RootViewModel.Baby.ShowPumped) {
+                statsMenu.Root.Add(pumpedSection);
+            }
+            if (RootViewModel.Baby == null || RootViewModel.Baby.ShowFormula) {
+                statsMenu.Root.Add(formulaSection);
+            }
+            statsMenu.Root.Add(poopingSection);
         }
 
         public async void OnSleepingBarChartClicked(object sender, EventArgs args) {
@@ -193,5 +313,7 @@ namespace BabbyJotz {
             await Navigation.PushAsync(new WebViewPage("Pooping", () =>
                 StatisticsHtmlBuilder.GetPoopingHeatMapHtmlAsync(RootViewModel)));
         }
+
+        #endregion
     }
 }
