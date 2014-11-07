@@ -82,13 +82,25 @@ namespace BabbyJotz {
 
         public async void OnUnlinkClicked(object sender, EventArgs args) {
             // TODO: Disable the Save and Delete buttons while this is happening.
-            // TODO: Make this text scarier.
-            var ok = await DisplayAlert("Are you sure?", "Unlink " + Baby.Name + "?", "Unlink", "Cancel");
-            if (ok) {
-                await RootViewModel.CloudStore.UnlinkAsync(Baby);
-                await Navigation.PopAsync();
-                RootViewModel.TryToSyncEventually();
+            var ok = await DisplayAlert("Unlink " + Baby.Name + "?", "Are you sure? " +
+                "Once you unlink this baby from your account, you will no longer be able to access " +
+                "their data. If you are the last person to unlink from this baby, the baby will be " +
+                "deleted.", "Unlink", "Cancel");
+            if (!ok) {
+                return;
             }
+
+            ok = await DisplayAlert("Unlink " + Baby.Name + "?", "Are you really super-duper sure? " +
+                "Warning: just because you remove a baby from this app, that doesn't lessen your " +
+                "responsibilities in real life. You still have to feed them and stuff.",
+                "Unlink!", "Cancel");
+            if (!ok) {
+                return;
+            }
+
+            await RootViewModel.CloudStore.UnlinkAsync(Baby);
+            await Navigation.PopAsync();
+            RootViewModel.TryToSyncEventually();
         }
 
         public async void OnDeleteClicked(object sender, EventArgs args) {
