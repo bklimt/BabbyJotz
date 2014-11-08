@@ -8,10 +8,6 @@ using Xamarin.Forms;
 
 namespace BabbyJotz {
     public class RootViewModel : BindableObject {
-        public ILocalStore LocalStore { get; set; }
-        public ICloudStore CloudStore { get; set; }
-        private TaskQueue syncQueue = new TaskQueue();
-
         #region Property Helpers
 
         private static void SaveTheme(BindableObject obj) {
@@ -46,7 +42,13 @@ namespace BabbyJotz {
         #endregion
         #region Properties
 
+        private TaskQueue syncQueue = new TaskQueue();
+
+        public ILocalStore LocalStore { get; set; }
+        public ICloudStore CloudStore { get; set; }
         public IPreferences Preferences { get; private set; }
+
+        private object mutex = new object();
         public ObservableCollection<Baby> Babies { get; private set; }
         public ObservableCollection<LogEntry> Entries { get; private set; }
 
@@ -225,138 +227,125 @@ namespace BabbyJotz {
         }
 
         private void UpdateEntries(IEnumerable<LogEntry> updatedEntries) {
-            var sameEntries = from entry1 in Entries
-                join entry2 in updatedEntries on entry1.Uuid equals entry2.Uuid
-                select new {
-                OldEntry = entry1,
-                NewEntry = entry2
-            };
+            lock (mutex) {
+                var sameEntries = from entry1 in Entries
+                                  join entry2 in updatedEntries on entry1.Uuid equals entry2.Uuid
+                                  select new {
+                    OldEntry = entry1,
+                    NewEntry = entry2
+                };
 
-            var sameUuids = from item in sameEntries
-                select item.NewEntry.Uuid;
+                var sameUuids = from item in sameEntries
+                                select item.NewEntry.Uuid;
 
-            var oldUuids = (from entry in Entries
-                select entry.Uuid).Except(sameUuids);
+                var oldUuids = (from entry in Entries
+                                select entry.Uuid).Except(sameUuids);
 
-            var oldEntries = from entry in Entries
-                join uuid in oldUuids on entry.Uuid equals uuid
-                select entry;
+                var oldEntries = from entry in Entries
+                                 join uuid in oldUuids on entry.Uuid equals uuid
+                                 select entry;
 
-            var newUuids = (from entry in updatedEntries
-                select entry.Uuid).Except(sameUuids);
+                var newUuids = (from entry in updatedEntries
+                                select entry.Uuid).Except(sameUuids);
 
-            var newEntries = from entry in updatedEntries
-                join uuid in newUuids on entry.Uuid equals uuid
-                select entry;
+                var newEntries = from entry in updatedEntries
+                                 join uuid in newUuids on entry.Uuid equals uuid
+                                 select entry;
 
-            sameEntries = sameEntries.ToList();
-            oldEntries = oldEntries.ToList();
-            newEntries = newEntries.ToList();
+                sameEntries = sameEntries.ToList();
+                oldEntries = oldEntries.ToList();
+                newEntries = newEntries.ToList();
 
-            foreach (var item in sameEntries) {
-                Entries[Entries.IndexOf(item.OldEntry)] = item.NewEntry;
-            }
-            foreach (var entry in oldEntries) {
-                Entries.Remove(entry);
-            }
-            foreach (var entry in newEntries) {
-                // Insert in sorted order.
-                var position = 0;
-                while (position < Entries.Count && Entries.ElementAt(position).DateTime > entry.DateTime) {
-                    position++;
+                foreach (var item in sameEntries) {
+                    Entries[Entries.IndexOf(item.OldEntry)] = item.NewEntry;
                 }
-                Entries.Insert(position, entry);
+                foreach (var entry in oldEntries) {
+                    Entries.Remove(entry);
+                }
+                foreach (var entry in newEntries) {
+                    // Insert in sorted order.
+                    var position = 0;
+                    while (position < Entries.Count && Entries.ElementAt(position).DateTime > entry.DateTime) {
+                        position++;
+                    }
+                    Entries.Insert(position, entry);
+                }
             }
         }
 
         private void UpdateBabies(IEnumerable<Baby> updatedBabies) {
+            lock (mutex) {
+                var sameBabies = from baby1 in Babies
+                                 join baby2 in updatedBabies on baby1.Uuid equals baby2.Uuid
+                                 select new {
+                    OldBaby = baby1,
+                    NewBaby = baby2
+                };
 
+                var sameUuids = from item in sameBabies
+                                select item.NewBaby.Uuid;
 
-            var sameBabies = from baby1 in Babies
-                join baby2 in updatedBabies on baby1.Uuid equals baby2.Uuid
-                select new {
-                OldBaby = baby1,
-                NewBaby = baby2
-            };
+                var oldUuids = (from baby in Babies
+                                select baby.Uuid).Except(sameUuids);
 
-            var sameUuids = from item in sameBabies
-                select item.NewBaby.Uuid;
+                var oldBabies = from baby in Babies
+                                join uuid in oldUuids on baby.Uuid equals uuid
+                                select baby;
 
-            var oldUuids = (from baby in Babies
-                select baby.Uuid).Except(sameUuids);
+                var newUuids = (from baby in updatedBabies
+                                select baby.Uuid).Except(sameUuids);
 
-            var oldBabies = from baby in Babies
-                join uuid in oldUuids on baby.Uuid equals uuid
-                select baby;
+                var newBabies = from baby in updatedBabies
+                                join uuid in newUuids on baby.Uuid equals uuid
+                                select baby;
 
-            var newUuids = (from baby in updatedBabies
-                select baby.Uuid).Except(sameUuids);
+                sameBabies = sameBabies.ToList();
+                oldBabies = oldBabies.ToList();
+                newBabies = newBabies.ToList();
 
-            var newBabies = from baby in updatedBabies
-                join uuid in newUuids on baby.Uuid equals uuid
-                select baby;
-
-            sameBabies = sameBabies.ToList();
-            oldBabies = oldBabies.ToList();
-            newBabies = newBabies.ToList();
-
-            foreach (var item in sameBabies) {
-                // TODO: Maybe copy in place?
-                Babies[Babies.IndexOf(item.OldBaby)] = item.NewBaby;
-            }
-            foreach (var baby in oldBabies) {
-                Babies.Remove(baby);
-            }
-            foreach (var baby in newBabies) {
-                Babies.Add(baby);
-            }
-
-            foreach (var baby in Babies) {
-                if (baby.Uuid == null) {
+                foreach (var item in sameBabies) {
+                    // TODO: Maybe copy in place?
+                    Babies[Babies.IndexOf(item.OldBaby)] = item.NewBaby;
+                }
+                foreach (var baby in oldBabies) {
                     Babies.Remove(baby);
-                    break;
                 }
-            }
-            Babies.Add(new Baby((string)null) {
-                Name = "Add Baby"
-            });
-
-            // Update the current baby.
-            bool currentBabyFound = false;
-            foreach (var baby in updatedBabies) {
-                if (Baby != null && Baby.Uuid == baby.Uuid) {
-                    currentBabyFound = true;
-                    Baby.CopyFrom(baby);
+                foreach (var baby in newBabies) {
+                    Babies.Add(baby);
                 }
-            }
 
-            if (!currentBabyFound) {
-                if (Babies.Count > 1) {
-                    Baby = Babies[0];
-                } else {
-                    if (Baby != null) {
+                foreach (var baby in Babies) {
+                    if (baby.Uuid == null) {
+                        Babies.Remove(baby);
+                        break;
+                    }
+                }
+                Babies.Add(new Baby((string)null) {
+                    Name = "Add Baby"
+                });
+
+                // Update the current baby.
+                bool currentBabyFound = false;
+                foreach (var baby in updatedBabies) {
+                    if (Baby != null && Baby.Uuid == baby.Uuid) {
+                        currentBabyFound = true;
+                        Baby.CopyFrom(baby);
+                    }
+                }
+
+                if (!currentBabyFound) {
+                    if (Babies.Count > 1) {
+                        Baby = Babies[0];
+                    } else if (Baby != null) {
                         Baby = null;
                     }
                 }
             }
         }
 
-        private Task DoOnMainThreadAsync(Action action) {
-            var tcs = new TaskCompletionSource<object>();
-            Device.BeginInvokeOnMainThread(() => {
-                try {
-                    action();
-                    tcs.SetResult(null);
-                } catch (Exception e) {
-                    tcs.SetException(e);
-                }
-            });
-            return tcs.Task;
-        }
-
         public async void RefreshBabiesAsync() {
             var newBabies = await LocalStore.FetchBabiesAsync();
-            await DoOnMainThreadAsync(() => UpdateBabies(newBabies));
+            UpdateBabies(newBabies);
         }
 
         public async void RefreshEntriesAsync() {
@@ -364,18 +353,18 @@ namespace BabbyJotz {
             if (Baby != null) {
                 newEntries = await LocalStore.FetchEntriesAsync(Baby, Date);
             }
-            await DoOnMainThreadAsync(() => UpdateEntries(newEntries));
+            UpdateEntries(newEntries);
         }
 
         public async void RefreshAsync() {
             var newBabies = await LocalStore.FetchBabiesAsync();
-            await DoOnMainThreadAsync(() => UpdateBabies(newBabies));
+            UpdateBabies(newBabies);
 
             var newEntries = new List<LogEntry>();
             if (Baby != null) {
                 newEntries = await LocalStore.FetchEntriesAsync(Baby, Date);
             }
-            await DoOnMainThreadAsync(() => UpdateEntries(newEntries));
+            UpdateEntries(newEntries);
         }
 
         #endregion

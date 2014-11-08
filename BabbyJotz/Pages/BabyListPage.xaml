@@ -5,7 +5,7 @@
     xmlns:local="clr-namespace:BabbyJotz;assembly=BabbyJotz"
     x:Class="BabbyJotz.BabyListPage"
     Title="Babies"
-    Icon="menu.png"
+    Icon="toolbar_menu.png"
     BackgroundColor="{Binding Theme.Background}">
     <ContentPage.Resources>
         <ResourceDictionary>
