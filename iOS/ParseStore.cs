@@ -24,9 +24,16 @@ namespace BabbyJotz.iOS {
 
         public ParseStore(IPreferences prefs) {
             Preferences = prefs;
+
             ParseClient.Initialize(
                 "dRJrkKFywmUEYJx10K96Sw848juYyFF01Zlno6Uf",
                 "0ICNGpRDtEswmZw8E3nfS08W8RNWbFLExIIw2IvS");
+
+            try {
+                ParseAnalytics.TrackAppOpenedAsync();
+            } catch (Exception) {
+                // Well, we tried our best.
+            }
         }
 
         #region LogEntry

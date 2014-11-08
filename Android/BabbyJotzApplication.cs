@@ -16,10 +16,6 @@ namespace BabbyJotz.Android {
 
         public override void OnCreate() {
             base.OnCreate();
-
-            ParseClient.Initialize(
-                "dRJrkKFywmUEYJx10K96Sw848juYyFF01Zlno6Uf",
-                "0ICNGpRDtEswmZw8E3nfS08W8RNWbFLExIIw2IvS");
             var prefs = new Preferences(this);
             var cloudStore = new BabbyJotz.iOS.ParseStore(prefs);
             var localStore = new BabbyJotz.iOS.LocalStore();

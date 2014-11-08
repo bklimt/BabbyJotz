@@ -7,10 +7,11 @@ namespace BabbyJotz {
         public static readonly string PrivacyPolicy = @"
 <html>
   <head>
+    <title>Babby Jotz Privacy Policy</title>
     <style>
       body {
         padding: 0px;
-        margin: 8px;
+        margin: 20px;
         font-family: Helvetica;
         background-color: #333333;
         color: #ffffff;
@@ -71,12 +72,14 @@ after it is deleted. This is not ideal, but it is difficult to make guarantees a
 when using third-party services to store data. Likewise, it is difficult to purge data regularly while
 also keeping the comprehensive backups needed for reliability. This may change in the future.</p>
 
-<h2>Warranty</h2>
+<h2>Disclaimer</h2>
 <p>This software is provided as-is with no warranty or guarantee of any kind. If the software
 somehow causes your phone to collapse into itself, forming a super-dense blackhole that sucks
 all the change out of your pockets and destroys your trousers, the developer will not be held
 responsible. If your data is suddenly missing and you have no way of recovering it, the developer
 will feel a little sad, but will not be held responsible.</p>
+
+<p>This privacy policy is subject to change without notice.</p>
 
 </body>
 </html>";
@@ -86,6 +89,7 @@ will feel a little sad, but will not be held responsible.</p>
             page.Master = new BabyListPage(model);
             page.Detail = new NavigationPage(new MainPage(model));
             page.Detail.BindingContext = model;
+            page.Detail.SetBinding(NavigationPage.TitleProperty, "Baby.Name");
             page.Detail.SetBinding(NavigationPage.BarBackgroundColorProperty, "Theme.Title");
             page.Detail.SetBinding(NavigationPage.BarTextColorProperty, "Theme.Text");
             return page;
