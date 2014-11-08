@@ -21,8 +21,6 @@ namespace BabbyJotz {
 <p>Babby Jotz was written by one guy in what little spare time he had while also helping
 take care of his newborn child. I don't have the time or money to have a lawyer write a ""real""
 privacy policy, so I'll just tell you the situation in laymen's terms.</p>
-<p>I'm not looking to make lots of money from this app, only hopefully enough to cover the minimal
-costs of maintaining it.</p>
 
 <h2>Usage Information</h2>
 <p>If you don't log in to sync with the Babby Cloud, then only minimal anonymous usage information
@@ -52,7 +50,7 @@ shared with Apple (for iOS) or Google (for Android) in order for them to be deli
 will be stored on Parse (operated by Facebook) for persistence and syncing. While I trust these
 service providers to be responsible stewards of your data and not resell it or share it without
 our permission, I cannot be held liable for their actions. By agreeing to this privacy policy,
-you acknowledge the risk of trusting those services.</p>
+you are also agreeing to the privacy policies for those services.</p>
 
 <h2>Email Address</h2>
 <p>Your email address will only be used by the developer for transactions that you opt into. For
@@ -63,7 +61,9 @@ I will also not send you spam. If I decide to send you marketing materials relat
 or bugfixes with Babby Jotz, they will have a clearly labeled opt-out mechanism.</p>
 
 <h2>Advertising</h2>
-<p>TBD</p>
+<p>This app uses banner advertisements to help offset the cost of maintenance and operation of the
+Babby Cloud service. These ads are provided using the Google Mobile Ads / AdMob service. By agreeing
+to this privacy policy, you are also agreeing to the privacy policy for that service.</p>
 
 <h2>Retention Policy</h2>
 <p>For now, I make no guarantees about how long data synced with the Babby Cloud will be retained
