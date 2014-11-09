@@ -114,7 +114,7 @@ namespace BabbyJotz {
                 }
                 // Now check again, if it is on now, then they had already logged in.
                 if (RootViewModel.IsSyncingEnabled) {
-                    RootViewModel.TryToSyncEventually();
+                    RootViewModel.TryToSyncEventually("Sync Toggled On While Logged In");
                 } else {
                     // It's still not on, so they need to log in.
                     toggle.IsToggled = false;
@@ -128,11 +128,15 @@ namespace BabbyJotz {
 
         public async void OnSyncClicked(object sender, EventArgs args) {
             try {
-                await RootViewModel.SyncAsync(true);
+                await RootViewModel.SyncAsync("Sync Button Clicked", true);
             } catch (Exception e) {
                 await DisplayAlert("Error", String.Format("Unable to sync: {0}", e), "Ok");
                 // await DisplayAlert("Error", String.Format("Unable to sync. Check your network connection.", e), "Ok");
             }
+        }
+
+        public void OnCancelSyncClicked(object sender, EventArgs args) {
+            RootViewModel.CancelSync();
         }
 
         public void OnLogInClicked(object sender, EventArgs args) {

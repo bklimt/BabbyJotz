@@ -100,7 +100,7 @@ namespace BabbyJotz {
 
             await RootViewModel.CloudStore.UnlinkAsync(Baby);
             await Navigation.PopAsync();
-            RootViewModel.TryToSyncEventually();
+            RootViewModel.TryToSyncEventually("Unlink Clicked");
         }
 
         public async void OnDeleteClicked(object sender, EventArgs args) {

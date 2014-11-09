@@ -63,7 +63,7 @@ namespace BabbyJotz.iOS {
         public override void WillEnterForeground(UIApplication application) {
             // NOTE: Don't call the base implementation on a Model class
             // see http://docs.xamarin.com/guides/ios/application_fundamentals/delegates,_protocols,_and_events
-            model.TryToSyncEventually();
+            model.TryToSyncEventually("Will Enter Foreground");
         }
 
         public override void DidRegisterUserNotificationSettings(
@@ -97,14 +97,14 @@ namespace BabbyJotz.iOS {
             UIApplication application, NSDictionary userInfo, Action<UIBackgroundFetchResult> completionHandler) {
             // NOTE: Don't call the base implementation on a Model class
             // see http://docs.xamarin.com/guides/ios/application_fundamentals/delegates,_protocols,_and_events
-            model.TryToSyncEventually();
+            model.TryToSyncEventually("Did Receive Remote Notification");
         }
 
         public override void HandleAction(
             UIApplication application, string actionIdentifier, NSDictionary remoteNotificationInfo, Action completionHandler) {
             // NOTE: Don't call the base implementation on a Model class
             // see http://docs.xamarin.com/guides/ios/application_fundamentals/delegates,_protocols,_and_events
-            model.TryToSyncEventually();
+            model.TryToSyncEventually("Handle Action");
         }
     }
 }

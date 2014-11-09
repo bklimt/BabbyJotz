@@ -236,17 +236,29 @@
                         IsVisible="{Binding Syncing}"
                         VerticalOptions="Center"
                         TextColor="{Binding Theme.Text}" />
-                    <ActivityIndicator
+                    <!--<ActivityIndicator
                         Color="{Binding Theme.Text}"
                         IsRunning="{Binding Syncing}"
-                        VerticalOptions="Center" />
+                        VerticalOptions="Center" />-->
+                    <ProgressBar
+                        Progress="{Binding SyncProgress}"
+                        IsVisible="{Binding Syncing}"
+                        VerticalOptions="Center"
+                        HorizontalOptions="FillAndExpand" />
                     <Button
                         Text="Sync Now"
                         Clicked="OnSyncClicked"
-                        IsEnabled="{Binding Syncing, Converter={StaticResource notConverter}}"
+                        IsVisible="{Binding Syncing, Converter={StaticResource notConverter}}"
                         VerticalOptions="Center"
                         TextColor="{Binding Theme.ButtonText}"
-                        HorizontalOptions="EndAndExpand" />
+                        HorizontalOptions="FillAndExpand" />
+                    <Button
+                        Text="Cancel"
+                        Clicked="OnCancelSyncClicked"
+                        IsVisible="{Binding Syncing}"
+                        VerticalOptions="Center"
+                        TextColor="{Binding Theme.ButtonText}"
+                        HorizontalOptions="End" />
                 </StackLayout>
                 <StackLayout
                     IsVisible="{Binding IsSyncingEnabled}">

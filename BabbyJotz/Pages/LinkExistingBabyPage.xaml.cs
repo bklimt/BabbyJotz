@@ -57,7 +57,7 @@ namespace BabbyJotz {
             var invite = tappedArgs.Item as Invite;
             await RootViewModel.CloudStore.AcceptInviteAsync(invite);
             RootViewModel.Baby = new Baby(invite.BabyUuid);
-            RootViewModel.TryToSyncEventually();
+            RootViewModel.TryToSyncEventually("Invite Tapped");
             try {
                 await Navigation.PopModalAsync();
             } catch (Exception) {

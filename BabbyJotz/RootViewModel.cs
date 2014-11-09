@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+
 using Xamarin.Forms;
 
 namespace BabbyJotz {
@@ -43,6 +46,7 @@ namespace BabbyJotz {
         #region Properties
 
         private TaskQueue syncQueue = new TaskQueue();
+        private CancellationTokenSource syncCancellationTokenSource = null;
 
         public ILocalStore LocalStore { get; set; }
         public ICloudStore CloudStore { get; set; }
@@ -75,6 +79,13 @@ namespace BabbyJotz {
         public bool Syncing {
             get { return (bool)base.GetValue(SyncingProperty); }
             set { SetValue(SyncingProperty, value); }
+        }
+
+        public static readonly BindableProperty SyncProgressProperty =
+            BindableProperty.Create<RootViewModel, double>(p => p.SyncProgress, 0.0);
+        public double SyncProgress {
+            get { return (double)base.GetValue(SyncProgressProperty); }
+            set { SetValue(SyncProgressProperty, value); }
         }
 
         public static readonly BindableProperty CloudUserNameProperty =
@@ -146,14 +157,14 @@ namespace BabbyJotz {
 
             LocalStore.LocallyChanged += (sender, e) => {
                 RefreshAsync();
-                TryToSyncEventually();
+                TryToSyncEventually("LocallyChanged");
             };
 
             CloudStore.UserChanged += (sender, e) => {
                 CloudUserName = CloudStore.UserName;
                 if (CloudUserName != null) {
                     IsSyncingEnabled = !IsSyncingDisabled;
-                    TryToSyncEventually();
+                    TryToSyncEventually("UserChanged");
                 } else {
                     IsSyncingEnabled = false;
                 }
@@ -188,7 +199,7 @@ namespace BabbyJotz {
             NotificationsEnabled = !Preferences.Get(PreferenceKey.DoNotNotify);
             Vibrate = !Preferences.Get(PreferenceKey.DoNotVibrate);
 
-            TryToSyncEventually();
+            TryToSyncEventually("RootViewModel Constructor");
             RefreshBabiesAsync();
             RefreshEntriesAsync();
         }
@@ -196,33 +207,59 @@ namespace BabbyJotz {
         #endregion
         #region Syncing
 
-        // TODO: Add ability to cancel syncing.
-
-        public async Task SyncAsync(bool markNewAsRead) {
+        /**
+         * name - A description of the source of this sync, for debugging. 
+         * markNewAsRead - Whether to count new items as unread notifications.
+         */
+        public async Task SyncAsync(string reason, bool markNewAsRead) {
             if (!IsSyncingEnabled) {
                 return;
             }
+            var name = "Sync: " + reason + " - " + DateTime.Now.ToString("O");
             await syncQueue.EnqueueAsync(async toAwait => {
                 await toAwait;
                 if (CloudUserName == null) {
                     return false;
                 }
+
+                var progress = new Progress<double>((p) => {
+                    SyncProgress = p;
+                });
+
+                syncCancellationTokenSource = new CancellationTokenSource();
+                var token = syncCancellationTokenSource.Token;
+
+                var process = new InstrumentedProcess(name, progress, token);
+
                 Syncing = true;
                 try {
-                    await LocalStore.SyncToCloudAsync(CloudStore, markNewAsRead);
+                    await LocalStore.SyncToCloudAsync(CloudStore, markNewAsRead, process);
                 } finally {
                     Syncing = false;
+                    syncCancellationTokenSource = null;
                 }
+
+                var report = process.GenerateReport();
+                Debug.WriteLine(report);
+                // TODO: Would be nice to send this somewhere too.
+
                 return true;
             });
         }
 
-        public async void TryToSyncEventually() {
+        public void CancelSync() {
+            var source = syncCancellationTokenSource;
+            if (source != null) {
+                source.Cancel();
+            }
+        }
+
+        public async void TryToSyncEventually(string reason) {
             try {
-                await SyncAsync(true);
+                await SyncAsync(reason, true);
             } catch (Exception e) {
                 // Just ignore it.
-                System.Diagnostics.Debug.WriteLine(String.Format("Error syncing: {0}", e));
+                Debug.WriteLine(String.Format("Error syncing: {0}", e));
             }
         }
 
@@ -257,7 +294,7 @@ namespace BabbyJotz {
                 newEntries = newEntries.ToList();
 
                 foreach (var item in sameEntries) {
-                    Entries[Entries.IndexOf(item.OldEntry)] = item.NewEntry;
+                    item.OldEntry.CopyFrom(item.NewEntry);
                 }
                 foreach (var entry in oldEntries) {
                     Entries.Remove(entry);
@@ -304,8 +341,7 @@ namespace BabbyJotz {
                 newBabies = newBabies.ToList();
 
                 foreach (var item in sameBabies) {
-                    // TODO: Maybe copy in place?
-                    Babies[Babies.IndexOf(item.OldBaby)] = item.NewBaby;
+                    item.OldBaby.CopyFrom(item.NewBaby);
                 }
                 foreach (var baby in oldBabies) {
                     Babies.Remove(baby);
@@ -314,23 +350,29 @@ namespace BabbyJotz {
                     Babies.Add(baby);
                 }
 
+                // Update the current baby.
+                bool currentBabyFound = false;
+                if (Baby != null) {
+                    foreach (var baby in updatedBabies) {
+                        if (Baby.Uuid == baby.Uuid) {
+                            currentBabyFound = true;
+                            Baby.CopyFrom(baby);
+                        }
+                    }
+                }
+
+                var addNewFound = false;
                 foreach (var baby in Babies) {
                     if (baby.Uuid == null) {
-                        Babies.Remove(baby);
+                        addNewFound = true;
+                        Babies.Move(Babies.IndexOf(baby), Babies.Count - 1);
                         break;
                     }
                 }
-                Babies.Add(new Baby((string)null) {
-                    Name = "Add Baby"
-                });
-
-                // Update the current baby.
-                bool currentBabyFound = false;
-                foreach (var baby in updatedBabies) {
-                    if (Baby != null && Baby.Uuid == baby.Uuid) {
-                        currentBabyFound = true;
-                        Baby.CopyFrom(baby);
-                    }
+                if (!addNewFound) {
+                    Babies.Add(new Baby((string)null) {
+                        Name = "Add Baby"
+                    });
                 }
 
                 if (!currentBabyFound) {

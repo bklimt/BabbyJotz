@@ -109,7 +109,7 @@ namespace BabbyJotz.iOS {
                 ObjectId = obj.ObjectId as string
             };
 
-            var file = obj.Get<ParseFile>("file");
+            var file = obj.Get<ParseFile>("thumbnail200");
             photo.Bytes = await DownloadFileAsync(file);
 
             return photo;
@@ -211,7 +211,7 @@ namespace BabbyJotz.iOS {
         private async Task<CloudFetchSinceResponse<T>> FetchSinceAsync<T>(FetchSinceRequest<T> request)  {
             var response = new CloudFetchSinceResponse<T>();
             response.Results = new List<T>();
-            response.NewUpdatedAt = null;
+            response.NewUpdatedAt = request.LastUpdatedAt;
             response.MaybeHasMore = false;
 
             var query = from obj in ParseObject.GetQuery(request.ClassName)
@@ -220,7 +220,10 @@ namespace BabbyJotz.iOS {
                 select obj;
             query = query.Limit(request.Limit);
             if (request.LastUpdatedAt != null) {
-                query = query.WhereGreaterThanOrEqualTo(
+                // TODO: Well, technically this isn't exactly correct, because two items could have the
+                // same updatedAt time. They could even go backwards if there's clock skew on the servers.
+                // But there's nothing to be done about that, except maybe randomly do a full resync.
+                query = query.WhereGreaterThan(
                     "updatedAt", request.LastUpdatedAt.Value);
             }
 
@@ -229,7 +232,6 @@ namespace BabbyJotz.iOS {
             foreach (var result in objs) {
                 response.Results.Add(await request.CreateAsync(result));
             }
-            response.NewUpdatedAt = null;
             if (response.Results.Count > 0) {
                 response.NewUpdatedAt = objs[objs.Count - 1].UpdatedAt;
             }
@@ -260,7 +262,7 @@ namespace BabbyJotz.iOS {
             var request = new FetchSinceRequest<Photo>() {
                 ClassName = "Photo",
                 Baby = baby,
-                Limit = 10,
+                Limit = 100,
                 LastUpdatedAt = lastUpdatedAt,
                 CreateAsync = CreatePhotoAsync
             };
@@ -436,11 +438,11 @@ namespace BabbyJotz.iOS {
 
         #if __ANDROID__
         private void UnregisterForPushAndroid() {
-        var context = Application.Context;
-        // TODO: Implicit intents are unsafe.
-        Intent intent = new Intent("com.google.android.c2dm.intent.UNREGISTER");
-        intent.PutExtra("app", PendingIntent.GetBroadcast(context, 0, new Intent(), 0));
-        context.StartService(intent);
+            var context = Application.Context;
+            // TODO: Implicit intents are unsafe.
+            Intent intent = new Intent("com.google.android.c2dm.intent.UNREGISTER");
+            intent.PutExtra("app", PendingIntent.GetBroadcast(context, 0, new Intent(), 0));
+            context.StartService(intent);
         }
         #endif
 
@@ -480,6 +482,15 @@ namespace BabbyJotz.iOS {
 
             await obj.SaveAsync();
             Preferences.Set(PreferenceKey.ParseInstallationObjectId, obj.ObjectId);
+        }
+
+        #endregion
+        #region Logging
+
+        public async Task LogSyncReportAsync(string report) {
+            await ParseCloud.CallFunctionAsync<bool>("logSyncReport", new Dictionary<string, object>() {
+                { "report", report }
+            });
         }
 
         #endregion

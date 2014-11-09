@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 
@@ -10,18 +11,22 @@ namespace BabbyJotz {
             if (targetType != typeof(ImageSource)) {
                 throw new InvalidOperationException();
             }
-            if (value == null) {
-                if (Device.OS == TargetPlatform.Android) {
-                    return ImageSource.FromFile("ic_launcher.png");
-                } else {
-                    return ImageSource.FromFile("Icon-76.png");
-                }
-            }
-            if (value is Photo) {
+            if (value is Photo && ((Photo)value).Bytes != null) {
                 var photo = (Photo)value;
-                return ImageSource.FromStream(() => new MemoryStream(photo.Bytes));
+                return ImageSource.FromStream(() => {
+                    try {
+                        return new MemoryStream(photo.Bytes);
+                    } catch (Exception e) {
+                        Debug.WriteLine("Got exception while creating photo memory stream: {0}", e);
+                        throw;
+                    }
+                });
             }
-            throw new InvalidOperationException();
+            if (Device.OS == TargetPlatform.Android) {
+                return ImageSource.FromFile("ic_launcher.png");
+            } else {
+                return ImageSource.FromFile("Icon-76.png");
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {

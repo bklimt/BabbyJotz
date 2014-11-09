@@ -166,6 +166,10 @@ namespace BabbyJotz {
         }
 
         public LogEntry(LogEntry other) {
+            CopyFrom(other);
+        }
+
+        public void CopyFrom(LogEntry other) {
             Baby = other.Baby;
             DateTime = other.DateTime;
             FormulaEaten = other.FormulaEaten;

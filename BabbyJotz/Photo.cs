@@ -6,7 +6,19 @@ using Xamarin.Forms;
 namespace BabbyJotz {
     public class Photo : StorableObject {
         public Baby Baby { get; private set; }
-        public byte[] Bytes { get; set; }
+
+        private byte[] bytes;
+        public byte[] Bytes {
+            get {
+                return bytes;
+            }
+            set {
+                if (bytes != null && value == null) {
+                    throw new InvalidOperationException("Cannot set a image to null after loading it.");
+                }
+                bytes = value;
+            }
+        }
 
         public Photo(Baby baby) {
             Baby = baby;

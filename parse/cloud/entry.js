@@ -107,6 +107,8 @@ Parse.Cloud.afterSave("LogEntry", function(request) {
 
     var query = new Parse.Query(Parse.Installation);
     query.containedIn("userId", userIds);
+    // TODO: If we passed installationId in here, we could avoid pinging the
+    // device that just did this save.
 
     var data = {};
     if (!entry.get("deleted")) {

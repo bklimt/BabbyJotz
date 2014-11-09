@@ -27,6 +27,8 @@ namespace BabbyJotz {
         Task SaveAsync(Photo photo);
 
         Task RegisterForPushAsync(string deviceToken);
+
+        Task LogSyncReportAsync(string report);
     }
 }
 

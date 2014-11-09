@@ -80,7 +80,7 @@ namespace BabbyJotz.Android {
         private async Task HandleMessage(Context context, Intent intent) {
             var app = (BabbyJotzApplication)Application;
             try {
-                await app.RootViewModel.SyncAsync(false);
+                await app.RootViewModel.SyncAsync("HandleMessage", false);
             } catch {
                 // Well, we tried. :-(
             }

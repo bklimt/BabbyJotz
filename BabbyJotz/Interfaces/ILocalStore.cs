@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BabbyJotz {
@@ -26,7 +27,11 @@ namespace BabbyJotz {
         Task<List<LogEntry>> GetEntriesForStatisticsAsync(Baby baby);
 
         // Cloud Syncing
-        Task SyncToCloudAsync(ICloudStore cloudStore, bool markNewAsRead);
+        Task SyncToCloudAsync(
+            ICloudStore cloudStore,
+            bool markNewAsRead,
+            InstrumentedProcess process);
+
         Task MarkAllAsReadAsync();
         Task<IEnumerable<LogEntry>> FetchUnreadAsync();
     }

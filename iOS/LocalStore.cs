@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Mono.Data.Sqlite;
 
@@ -156,66 +157,87 @@ namespace BabbyJotz.iOS {
             return String.Join(",", parts);
         }
 
-        private async Task UpsertAsync(
+        private async Task UpsertAllAsync<T>(
             string table,
+            List<T> items,
             bool onlyUpdateIfSynced,
-            SqliteParameter[] sqlParams) {
+            InstrumentedProcess process,
+            Func<T, SqliteParameter[]> sqlParamsFunc) {
 
-            var fields = (from param in sqlParams
-                select param.ParameterName).ToArray();
+            var i = 0;
 
             await EnqueueAsync<bool>(async () => {
                 var conn = new SqliteConnection("Data Source=" + path);
                 await conn.OpenAsync();
-                bool isNew = false;
 
-                // There is no race condition with this approach because all of these steps
-                // are parts of one block in a serial queue.
-                using (var command = conn.CreateCommand()) {
-                    command.CommandText = "SELECT COUNT(*) FROM " + table + " WHERE Uuid=:Uuid;";
-                    command.Parameters.AddRange(sqlParams);
-                    var count = await command.ExecuteScalarAsync();
-                    isNew = (((long)count) == 0);
+                foreach (var item in items) {
+                    if (process != null) {
+                        process.Progress = (double)i / items.Count;
+                    }
+                    i++;
+
+                    bool isNew = false;
+                    var sqlParams = sqlParamsFunc(item);
+                    var fields = (from param in sqlParams
+                                  select param.ParameterName).ToArray();
+
+                    // There is no race condition with this approach because all of these steps
+                    // are parts of one block in a serial queue.
+                    using (var command = conn.CreateCommand()) {
+                        // TODO: This is almost always an INSERT, so let's try that first instead.
+                        command.CommandText = "SELECT COUNT(*) FROM " + table + " WHERE Uuid=:Uuid;";
+                        command.Parameters.AddRange(sqlParams);
+                        var count = await command.ExecuteScalarAsync();
+                        isNew = (((long)count) == 0);
+                    }
+
+                    if (isNew) {
+                        using (var command = conn.CreateCommand()) {
+                            command.CommandText = "INSERT INTO " + table + " (" +
+                                CreateInsertString(fields) +
+                                ", LocalVersion" +
+                                ") VALUES (" +
+                                CreateValuesString(fields) +
+                                ", 1);";
+                            command.Parameters.AddRange(sqlParams);
+                            await command.ExecuteNonQueryAsync();
+                        }
+                    } else {
+                        using (var command = conn.CreateCommand()) {
+                            // The WHERE Synced clause keeps us from overwriting local changes made since the sync started.
+                            command.CommandText = "UPDATE " + table + " SET " +
+                                CreateUpdateString(fields) +
+                                ", LocalVersion=LocalVersion+1 " +
+                                "WHERE Uuid=:Uuid" +
+                                (onlyUpdateIfSynced ? " AND Synced=:Synced" : "");
+                            command.Parameters.AddRange(sqlParams);
+                            await command.ExecuteNonQueryAsync();
+                        }
+                    }
                 }
 
-                if (isNew) {
-                    using (var command = conn.CreateCommand()) {
-                        command.CommandText = "INSERT INTO " + table + " (" +
-                            CreateInsertString(fields) +
-                            ", LocalVersion" +
-                            ") VALUES (" +
-                            CreateValuesString(fields) +
-                            ", 1);";
-                        command.Parameters.AddRange(sqlParams);
-                        await command.ExecuteNonQueryAsync();
-                    }
-                } else {
-                    using (var command = conn.CreateCommand()) {
-                        // The WHERE Synced clause keeps us from overwriting local changes made since the sync started.
-                        command.CommandText = "UPDATE " + table + " SET " +
-                            CreateUpdateString(fields) +
-                            ", LocalVersion=LocalVersion+1 " +
-                            "WHERE Uuid=:Uuid" +
-                            (onlyUpdateIfSynced ? " AND Synced=:Synced" : "");
-                        command.Parameters.AddRange(sqlParams);
-                        await command.ExecuteNonQueryAsync();
-                    }
+                if (process != null) {
+                    process.AssertFinished();
                 }
-
                 conn.Close();
                 return true;
             });
         }
 
-        public async Task SaveAsync(string table, SqliteParameter[] sqlParams) {
-            await UpsertAsync(table, false, sqlParams);
+        public async Task SaveAsync<T>(string table, T item, Func<T, SqliteParameter[]> sqlParams) {
+            await UpsertAllAsync(table, new List<T> { item }, false, null, sqlParams);
             if (LocallyChanged != null) {
                 LocallyChanged(this, EventArgs.Empty);
             }
         }
 
-        private async Task UpdateFromCloudAsync(string table, SqliteParameter[] sqlParams) {
-            await UpsertAsync(table, true, sqlParams);
+        private async Task UpdateAllFromCloudAsync<T>(
+            string table,
+            List<T> items,
+            InstrumentedProcess process,
+            Func<T, SqliteParameter[]> sqlParams) {
+
+            await UpsertAllAsync(table, items, true, process, sqlParams);
         }
 
         #endregion
@@ -262,7 +284,7 @@ namespace BabbyJotz.iOS {
         }
 
         public async Task SaveAsync(LogEntry entry) {
-            await SaveAsync("LogEntry", CreateSqliteParameters(entry, true, false));
+            await SaveAsync("LogEntry", entry, e => CreateSqliteParameters(e, true, false));
         }
 
         public async Task DeleteAsync(LogEntry entry) {
@@ -270,8 +292,9 @@ namespace BabbyJotz.iOS {
             await SaveAsync(entry);
         }
 
-        private async Task UpdateFromCloudAsync(LogEntry entry, bool markAsRead) {
-            await UpdateFromCloudAsync("LogEntry", CreateSqliteParameters(entry, markAsRead, true));
+        private async Task UpdateAllFromCloudAsync(List<LogEntry> entries, bool markAsRead, InstrumentedProcess process) {
+            await UpdateAllFromCloudAsync(
+                "LogEntry", entries, process, entry => CreateSqliteParameters(entry, markAsRead, true));
         }
 
         public async Task<List<LogEntry>> FetchEntriesAsync(Baby baby, DateTime day) {
@@ -358,7 +381,7 @@ namespace BabbyJotz.iOS {
         }
 
         public async Task SaveAsync(Baby baby) {
-            await SaveAsync("Baby", CreateSqliteParameters(baby, null));
+            await SaveAsync("Baby", baby, b => CreateSqliteParameters(b, null));
         }
 
         public async Task DeleteAsync(Baby baby) {
@@ -367,7 +390,7 @@ namespace BabbyJotz.iOS {
         }
 
         private async Task UpdateFromCloudAsync(Baby baby, string syncDate) {
-            await UpdateFromCloudAsync("Baby", CreateSqliteParameters(baby, syncDate));
+            await UpdateAllFromCloudAsync("Baby", new List<Baby> { baby }, null, b => CreateSqliteParameters(b, syncDate));
         }
 
         public async Task<List<Baby>> FetchBabiesAsync() {
@@ -457,7 +480,7 @@ namespace BabbyJotz.iOS {
 
         public async Task SaveAsync(Photo photo) {
             await SaveFileAsync(photo);
-            await SaveAsync("Photo", CreateSqliteParameters(photo, false));
+            await SaveAsync("Photo", photo, p => CreateSqliteParameters(p, false));
         }
 
         public async Task DeleteAsync(Photo photo) {
@@ -465,9 +488,21 @@ namespace BabbyJotz.iOS {
             await SaveAsync(photo);
         }
 
-        private async Task UpdateFromCloudAsync(Photo photo) {
-            await SaveFileAsync(photo);
-            await UpdateFromCloudAsync("Photo", CreateSqliteParameters(photo, true));
+        private async Task UpdateAllFromCloudAsync(List<Photo> photos, InstrumentedProcess process) {
+            var saveFileProcess = process.SubProcess("SaveFileAsync", 0.1);
+            var i = 0;
+            foreach (var photo in photos) {
+                saveFileProcess.Progress = (double)i / photos.Count;
+                i++;
+                await SaveFileAsync(photo);
+            }
+            saveFileProcess.AssertFinished();
+
+            var updateProcess = process.SubProcess("UpdateAllFromCloud", 0.9);
+            await UpdateAllFromCloudAsync(
+                "Photo", photos, updateProcess, photo => CreateSqliteParameters(photo, true));
+
+            process.AssertFinished();
         }
 
         #endregion
@@ -569,37 +604,88 @@ namespace BabbyJotz.iOS {
             });
         }
 
-        private async Task SaveChangesToCloudAsync(ICloudStore cloudStore) {
-            List<ObjectAndVersion<Baby>> unsavedBabies =
-                await GetUnsyncedAsync("Baby", CreateBaby);
+        private async Task SaveChangesToCloudAsync(ICloudStore cloudStore, InstrumentedProcess process) {
 
-            List<ObjectAndVersion<Photo>> unsavedPhotos =
-                await GetUnsyncedAsync("Photo", CreatePhoto);
+            /*
+             * Progress breakdown is like this:
+             * 0.1 - Getting unsynced babies.
+             * 0.1 - Getting unsynced photos.
+             * 0.1 - Loading unsaved photos.
+             * 0.1 - Getting unsynced entries.
+             * 0.2 - Saving babies.
+             * 0.2 - Saving photos.
+             * 0.2 - Saving entries.
+             */
 
+            process.Progress = 0.0;
+
+            var unsavedBabiesProcess = process.SubProcess("GetUnsynced(Baby)", 0.1);
+            List<ObjectAndVersion<Baby>> unsavedBabies = await GetUnsyncedAsync("Baby", CreateBaby);
+            unsavedBabiesProcess.AssertFinished();
+
+            var unsavedPhotosProcess = process.SubProcess("GetUnsynced(Photo)", 0.1);
+            List<ObjectAndVersion<Photo>> unsavedPhotos = await GetUnsyncedAsync("Photo", CreatePhoto);
+            unsavedPhotosProcess.AssertFinished();
+
+            var loadFilesProcess = process.SubProcess("LoadFileAsync", 0.1);
             foreach (var photo in unsavedPhotos) {
                 await LoadFileAsync(photo.Object);
             }
+            loadFilesProcess.AssertFinished();
 
+            var unsavedEntriesProcess = process.SubProcess("GetUnsynced(LogEntry)", 0.1);
             List<ObjectAndVersion<LogEntry>> unsavedEntries =
                 await GetUnsyncedAsync("LogEntry", (obj) => CreateLogEntry(obj, null));
+            unsavedEntriesProcess.AssertFinished();
 
+            var saveBabiesProcess = process.SubProcess("Save Babies", 0.2);
             foreach (var item in unsavedBabies) {
                 var baby = item.Object;
-                await cloudStore.SaveAsync(baby);
-                await MarkAsSyncedAsync(item, "Baby");
-            }
+                var babyProcess = saveBabiesProcess.SubProcess("Baby " + baby.Uuid, 1.0 / unsavedBabies.Count);
 
+                var saveBabyProcess = babyProcess.SubProcess("Save", 0.5);
+                await cloudStore.SaveAsync(baby);
+                saveBabyProcess.AssertFinished();
+
+                var markBabySyncedProcess = babyProcess.SubProcess("MarkAsSynced", 0.5);
+                await MarkAsSyncedAsync(item, "Baby");
+                markBabySyncedProcess.AssertFinished();
+
+                babyProcess.AssertFinished();
+            }
+            saveBabiesProcess.AssertFinished();
+
+            var savePhotosProcess = process.SubProcess("Save Photos", 0.2);
             foreach (var item in unsavedPhotos) {
                 var photo = item.Object;
-                await cloudStore.SaveAsync(photo);
-                await MarkAsSyncedAsync(item, "Photo");
-            }
+                var photoProcess = savePhotosProcess.SubProcess("Photo " + photo.Uuid, 1.0 / unsavedPhotos.Count);
 
+                var savePhotoProcess = photoProcess.SubProcess("Save", 0.5);
+                await cloudStore.SaveAsync(photo);
+                savePhotoProcess.AssertFinished();
+
+                var markPhotoSyncedProcess = photoProcess.SubProcess("MarkAsSynced", 0.5);
+                await MarkAsSyncedAsync(item, "Photo");
+                markPhotoSyncedProcess.AssertFinished();
+            }
+            savePhotosProcess.AssertFinished();
+
+            var saveEntriesProcess = process.SubProcess("Save Entries", 0.2);
             foreach (var item in unsavedEntries) {
                 var entry = item.Object;
+                var entryProcess = saveEntriesProcess.SubProcess("Entry " + entry.Uuid, 1.0 / unsavedEntries.Count);
+
+                var saveEntryProcess = entryProcess.SubProcess("Save", 0.5);
                 await cloudStore.SaveAsync(entry);
+                saveEntryProcess.AssertFinished();
+
+                var markEntrySyncedProcess = entryProcess.SubProcess("MarkAsSynced", 0.5);
                 await MarkAsSyncedAsync(item, "LogEntry");
+                markEntrySyncedProcess.AssertFinished();
             }
+            saveEntriesProcess.AssertFinished();
+
+            process.AssertFinished();
         }
 
         private async Task DeleteBabiesNotSeenSinceAsync(ICloudStore cloudStore, string syncDate) {
@@ -716,44 +802,168 @@ namespace BabbyJotz.iOS {
             });
         }
 
-        private async Task<bool> SyncEntriesForBaby(ICloudStore cloudStore, Baby baby, bool markAsRead) {
+        private async Task<bool> SyncEntriesForBaby(
+            ICloudStore cloudStore, Baby baby, bool markAsRead, InstrumentedProcess process) {
+
+            /*
+             * Progress is allocated like this:
+             * 0.05 - GetLastUpdatedAt
+             * 0.25 - FetchEntriesSince
+             * 0.65 - UpdateFromCloud
+             * 0.05 - SetLastUpdatedAt
+             */
+
+            var lastUpdatedAtProcess = process.SubProcess("GetLastUpdatedAt", 0.05);
             var lastUpdatedAt = await GetLastUpdatedAtAsync(cloudStore, "LogEntry", baby);
+            lastUpdatedAtProcess.AssertFinished();
+
+            var fetchProcess = process.SubProcess("FetchEntriesSince", 0.25);
             var response = await cloudStore.FetchEntriesSinceAsync(baby, lastUpdatedAt);
-            foreach (var entry in response.Results) {
-                await UpdateFromCloudAsync(entry, markAsRead);
-            }
+            fetchProcess.AssertFinished();
+
+            var updateProcess = process.SubProcess("UpdateFromCloud", 0.65);
+            await UpdateAllFromCloudAsync(response.Results, markAsRead, updateProcess);
+
+            var setLastUpdatedAtProcess = process.SubProcess("SetLastUpdatedAt", 0.05);
             await SetLastUpdatedAtAsync(cloudStore, "LogEntry", baby, response.NewUpdatedAt);
+            setLastUpdatedAtProcess.AssertFinished();
+
+            process.AssertFinished();
             return response.MaybeHasMore;
         }
 
-        private async Task<bool> SyncPhotosForBaby(ICloudStore cloudStore, Baby baby) {
+        private async Task<bool> SyncPhotosForBaby(ICloudStore cloudStore, Baby baby, InstrumentedProcess process) {
+            var lastUpdatedAtProcess = process.SubProcess("GetLastUpdatedAt", 0.05);
             var lastUpdatedAt = await GetLastUpdatedAtAsync(cloudStore, "Photo", baby);
+            lastUpdatedAtProcess.AssertFinished();
+
+            var fetchProcess = process.SubProcess("FetchPhotosSince", 0.25);
             var response = await cloudStore.FetchPhotosSinceAsync(baby, lastUpdatedAt);
-            foreach (var photo in response.Results) {
-                await UpdateFromCloudAsync(photo);
-            }
+            fetchProcess.AssertFinished();
+
+            var updateProcess = process.SubProcess("UpdateFromCloud", 0.65);
+            await UpdateAllFromCloudAsync(response.Results, updateProcess);
+
+            var setLastUpdatedAtProcess = process.SubProcess("SetLastUpdatedAt", 0.05);
             await SetLastUpdatedAtAsync(cloudStore, "Photo", baby, response.NewUpdatedAt);
+            setLastUpdatedAtProcess.AssertFinished();
+
+            process.AssertFinished();
             return response.MaybeHasMore;
         }
 
-        private async Task SyncBabiesFromCloudAsync(ICloudStore cloudStore, bool markAsRead) {
+        private async Task SyncBabiesFromCloudAsync(
+            ICloudStore cloudStore, bool markAsRead, InstrumentedProcess process) {
+
+            /*
+             * Progress breakdown is like this:
+             * 0.05 - Fetch all babies.
+             * 0.90 - Fetching each baby.
+             *        0.1 - UpdateFromCloud
+             *        0.7 - Entries
+             *        0.2 - Photos
+             * 0.05 - Delete unseen babies.
+             */
+
             var syncDate = DateTime.Now.ToString("O");
+
+            var fetchBabiesProcess = process.SubProcess("FetchAllBabies", 0.05);
             var babies = await cloudStore.FetchAllBabiesAsync();
+            fetchBabiesProcess.AssertFinished();
+
+            if (RemotelyChanged != null) {
+                RemotelyChanged(this, EventArgs.Empty);
+            }
+
+            var syncBabiesProcess = process.SubProcess("Sync Babies", 0.9);
             foreach (var baby in babies) {
+                var syncBabyProcess = syncBabiesProcess.SubProcess("Baby " + baby.Uuid, 1.0 / babies.Count);
+
+                var updateProcess = syncBabyProcess.SubProcess("UpdateFromCloud", 0.1);
                 await UpdateFromCloudAsync(baby, syncDate);
-                while (await SyncEntriesForBaby(cloudStore, baby, markAsRead)) {
+                updateProcess.AssertFinished();
+
+                var entriesProcess = syncBabyProcess.SubProcess("SyncEntries", 0.7);
+                // Since it could loop infinitely, let's progress model an infinite series: 0.5, 0.25, 0.125, ...
+                int iteration = 0;
+                double weight = 0.5;
+                var entryProcess = entriesProcess.SubProcess("SyncEntries " + iteration, weight);
+                while (await SyncEntriesForBaby(cloudStore, baby, markAsRead, entryProcess)) {
+                    iteration++;
+                    weight /= 2.0;
+                    entryProcess = entriesProcess.SubProcess("SyncEntries " + iteration, weight);
+
+                    if (RemotelyChanged != null) {
+                        RemotelyChanged(this, EventArgs.Empty);
+                    }
                 }
-                while (await SyncPhotosForBaby(cloudStore, baby)) {
+                entriesProcess.AssertFinished();
+
+                if (RemotelyChanged != null) {
+                    RemotelyChanged(this, EventArgs.Empty);
+                }
+
+                var photosProcess = syncBabyProcess.SubProcess("SyncPhotos", 0.2);
+                // Since it could loop infinitely, let's progress model an infinite series: 0.5, 0.25, 0.125, ...
+                iteration = 0;
+                weight = 0.5;
+                var photoProcess = photosProcess.SubProcess("SyncPhotos " + iteration, weight);
+                while (await SyncPhotosForBaby(cloudStore, baby, photoProcess)) {
+                    iteration++;
+                    weight /= 2.0;
+                    photoProcess = photosProcess.SubProcess("SyncPhotos " + iteration, weight);
+
+                    if (RemotelyChanged != null) {
+                        RemotelyChanged(this, EventArgs.Empty);
+                    }
+                }
+                photosProcess.AssertFinished();
+
+                syncBabyProcess.AssertFinished();
+
+                if (RemotelyChanged != null) {
+                    RemotelyChanged(this, EventArgs.Empty);
                 }
             }
+            syncBabiesProcess.AssertFinished();
+
+            var deleteProcess = process.SubProcess("DeleteBabiesNotSeenSince", 0.05);
             await DeleteBabiesNotSeenSinceAsync(cloudStore, syncDate);
+            deleteProcess.AssertFinished();
+
+            process.AssertFinished();
+
+            if (RemotelyChanged != null) {
+                RemotelyChanged(this, EventArgs.Empty);
+            }
         }
 
-        public async Task SyncToCloudAsync(ICloudStore cloudStore, bool markNewAsRead) {
+        public async Task SyncToCloudAsync(
+            ICloudStore cloudStore,
+            bool markNewAsRead,
+            InstrumentedProcess process) {
+
+            /*
+             * The breakdown for progress is like this:
+             * 0.15 - Save changes.
+             * 0.80 - Sync babies.
+             * 0.05 - Save sync status to the database.
+             */
+
+            process.Progress = 0.0;
+
             DateTime startTime = DateTime.Now;
-            await SaveChangesToCloudAsync(cloudStore);
-            await SyncBabiesFromCloudAsync(cloudStore, markNewAsRead);
+            var saveProcess = process.SubProcess("SaveChangesToCloud", 0.15);
+            await SaveChangesToCloudAsync(cloudStore, saveProcess);
+
+            var syncProcess = process.SubProcess("SyncBabiesFromCloudAsync", 0.80);
+            await SyncBabiesFromCloudAsync(cloudStore, markNewAsRead, syncProcess);
+
             DateTime finishedTime = DateTime.Now;
+
+            if (RemotelyChanged != null) {
+                RemotelyChanged(this, EventArgs.Empty);
+            }
 
             {
                 var parameters = new SqliteParameter[] {
@@ -782,9 +992,19 @@ namespace BabbyJotz.iOS {
                 });
             }
 
+            process.AssertFinished();
+
             // Signal listeners that the database has been updated.
             if (RemotelyChanged != null) {
                 RemotelyChanged(this, EventArgs.Empty);
+            }
+
+            try {
+                // We just did a sync to the cloud, so saving a log file should usually work.
+                var report = process.GenerateReport();
+                await cloudStore.LogSyncReportAsync(report);
+            } catch (Exception) {
+                // Meh.
             }
         }
 
