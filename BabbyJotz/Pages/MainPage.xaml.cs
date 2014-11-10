@@ -129,6 +129,8 @@ namespace BabbyJotz {
         public async void OnSyncClicked(object sender, EventArgs args) {
             try {
                 await RootViewModel.SyncAsync("Sync Button Clicked", true);
+            } catch (TaskCanceledException) {
+                // Ignore it.
             } catch (Exception e) {
                 await DisplayAlert("Error", String.Format("Unable to sync: {0}", e), "Ok");
                 // await DisplayAlert("Error", String.Format("Unable to sync. Check your network connection.", e), "Ok");

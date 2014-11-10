@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Parse;
 
@@ -63,7 +64,7 @@ namespace BabbyJotz.iOS {
             };
         }
 
-        public async Task SaveAsync(LogEntry entry) {
+        public async Task SaveAsync(LogEntry entry, CancellationToken cancellationToken) {
             if (ParseUser.CurrentUser == null) {
                 throw new InvalidOperationException("Tried to sync without logging in.");
             }
@@ -84,7 +85,7 @@ namespace BabbyJotz.iOS {
             obj["rightBreast"] = entry.RightBreastEaten.TotalMinutes;
             obj["deleted"] = entry.Deleted;
             obj.ACL = new ParseACL(ParseUser.CurrentUser);
-            await obj.SaveAsync();
+            await obj.SaveAsync(cancellationToken);
             entry.ObjectId = obj.ObjectId;
         }
 
@@ -115,7 +116,7 @@ namespace BabbyJotz.iOS {
             return photo;
         }
 
-        public async Task SaveAsync(Photo photo) {
+        public async Task SaveAsync(Photo photo, CancellationToken cancellationToken) {
             var obj = photo.ObjectId != null
                 ? ParseObject.CreateWithoutData("Photo", photo.ObjectId)
                 : ParseObject.Create("Photo");
@@ -124,12 +125,12 @@ namespace BabbyJotz.iOS {
             obj["deleted"] = photo.Deleted;
 
             var file = new ParseFile("profilePhoto", photo.Bytes);
-            await file.SaveAsync();
+            await file.SaveAsync(cancellationToken);
             obj["file"] = file;
 
             // Cloud Code will take care of the ACL.
 
-            await obj.SaveAsync();
+            await obj.SaveAsync(cancellationToken);
             photo.ObjectId = obj.ObjectId;
         }
 
@@ -154,7 +155,7 @@ namespace BabbyJotz.iOS {
             return baby;
         }
 
-        public async Task SaveAsync(Baby baby) {
+        public async Task SaveAsync(Baby baby, CancellationToken cancellationToken) {
             if (ParseUser.CurrentUser == null) {
                 throw new InvalidOperationException("Tried to sync without logging in.");
             }
@@ -179,19 +180,19 @@ namespace BabbyJotz.iOS {
             // This will be overridden by Cloud Code, but may as well leave it here just in case.
             obj.ACL = new ParseACL(ParseUser.CurrentUser);
 
-            await obj.SaveAsync();
+            await obj.SaveAsync(cancellationToken);
             baby.ObjectId = obj.ObjectId;
         }
 
         #endregion
         #region Syncing
 
-        public async Task<List<Baby>> FetchAllBabiesAsync() {
+        public async Task<List<Baby>> FetchAllBabiesAsync(CancellationToken cancellationToken) {
             var results = new List<Baby>();
 
             var query = new ParseQuery<ParseObject>("Baby");
             query = query.Limit(1000);
-            var enumerator = await query.FindAsync();
+            var enumerator = await query.FindAsync(cancellationToken);
             var objs = await Task.Run(() => enumerator.ToList());
             foreach (var result in objs) {
                 results.Add(CreateBaby(result));
@@ -208,7 +209,9 @@ namespace BabbyJotz.iOS {
             public Func<ParseObject, Task<T>> CreateAsync;
         }
 
-        private async Task<CloudFetchSinceResponse<T>> FetchSinceAsync<T>(FetchSinceRequest<T> request)  {
+        private async Task<CloudFetchSinceResponse<T>> FetchSinceAsync<T>(
+            FetchSinceRequest<T> request, CancellationToken cancellationToken)  {
+
             var response = new CloudFetchSinceResponse<T>();
             response.Results = new List<T>();
             response.NewUpdatedAt = request.LastUpdatedAt;
@@ -227,7 +230,7 @@ namespace BabbyJotz.iOS {
                     "updatedAt", request.LastUpdatedAt.Value);
             }
 
-            var enumerator = await query.FindAsync();
+            var enumerator = await query.FindAsync(cancellationToken);
             var objs = await Task.Run(() => enumerator.ToList());
             foreach (var result in objs) {
                 response.Results.Add(await request.CreateAsync(result));
@@ -243,7 +246,7 @@ namespace BabbyJotz.iOS {
         }
 
         public async Task<CloudFetchSinceResponse<LogEntry>> FetchEntriesSinceAsync(
-            Baby baby, DateTime? lastUpdatedAt) {
+            Baby baby, DateTime? lastUpdatedAt, CancellationToken cancellationToken) {
 
             var request = new FetchSinceRequest<LogEntry>() {
                 ClassName = "LogEntry",
@@ -253,11 +256,11 @@ namespace BabbyJotz.iOS {
                 CreateAsync = (obj) => Task.FromResult(CreateLogEntry(obj))
             };
 
-            return await FetchSinceAsync(request);
+            return await FetchSinceAsync(request, cancellationToken);
         }
 
         public async Task<CloudFetchSinceResponse<Photo>> FetchPhotosSinceAsync(
-            Baby baby, DateTime? lastUpdatedAt) {
+            Baby baby, DateTime? lastUpdatedAt, CancellationToken cancellationToken) {
 
             var request = new FetchSinceRequest<Photo>() {
                 ClassName = "Photo",
@@ -267,7 +270,7 @@ namespace BabbyJotz.iOS {
                 CreateAsync = CreatePhotoAsync
             };
 
-            return await FetchSinceAsync(request);
+            return await FetchSinceAsync(request, cancellationToken);
         }
 
         #endregion

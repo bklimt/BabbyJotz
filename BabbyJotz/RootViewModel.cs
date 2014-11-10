@@ -234,14 +234,12 @@ namespace BabbyJotz {
                 Syncing = true;
                 try {
                     await LocalStore.SyncToCloudAsync(CloudStore, markNewAsRead, process);
+                } catch (TaskCanceledException) {
+                    Debug.WriteLine("Sync was cancelled.");
                 } finally {
                     Syncing = false;
                     syncCancellationTokenSource = null;
                 }
-
-                var report = process.GenerateReport();
-                Debug.WriteLine(report);
-                // TODO: Would be nice to send this somewhere too.
 
                 return true;
             });

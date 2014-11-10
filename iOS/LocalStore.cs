@@ -644,7 +644,7 @@ namespace BabbyJotz.iOS {
                 var babyProcess = saveBabiesProcess.SubProcess("Baby " + baby.Uuid, 1.0 / unsavedBabies.Count);
 
                 var saveBabyProcess = babyProcess.SubProcess("Save", 0.5);
-                await cloudStore.SaveAsync(baby);
+                await cloudStore.SaveAsync(baby, saveBabyProcess.CancellationToken);
                 saveBabyProcess.AssertFinished();
 
                 var markBabySyncedProcess = babyProcess.SubProcess("MarkAsSynced", 0.5);
@@ -661,7 +661,7 @@ namespace BabbyJotz.iOS {
                 var photoProcess = savePhotosProcess.SubProcess("Photo " + photo.Uuid, 1.0 / unsavedPhotos.Count);
 
                 var savePhotoProcess = photoProcess.SubProcess("Save", 0.5);
-                await cloudStore.SaveAsync(photo);
+                await cloudStore.SaveAsync(photo, savePhotoProcess.CancellationToken);
                 savePhotoProcess.AssertFinished();
 
                 var markPhotoSyncedProcess = photoProcess.SubProcess("MarkAsSynced", 0.5);
@@ -676,7 +676,7 @@ namespace BabbyJotz.iOS {
                 var entryProcess = saveEntriesProcess.SubProcess("Entry " + entry.Uuid, 1.0 / unsavedEntries.Count);
 
                 var saveEntryProcess = entryProcess.SubProcess("Save", 0.5);
-                await cloudStore.SaveAsync(entry);
+                await cloudStore.SaveAsync(entry, saveEntryProcess.CancellationToken);
                 saveEntryProcess.AssertFinished();
 
                 var markEntrySyncedProcess = entryProcess.SubProcess("MarkAsSynced", 0.5);
@@ -818,7 +818,7 @@ namespace BabbyJotz.iOS {
             lastUpdatedAtProcess.AssertFinished();
 
             var fetchProcess = process.SubProcess("FetchEntriesSince", 0.25);
-            var response = await cloudStore.FetchEntriesSinceAsync(baby, lastUpdatedAt);
+            var response = await cloudStore.FetchEntriesSinceAsync(baby, lastUpdatedAt, fetchProcess.CancellationToken);
             fetchProcess.AssertFinished();
 
             var updateProcess = process.SubProcess("UpdateFromCloud", 0.65);
@@ -838,7 +838,7 @@ namespace BabbyJotz.iOS {
             lastUpdatedAtProcess.AssertFinished();
 
             var fetchProcess = process.SubProcess("FetchPhotosSince", 0.25);
-            var response = await cloudStore.FetchPhotosSinceAsync(baby, lastUpdatedAt);
+            var response = await cloudStore.FetchPhotosSinceAsync(baby, lastUpdatedAt, fetchProcess.CancellationToken);
             fetchProcess.AssertFinished();
 
             var updateProcess = process.SubProcess("UpdateFromCloud", 0.65);
@@ -868,7 +868,7 @@ namespace BabbyJotz.iOS {
             var syncDate = DateTime.Now.ToString("O");
 
             var fetchBabiesProcess = process.SubProcess("FetchAllBabies", 0.05);
-            var babies = await cloudStore.FetchAllBabiesAsync();
+            var babies = await cloudStore.FetchAllBabiesAsync(fetchBabiesProcess.CancellationToken);
             fetchBabiesProcess.AssertFinished();
 
             if (RemotelyChanged != null) {

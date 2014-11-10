@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BabbyJotz {
@@ -18,13 +19,15 @@ namespace BabbyJotz {
         Task AcceptInviteAsync(Invite invite);
         Task UnlinkAsync(Baby baby);
 
-        Task<List<Baby>> FetchAllBabiesAsync();
-        Task<CloudFetchSinceResponse<LogEntry>> FetchEntriesSinceAsync(Baby baby, DateTime? lastUpdatedAt);
-        Task<CloudFetchSinceResponse<Photo>> FetchPhotosSinceAsync(Baby baby, DateTime? lastUpdatedAt);
+        Task<List<Baby>> FetchAllBabiesAsync(CancellationToken cancellationToken);
+        Task<CloudFetchSinceResponse<LogEntry>> FetchEntriesSinceAsync(
+            Baby baby, DateTime? lastUpdatedAt, CancellationToken cancellationToken);
+        Task<CloudFetchSinceResponse<Photo>> FetchPhotosSinceAsync(
+            Baby baby, DateTime? lastUpdatedAt, CancellationToken cancellationToken);
 
-        Task SaveAsync(LogEntry entry);
-        Task SaveAsync(Baby baby);
-        Task SaveAsync(Photo photo);
+        Task SaveAsync(LogEntry entry, CancellationToken cancellationToken);
+        Task SaveAsync(Baby baby, CancellationToken cancellationToken);
+        Task SaveAsync(Photo photo, CancellationToken cancellationToken);
 
         Task RegisterForPushAsync(string deviceToken);
 
