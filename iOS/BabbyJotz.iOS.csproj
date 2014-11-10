@@ -9,6 +9,7 @@
     <RootNamespace>BabbyJotz.iOS</RootNamespace>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
     <AssemblyName>BabbyJotziOS</AssemblyName>
+    <ReleaseVersion>1.0</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' ">
     <DebugSymbols>true</DebugSymbols>
@@ -63,7 +64,10 @@
     <WarningLevel>4</WarningLevel>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <ConsolePause>false</ConsolePause>
-    <CodesignKey>iPhone Developer</CodesignKey>
+    <CodesignKey>iPhone Distribution</CodesignKey>
+    <CodesignProvision>3c621d8a-5b32-4df9-9467-4c9bf2209df0</CodesignProvision>
+    <IpaPackageName>
+    </IpaPackageName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Ad-Hoc|iPhone' ">
     <DebugType>full</DebugType>
@@ -163,6 +167,12 @@
     <BundleResource Include="Resources\toolbar_menu%403x.png" />
     <BundleResource Include="Resources\toolbar_menu%402x.png" />
     <BundleResource Include="Resources\toolbar_menu.png" />
+    <BundleResource Include="Resources\Default.png" />
+    <BundleResource Include="Resources\Default%402x.png" />
+    <BundleResource Include="Resources\Default-Portrait.png" />
+    <BundleResource Include="Resources\Default-Landscape.png" />
+    <BundleResource Include="Resources\Default-Portrait%402x.png" />
+    <BundleResource Include="Resources\Default-Landscape%402x.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
