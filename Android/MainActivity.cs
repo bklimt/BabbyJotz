@@ -19,6 +19,7 @@ namespace BabbyJotz.Android {
         Theme = "@style/BabbyTheme",
         ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
     public class MainActivity : AndroidActivity {
+
         protected override void OnCreate(Bundle bundle) {
             base.OnCreate(bundle);
             Xamarin.Forms.Forms.Init(this, bundle);

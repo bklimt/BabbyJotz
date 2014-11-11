@@ -98,19 +98,21 @@
   <ItemGroup>
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="..\iOS\LocalStore.cs">
-      <Link>LocalStore.cs</Link>
-    </Compile>
     <Compile Include="BabbyJotzBroadcastReceiver.cs" />
     <Compile Include="BabbyJotzIntentService.cs" />
     <Compile Include="BabbyJotzApplication.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="Preferences.cs" />
     <Compile Include="SplashActivity.cs" />
-    <Compile Include="..\iOS\ParseStore.cs">
-      <Link>ParseStore.cs</Link>
+    <Compile Include="Controls\AdMobBannerRenderer.cs" />
+    <Compile Include="Controls\NativePhotoView.cs" />
+    <Compile Include="Controls\PhotoViewRenderer.cs" />
+    <Compile Include="..\iOS\Shared\LocalStore.cs">
+      <Link>Shared\LocalStore.cs</Link>
     </Compile>
-    <Compile Include="AdMobBannerRenderer.cs" />
+    <Compile Include="..\iOS\Shared\ParseStore.cs">
+      <Link>Shared\ParseStore.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -163,6 +165,8 @@
     <Folder Include="Resources\drawable-xxhdpi\" />
     <Folder Include="Resources\drawable-xxxhdpi\" />
     <Folder Include="Resources\layout\" />
+    <Folder Include="Controls\" />
+    <Folder Include="Shared\" />
   </ItemGroup>
   <ItemGroup>
     <AndroidAsset Include="Assets\ic_launcher.png" />

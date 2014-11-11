@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+
 using Xamarin.Forms;
 
 namespace BabbyJotz {
@@ -83,6 +85,23 @@ will feel a little sad, but will not be held responsible.</p>
 
 </body>
 </html>";
+
+        /*
+         * This can't be used before Forms.Init is called, which makes it dangerous.
+         * 
+        public static Task DoOnMainThreadAsync(Action action) {
+            var tcs = new TaskCompletionSource<object>();
+            Device.BeginInvokeOnMainThread(() => {
+                try {
+                    action();
+                    tcs.SetResult(null);
+                } catch (Exception e) {
+                    tcs.SetException(e);
+                }
+            });
+            return tcs.Task;
+        }
+        */
 
         public static Page GetMainPage(RootViewModel model) {
             var page = new MasterDetailPage();

@@ -16,6 +16,9 @@ namespace BabbyJotz {
                 if (bytes != null && value == null) {
                     throw new InvalidOperationException("Cannot set a image to null after loading it.");
                 }
+                if (value != null && Uuid == null) {
+                    throw new InvalidOperationException("Cannot set bytes for a placeholder image.");
+                }
                 bytes = value;
             }
         }
@@ -37,6 +40,9 @@ namespace BabbyJotz {
         }
 
         public void CopyFrom(Photo other) {
+            if (Uuid == null || other.Uuid == null) {
+                throw new InvalidOperationException("Cannot copy the placeholder image.");
+            }
             Baby = other.Baby;
             Uuid = other.Uuid;
             Bytes = other.Bytes;

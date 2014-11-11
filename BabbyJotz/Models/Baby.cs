@@ -44,7 +44,12 @@ namespace BabbyJotz {
             BindableProperty.Create<Baby, Photo>(p => p.ProfilePhoto, null);
         public Photo ProfilePhoto {
             get { return (Photo)base.GetValue(ProfilePhotoProperty); }
-            set { SetValue(ProfilePhotoProperty, value); }
+            set {
+                if (Uuid == null && value != null) {
+                    throw new InvalidOperationException("Attempt to set photo for Add Baby entry.");
+                }
+                SetValue(ProfilePhotoProperty, value);
+            }
         }
 
         public Baby() {
@@ -60,13 +65,16 @@ namespace BabbyJotz {
         }
 
         public void CopyFrom(Baby other) {
+            if (other.Uuid == null) {
+                throw new InvalidOperationException("Cannot copy the placeholder baby.");
+            }
+            Uuid = other.Uuid;
             Name = other.Name;
             Birthday = other.Birthday;
             ShowBreastfeeding = other.ShowBreastfeeding;
             ShowPumped = other.ShowPumped;
             ShowFormula = other.ShowFormula;
             ProfilePhoto = other.ProfilePhoto;
-            Uuid = other.Uuid;
             ObjectId = other.ObjectId;
             Deleted = other.Deleted;
         }

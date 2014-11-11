@@ -182,10 +182,12 @@
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
-    <Compile Include="LocalStore.cs" />
     <Compile Include="Preferences.cs" />
-    <Compile Include="ParseStore.cs" />
-    <Compile Include="AdMobBannerRenderer.cs" />
+    <Compile Include="Controls\AdMobBannerRenderer.cs" />
+    <Compile Include="Shared\LocalStore.cs" />
+    <Compile Include="Shared\ParseStore.cs" />
+    <Compile Include="Controls\PhotoViewRenderer.cs" />
+    <Compile Include="Controls\NativePhotoView.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.MonoTouch.CSharp.targets" />
   <Import Project="..\packages\Xamarin.Forms.1.2.3.6257\build\portable-win+net45+wp80+MonoAndroid10+MonoTouch10\Xamarin.Forms.targets" Condition="Exists('..\packages\Xamarin.Forms.1.2.3.6257\build\portable-win+net45+wp80+MonoAndroid10+MonoTouch10\Xamarin.Forms.targets')" />
@@ -198,5 +200,9 @@
       <Version>6.12.0</Version>
       <Visible>False</Visible>
     </XamarinComponentReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Controls\" />
+    <Folder Include="Shared\" />
   </ItemGroup>
 </Project>

@@ -10,9 +10,7 @@ using Parse;
 #if __IOS__
 using MonoTouch.Foundation;
 using MonoTouch.UIKit;
-#endif
-
-#if __ANDROID__
+#else
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -317,14 +315,29 @@ namespace BabbyJotz.iOS {
         }
 
         public async Task SignUpAsync(string username, string password) {
-            ParseUser.LogOut();
+            LogOut();
+            var user = new ParseUser();
+            user.Username = username;
+            user.Password = password;
+            user.Email = username;
+            user.ACL = new ParseACL();
             try {
-                var user = new ParseUser();
-                user.Username = username;
-                user.Password = password;
-                user.Email = username;
-                user.ACL = new ParseACL();
-                await user.SignUpAsync();
+                var retries = 3;
+                var runAgain = true;
+                while (runAgain) {
+                    runAgain = false;
+                    try {
+                        await user.SignUpAsync();
+                    } catch (NullReferenceException) {
+                        retries--;
+                        if (retries > 0) {
+                            runAgain = true;
+                        } else {
+                            throw;
+                        }
+                    }
+                }
+                RegisterForPush();
             } finally {
                 if (UserChanged != null) {
                     UserChanged(this, EventArgs.Empty);
@@ -386,75 +399,49 @@ namespace BabbyJotz.iOS {
         #endregion
         #region Push Notifications
 
-        #if __IOS__
-        private void RegisterForPushIOS() {
-            if (new Version(UIDevice.CurrentDevice.SystemVersion) < new Version(8, 0)) {
-                var notificationTypes =
-                    UIRemoteNotificationType.Alert |
-                    UIRemoteNotificationType.Badge |
-                    UIRemoteNotificationType.Sound;
-
-                UIApplication.SharedApplication.RegisterForRemoteNotificationTypes(notificationTypes);
-            } else {
-                var notificationTypes =
-                    UIUserNotificationType.Alert |
-                    UIUserNotificationType.Badge |
-                    UIUserNotificationType.Sound;
-
-                var userNoticationSettings = UIUserNotificationSettings.GetSettingsForTypes(
-                    notificationTypes, new NSSet());
-
-                UIApplication.SharedApplication.RegisterUserNotificationSettings(userNoticationSettings);
-                UIApplication.SharedApplication.RegisterForRemoteNotifications();
-            }
-        }
-        #endif
-
-        #if __ANDROID__
-        private void RegisterForPushAndroid() {
-        // From: https://groups.google.com/forum/#!msg/parse-developers/ku8-r91_o6s/Hk_YZQVgK6MJ
-        var context = Application.Context;
-        Intent intent = new Intent("com.google.android.c2dm.intent.REGISTER");
-        intent.SetPackage("com.google.android.gsf");
-        intent.PutExtra("app", PendingIntent.GetBroadcast(context, 0, new Intent(), 0));
-        intent.PutExtra("sender", "1076345567071");
-        // intent.PutExtra("sender", "earnest-math-732");
-        context.StartService(intent);
-        }
-        #endif
-
         // Call this to initiate the push process.
         private void RegisterForPush() {
             #if __IOS__
-            RegisterForPushIOS();
-            #endif
-            #if __ANDROID__
-            RegisterForPushAndroid();
-            #endif
-        }
+                if (new Version(UIDevice.CurrentDevice.SystemVersion) < new Version(8, 0)) {
+                    var notificationTypes =
+                        UIRemoteNotificationType.Alert |
+                        UIRemoteNotificationType.Badge |
+                        UIRemoteNotificationType.Sound;
 
-        #if __IOS__
-        private void UnregisterForPushIOS() {
-            UIApplication.SharedApplication.UnregisterForRemoteNotifications();
-        }
-        #endif
+                    UIApplication.SharedApplication.RegisterForRemoteNotificationTypes(notificationTypes);
+                } else {
+                    var notificationTypes =
+                        UIUserNotificationType.Alert |
+                        UIUserNotificationType.Badge |
+                        UIUserNotificationType.Sound;
 
-        #if __ANDROID__
-        private void UnregisterForPushAndroid() {
-            var context = Application.Context;
-            // TODO: Implicit intents are unsafe.
-            Intent intent = new Intent("com.google.android.c2dm.intent.UNREGISTER");
-            intent.PutExtra("app", PendingIntent.GetBroadcast(context, 0, new Intent(), 0));
-            context.StartService(intent);
+                    var userNoticationSettings = UIUserNotificationSettings.GetSettingsForTypes(
+                        notificationTypes, new NSSet());
+
+                    UIApplication.SharedApplication.RegisterUserNotificationSettings(userNoticationSettings);
+                    UIApplication.SharedApplication.RegisterForRemoteNotifications();
+                }
+            #else
+                // From: https://groups.google.com/forum/#!msg/parse-developers/ku8-r91_o6s/Hk_YZQVgK6MJ
+                var context = Application.Context;
+                Intent intent = new Intent("com.google.android.c2dm.intent.REGISTER");
+                intent.SetPackage("com.google.android.gsf");
+                intent.PutExtra("app", PendingIntent.GetBroadcast(context, 0, new Intent(), 0));
+                intent.PutExtra("sender", "1076345567071");
+                // intent.PutExtra("sender", "earnest-math-732");
+                context.StartService(intent);
+            #endif
         }
-        #endif
 
         private void UnregisterForPush() {
             #if __IOS__
-            UnregisterForPushIOS();
-            #endif
-            #if __ANDROID__
-            UnregisterForPushAndroid();
+                UIApplication.SharedApplication.UnregisterForRemoteNotifications();
+            #else
+                var context = Application.Context;
+                // TODO: Implicit intents are unsafe.
+                Intent intent = new Intent("com.google.android.c2dm.intent.UNREGISTER");
+                intent.PutExtra("app", PendingIntent.GetBroadcast(context, 0, new Intent(), 0));
+                context.StartService(intent);
             #endif
         }
 
@@ -477,10 +464,10 @@ namespace BabbyJotz.iOS {
             obj["userId"] = UserId;
 
             #if __IOS__
-            obj["deviceType"] = "ios";
+                obj["deviceType"] = "ios";
             #else
-            obj["deviceType"] = "android";
-            obj["pushType"] = "gcm";
+                obj["deviceType"] = "android";
+                obj["pushType"] = "gcm";
             #endif
 
             await obj.SaveAsync();

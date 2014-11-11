@@ -1,12 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Mono.Data.Sqlite;
+
+#if __IOS__
+using MonoTouch.CoreFoundation;
+using MonoTouch.Foundation;
+#else
+using Android.OS;
+#endif
 
 namespace BabbyJotz.iOS {
     public class LocalStore : ILocalStore {
@@ -18,13 +27,58 @@ namespace BabbyJotz.iOS {
 
         public LocalStore() {
             path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.Personal),
+                System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal),
                 databaseFile);
 
             EnqueueAsync(async () => {
                 await CreateDatabaseAsync();
                 return true;
             });
+        }
+
+        public static Task RunOnMainThreadAsync(Action action) {
+            var tcs = new TaskCompletionSource<object>();
+            #if __IOS__
+            DispatchQueue.MainQueue.DispatchAsync(() => {
+            #else
+            var handler = new Handler(Looper.MainLooper);
+            handler.Post(() => {
+            #endif
+                try {
+                    action();
+                    tcs.SetResult(null);
+                } catch (Exception e) {
+                    tcs.SetException(e);
+                }
+            });
+
+            return tcs.Task;
+        }
+
+        private async Task NotifyRemotelyChangedAsync() {
+            if (RemotelyChanged != null) {
+                await RunOnMainThreadAsync(() => {
+                    try {
+                        RemotelyChanged(this, EventArgs.Empty);
+                    } catch (Exception e) {
+                        System.Diagnostics.Debug.WriteLine("Exception in remote change handler: {0}", e);
+                        throw;
+                    }
+                });
+            }
+        }
+
+        private async Task NotifyLocallyChangedAsync() {
+            if (LocallyChanged != null) {
+                await RunOnMainThreadAsync(() => {
+                    try {
+                        LocallyChanged(this, EventArgs.Empty);
+                    } catch (Exception e) {
+                        System.Diagnostics.Debug.WriteLine("Exception in remote change handler: {0}", e);
+                        throw;
+                    }
+                });
+            }
         }
 
         #region Database Files
@@ -125,9 +179,7 @@ namespace BabbyJotz.iOS {
                 DeleteDatabase();
                 await CreateDatabaseAsync();
                 // This is more like a syncing event than some local change.
-                if (RemotelyChanged != null) {
-                    RemotelyChanged(this, EventArgs.Empty);
-                }
+                await NotifyRemotelyChangedAsync();
                 return true;
             });
         }
@@ -136,9 +188,12 @@ namespace BabbyJotz.iOS {
         #region Utilities
 
         private async Task SaveStreamAsync(string path, byte[] bytes) {
-            var file = File.Create(path);
-            await file.WriteAsync(bytes, 0, bytes.Length);
-            file.Close();
+            await EnqueueAsync(async () => {
+                var file = File.Create(path);
+                await file.WriteAsync(bytes, 0, bytes.Length);
+                file.Close();
+                return true;
+            });
         }
 
         private string CreateUpdateString(string[] fields) {
@@ -226,9 +281,7 @@ namespace BabbyJotz.iOS {
 
         public async Task SaveAsync<T>(string table, T item, Func<T, SqliteParameter[]> sqlParams) {
             await UpsertAllAsync(table, new List<T> { item }, false, null, sqlParams);
-            if (LocallyChanged != null) {
-                LocallyChanged(this, EventArgs.Empty);
-            }
+            await NotifyLocallyChangedAsync();
         }
 
         private async Task UpdateAllFromCloudAsync<T>(
@@ -394,14 +447,14 @@ namespace BabbyJotz.iOS {
         }
 
         public async Task<List<Baby>> FetchBabiesAsync() {
-            return await EnqueueAsync(async () => {
+            List<Baby> results = null;
+
+            await EnqueueAsync(async () => {
                 var connection = new SqliteConnection("Data Source=" + path);
                 await connection.OpenAsync();
 
                 var parameters = new SqliteParameter[] {
                 };
-
-                List<Baby> results = null;
 
                 using (var command = connection.CreateCommand()) {
                     command.CommandText =
@@ -415,24 +468,26 @@ namespace BabbyJotz.iOS {
                     reader.Close();
                 }
 
-                foreach (var baby in results) {
-                    if (baby.ProfilePhoto != null) {
-                        await LoadFileAsync(baby.ProfilePhoto);
-                    }
-                }
-
                 connection.Close();
-                return results;
+                return true;
             });
+
+            foreach (var baby in results) {
+                if (baby.ProfilePhoto != null) {
+                    await LoadFileAsync(baby.ProfilePhoto);
+                }
+            }
+
+            return results;
         }
 
         #endregion
 
         #region Photo
 
-        public static string GetPath(Photo photo) {
+        private static string GetPath(Photo photo) {
             return Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.Personal),
+                System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal),
                 String.Format("photo_{0}", photo.Uuid));
         }
 
@@ -445,15 +500,18 @@ namespace BabbyJotz.iOS {
         }
 
         private async Task LoadFileAsync(Photo photo) {
-            var path = GetPath(photo);
-            if (!File.Exists(path)) {
-                return;
-            }
-            var stream = new MemoryStream();
-            var fileStream = File.OpenRead(path);
-            await fileStream.CopyToAsync(stream);
-            fileStream.Close();
-            photo.Bytes = stream.ToArray();
+            await EnqueueAsync(async () => {
+                var path = GetPath(photo);
+                if (!File.Exists(path)) {
+                    return true;
+                }
+                var stream = new MemoryStream();
+                var fileStream = File.OpenRead(path);
+                await fileStream.CopyToAsync(stream);
+                fileStream.Close();
+                photo.Bytes = stream.ToArray();
+                return true;
+            });
         }
 
         private SqliteParameter[] CreateSqliteParameters(Photo photo, bool synced) {
@@ -871,9 +929,7 @@ namespace BabbyJotz.iOS {
             var babies = await cloudStore.FetchAllBabiesAsync(fetchBabiesProcess.CancellationToken);
             fetchBabiesProcess.AssertFinished();
 
-            if (RemotelyChanged != null) {
-                RemotelyChanged(this, EventArgs.Empty);
-            }
+            await NotifyRemotelyChangedAsync();
 
             var syncBabiesProcess = process.SubProcess("Sync Babies", 0.9);
             foreach (var baby in babies) {
@@ -883,47 +939,37 @@ namespace BabbyJotz.iOS {
                 await UpdateFromCloudAsync(baby, syncDate);
                 updateProcess.AssertFinished();
 
-                var entriesProcess = syncBabyProcess.SubProcess("SyncEntries", 0.7);
-                // Since it could loop infinitely, let's progress model an infinite series: 0.5, 0.25, 0.125, ...
-                int iteration = 0;
-                double weight = 0.5;
-                var entryProcess = entriesProcess.SubProcess("SyncEntries " + iteration, weight);
-                while (await SyncEntriesForBaby(cloudStore, baby, markAsRead, entryProcess)) {
-                    iteration++;
-                    weight /= 2.0;
-                    entryProcess = entriesProcess.SubProcess("SyncEntries " + iteration, weight);
-
-                    if (RemotelyChanged != null) {
-                        RemotelyChanged(this, EventArgs.Empty);
-                    }
-                }
-                entriesProcess.AssertFinished();
-
-                if (RemotelyChanged != null) {
-                    RemotelyChanged(this, EventArgs.Empty);
-                }
 
                 var photosProcess = syncBabyProcess.SubProcess("SyncPhotos", 0.2);
                 // Since it could loop infinitely, let's progress model an infinite series: 0.5, 0.25, 0.125, ...
-                iteration = 0;
-                weight = 0.5;
+                var iteration = 0;
+                var weight = 0.5;
                 var photoProcess = photosProcess.SubProcess("SyncPhotos " + iteration, weight);
                 while (await SyncPhotosForBaby(cloudStore, baby, photoProcess)) {
                     iteration++;
                     weight /= 2.0;
                     photoProcess = photosProcess.SubProcess("SyncPhotos " + iteration, weight);
-
-                    if (RemotelyChanged != null) {
-                        RemotelyChanged(this, EventArgs.Empty);
-                    }
+                    await NotifyRemotelyChangedAsync();
                 }
                 photosProcess.AssertFinished();
+                await NotifyRemotelyChangedAsync();
+
+                var entriesProcess = syncBabyProcess.SubProcess("SyncEntries", 0.7);
+                // Since it could loop infinitely, let's progress model an infinite series: 0.5, 0.25, 0.125, ...
+                iteration = 0;
+                weight = 0.5;
+                var entryProcess = entriesProcess.SubProcess("SyncEntries " + iteration, weight);
+                while (await SyncEntriesForBaby(cloudStore, baby, markAsRead, entryProcess)) {
+                    iteration++;
+                    weight /= 2.0;
+                    entryProcess = entriesProcess.SubProcess("SyncEntries " + iteration, weight);
+                    await NotifyRemotelyChangedAsync();
+                }
+                entriesProcess.AssertFinished();
+                await NotifyRemotelyChangedAsync();
 
                 syncBabyProcess.AssertFinished();
 
-                if (RemotelyChanged != null) {
-                    RemotelyChanged(this, EventArgs.Empty);
-                }
             }
             syncBabiesProcess.AssertFinished();
 
@@ -933,9 +979,7 @@ namespace BabbyJotz.iOS {
 
             process.AssertFinished();
 
-            if (RemotelyChanged != null) {
-                RemotelyChanged(this, EventArgs.Empty);
-            }
+            await NotifyRemotelyChangedAsync();
         }
 
         public async Task SyncToCloudAsync(
@@ -961,9 +1005,7 @@ namespace BabbyJotz.iOS {
 
             DateTime finishedTime = DateTime.Now;
 
-            if (RemotelyChanged != null) {
-                RemotelyChanged(this, EventArgs.Empty);
-            }
+            await NotifyRemotelyChangedAsync();
 
             {
                 var parameters = new SqliteParameter[] {
@@ -995,9 +1037,7 @@ namespace BabbyJotz.iOS {
             process.AssertFinished();
 
             // Signal listeners that the database has been updated.
-            if (RemotelyChanged != null) {
-                RemotelyChanged(this, EventArgs.Empty);
-            }
+            await NotifyRemotelyChangedAsync();
 
             try {
                 // We just did a sync to the cloud, so saving a log file should usually work.

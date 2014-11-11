@@ -23,17 +23,18 @@
             </StackLayout.Padding>
             <AbsoluteLayout
                 HeightRequest="200">
-                <Image
+                <local:PhotoView
                     BindingContext="{Binding Baby}"
-                    Source="{Binding ProfilePhoto, Converter={StaticResource photoConverter}}"
+                    Bytes="{Binding ProfilePhoto.Bytes}"
                     HeightRequest="200"
+                    GradientY="0.8"
                     AbsoluteLayout.LayoutBounds="0, 0, 1, 200"
-                    AbsoluteLayout.LayoutFlags="WidthProportional"
-                    Aspect="AspectFill">
-                    <Image.GestureRecognizers>
+                    AbsoluteLayout.LayoutFlags="WidthProportional">
+                    <local:PhotoView.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnBabyTapped"/>
-                    </Image.GestureRecognizers>
-                </Image>
+                    </local:PhotoView.GestureRecognizers>
+                </local:PhotoView>
+                <!--
                 <BoxView
                     Color="#7f000000"
                     HeightRequest="200"
@@ -43,6 +44,7 @@
                         <TapGestureRecognizer Tapped="OnBabyTapped"/>
                     </Image.GestureRecognizers>
                 </BoxView>
+                -->
                 <StackLayout
                     AbsoluteLayout.LayoutBounds="0, 1, -1, -1"
                     AbsoluteLayout.LayoutFlags="PositionProportional">
@@ -74,43 +76,12 @@
                     </Image>
                 </StackLayout>
             </AbsoluteLayout>
-            <!--
-            <StackLayout Orientation="Horizontal" Spacing="8">
-                <StackLayout.Padding>
-                    <Thickness Left="0" Right="0" />
-                </StackLayout.Padding>
-                <Image
-                    BindingContext="{Binding Baby}"
-                    Source="{Binding ProfilePhoto, Converter={StaticResource photoConverter}}"
-                    HeightRequest="50"
-                    WidthRequest="50"
-                    Aspect="AspectFill">
-                    <Image.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnBabyTapped"/>
-                    </Image.GestureRecognizers>
-                </Image>
-                <Label
-                    Text="{Binding Baby.Name}"
-                    TextColor="#cccccc"
-                    LineBreakMode="TailTruncation"
-                    VerticalOptions="CenterAndExpand"
-                    HorizontalOptions="FillAndExpand">
-                    <Image.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnBabyTapped"/>
-                    </Image.GestureRecognizers>
-                </Label>
-            </StackLayout>
-            -->
             <ListView
                 ItemsSource="{Binding Babies}"
                 ItemTapped="OnBabyListTapped"
                 BackgroundColor="{Binding Theme.ListBackground}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <!--<ImageCell
-                            ImageSource="{Binding ProfilePhotoSource}"
-                            Text="{Binding Name}"
-                            TextColor="#cccccc" />-->
                         <ViewCell>
                             <StackLayout
                                 Orientation="Horizontal"
@@ -118,12 +89,11 @@
                                 <StackLayout.Padding>
                                     <Thickness Top="0" Bottom="0" Left="16" Right="8" />
                                 </StackLayout.Padding>
-                                <Image
-                                    Source="{Binding ProfilePhoto, Converter={StaticResource photoConverter}}"
+                                <local:PhotoView
+                                    Bytes="{Binding ProfilePhoto.Bytes}"
                                     HeightRequest="38"
                                     WidthRequest="38"
-                                    VerticalOptions="CenterAndExpand"
-                                    Aspect="AspectFill" />
+                                    VerticalOptions="CenterAndExpand" />
                                 <Label
                                     Text="{Binding Name}"
                                     TextColor="#cccccc"

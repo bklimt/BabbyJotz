@@ -180,15 +180,15 @@ namespace BabbyJotz {
             Date = now - now.TimeOfDay;
 
             PropertyChanged += (sender, e) => {
-                if (e.PropertyName == "Date") {
+                if (e.PropertyName == RootViewModel.DateProperty.PropertyName) {
                     Entries.Clear();
                     RefreshEntriesAsync();
                 }
-                if (e.PropertyName == "Baby") {
+                if (e.PropertyName == RootViewModel.BabyProperty.PropertyName) {
                     Entries.Clear();
                     RefreshEntriesAsync();
                 }
-                if (e.PropertyName == "IsSyncingDisabled") {
+                if (e.PropertyName == RootViewModel.IsSyncingDisabledProperty.PropertyName) {
                     IsSyncingEnabled = !IsSyncingDisabled && CloudStore.UserName != null;
                 }
             };
