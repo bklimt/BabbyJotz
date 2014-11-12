@@ -15,52 +15,54 @@
             <OnPlatform x:Key="showNotificationOptions" x:TypeArguments="x:Boolean" iOS="false" Android="true" />
         </ResourceDictionary>
     </ContentPage.Resources>
-    <StackLayout Spacing="8">
-        <StackLayout.Padding>
-            <Thickness Left="8" Right="8" Top="8" Bottom="8" />
-        </StackLayout.Padding>
-        <StackLayout Orientation="Horizontal" Spacing="8">
-            <Image
-                BindingContext="{Binding Baby}"
-                Source="{Binding ProfilePhoto, Converter={StaticResource photoConverter}}"
-                HeightRequest="50"
-                WidthRequest="50"
-                Aspect="AspectFill">
-            </Image>
-            <Label
-                Text="{Binding Baby.Name}"
-                TextColor="#cccccc"
-                LineBreakMode="TailTruncation"
+    <ScrollView>
+        <StackLayout Spacing="8">
+            <StackLayout.Padding>
+                <Thickness Left="8" Right="8" Top="8" Bottom="8" />
+            </StackLayout.Padding>
+            <StackLayout Orientation="Horizontal" Spacing="8">
+                <Image
+                    BindingContext="{Binding Baby}"
+                    Source="{Binding ProfilePhoto, Converter={StaticResource photoConverter}}"
+                    HeightRequest="50"
+                    WidthRequest="50"
+                    Aspect="AspectFill">
+                </Image>
+                <Label
+                    Text="{Binding Baby.Name}"
+                    TextColor="#cccccc"
+                    LineBreakMode="TailTruncation"
+                    VerticalOptions="CenterAndExpand"
+                    HorizontalOptions="FillAndExpand">
+                </Label>
+            </StackLayout>
+            <StackLayout
                 VerticalOptions="CenterAndExpand"
                 HorizontalOptions="FillAndExpand">
-            </Label>
-        </StackLayout>
-        <StackLayout
-            VerticalOptions="CenterAndExpand"
-            HorizontalOptions="FillAndExpand">
-            <StackLayout HorizontalOptions="FillAndExpand">
-                <Label
-                    Text="Enter the Babby Cloud user name of the person to share with."
-                    TextColor="{Binding RootViewModel.Theme.Text}"
-                    XAlign="Center"
-                    HorizontalOptions="FillAndExpand" />
-                <Label
-                    Text=" "
-                    TextColor="{Binding RootViewModel.Theme.Text}"
-                    HorizontalOptions="FillAndExpand" />
-                <Entry
-                    x:Name="usernameEntry"
-                    HorizontalOptions="FillAndExpand" />
-                <Label
-                    Text=" "
-                    TextColor="{Binding RootViewModel.Theme.Text}"
-                    HorizontalOptions="FillAndExpand" />
-                <Button
-                    Text="Share"
-                    Clicked="OnShareClicked"
-                    TextColor="{Binding RootViewModel.Theme.ButtonText}"
-                    HorizontalOptions="FillAndExpand" />
+                <StackLayout HorizontalOptions="FillAndExpand">
+                    <Label
+                        Text="Enter the Babby Cloud user name of the person to share with."
+                        TextColor="{Binding RootViewModel.Theme.Text}"
+                        XAlign="Center"
+                        HorizontalOptions="FillAndExpand" />
+                    <Label
+                        Text=" "
+                        TextColor="{Binding RootViewModel.Theme.Text}"
+                        HorizontalOptions="FillAndExpand" />
+                    <Entry
+                        x:Name="usernameEntry"
+                        HorizontalOptions="FillAndExpand" />
+                    <Label
+                        Text=" "
+                        TextColor="{Binding RootViewModel.Theme.Text}"
+                        HorizontalOptions="FillAndExpand" />
+                    <Button
+                        Text="Share"
+                        Clicked="OnShareClicked"
+                        TextColor="{Binding RootViewModel.Theme.ButtonText}"
+                        HorizontalOptions="FillAndExpand" />
+                </StackLayout>
             </StackLayout>
         </StackLayout>
-    </StackLayout>
+    </ScrollView>
 </ContentPage>

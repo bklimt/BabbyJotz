@@ -17,9 +17,11 @@ using BabbyJotz.iOS;
 [assembly: ExportRenderer(typeof(PhotoView), typeof(PhotoViewRenderer))]
 namespace BabbyJotz.iOS {
     public class PhotoViewRenderer : ViewRenderer<PhotoView, NativePhotoView> {
-        private void SetBytes(byte[] bytes) {
+        private UIGestureRecognizer tappedGestureRecognizer;
+
+        private void SetBytes(NativePhotoView view, byte[] bytes) {
             if (bytes != null) {
-                Task.Run(async () => {
+                Task.Run(() => {
                     var cg = CGImage.FromJPEG(
                         new CGDataProvider(bytes, 0, bytes.Length),
                         null,
@@ -27,21 +29,43 @@ namespace BabbyJotz.iOS {
                         CGColorRenderingIntent.Default);
                     DispatchQueue.MainQueue.DispatchAsync(() => {
                         var image = UIImage.FromImage(cg);
-                        Control.SetImage(image);
+                        view.SetImage(image);
                     });
                 });
             } else {
                 var image = UIImage.FromFile("Icon-76.png");
-                Control.SetImage(image);
+                view.SetImage(image);
             }
+        }
+
+        private void SetHandlesTaps(NativePhotoView view, bool handlesTaps) {
+            if (handlesTaps) {
+                if (view.GestureRecognizers != null) {
+                    int index = Array.IndexOf(view.GestureRecognizers, tappedGestureRecognizer);
+                    if (index >= 0) {
+                        return;
+                    }
+                }
+                view.AddGestureRecognizer(tappedGestureRecognizer);
+            } else {
+                view.RemoveGestureRecognizer(tappedGestureRecognizer);
+            }
+        }
+
+        public PhotoViewRenderer() {
+            tappedGestureRecognizer =
+                new UITapGestureRecognizer(() => {
+                    Element.NotifyTapped(this, EventArgs.Empty);
+                });
         }
 
         protected override void OnElementChanged(ElementChangedEventArgs<PhotoView> e) {
             base.OnElementChanged(e);
             var view = new NativePhotoView();
+            SetHandlesTaps(view, e.NewElement.HandlesTaps);
             view.SetGradientY(e.NewElement.GradientY);
+            SetBytes(view, e.NewElement.Bytes);
             SetNativeControl(view);
-            SetBytes(e.NewElement.Bytes);
         }
 
         protected override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e) {
@@ -50,9 +74,11 @@ namespace BabbyJotz.iOS {
                 return;
             }
             if (e.PropertyName == PhotoView.BytesProperty.PropertyName) {
-                SetBytes(Element.Bytes);
+                SetBytes(Control, Element.Bytes);
             } else if (e.PropertyName == PhotoView.GradientYProperty.PropertyName) {
                 Control.SetGradientY(Element.GradientY);
+            } else if (e.PropertyName == PhotoView.HandlesTapsProperty.PropertyName) {
+                SetHandlesTaps(Control, Element.HandlesTaps);
             }
         }
     }

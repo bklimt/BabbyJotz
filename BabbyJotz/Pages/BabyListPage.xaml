@@ -28,11 +28,9 @@
                     Bytes="{Binding ProfilePhoto.Bytes}"
                     HeightRequest="200"
                     GradientY="0.8"
+                    Tapped="OnBabyTapped"
                     AbsoluteLayout.LayoutBounds="0, 0, 1, 200"
                     AbsoluteLayout.LayoutFlags="WidthProportional">
-                    <local:PhotoView.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnBabyTapped"/>
-                    </local:PhotoView.GestureRecognizers>
                 </local:PhotoView>
                 <!--
                 <BoxView
@@ -68,6 +66,7 @@
                     </StackLayout.Padding>
                     <Image
                         Source="gear.png"
+                        VerticalOptions="CenterAndExpand"
                         HeightRequest="22"
                         WidthRequest="22">
                         <Image.GestureRecognizers>

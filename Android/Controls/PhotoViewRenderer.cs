@@ -36,6 +36,9 @@ namespace BabbyJotz.Android {
             base.OnElementChanged(e);
             var view = new NativePhotoView(Context);
             view.SetGradientY(e.NewElement.GradientY);
+            view.Click += (object sender, EventArgs args) => {
+                Element.NotifyTapped(sender, args);
+            };
             SetNativeControl(view);
             SetBytes(e.NewElement.Bytes);
         }

@@ -25,14 +25,13 @@ namespace BabbyJotz.iOS {
             SetNeedsDisplay();
         }
 
-        public override void Draw(RectangleF rect) {
+        public override void Draw(RectangleF dirtyRect) {
             var context = UIGraphics.GetCurrentContext();
-            UIColor.Red.SetFill();
-            context.FillEllipseInRect(rect);
+            var drawingRect = Bounds;
 
             if (image != null) {
                 // This logic makes the image fill the control, while maintaining the aspect ratio.
-                var ratio = rect.Width / rect.Height;
+                var ratio = drawingRect.Width / drawingRect.Height;
                 var x = 0.0f;
                 var y = 0.0f;
                 var expectedWidthForHeight = image.CGImage.Height * ratio;
@@ -42,9 +41,10 @@ namespace BabbyJotz.iOS {
                 } else if (image.CGImage.Height > expectedHeightForWidth) {
                     y = (image.CGImage.Height - expectedHeightForWidth) / 2.0f;
                 }
-                var src = new RectangleF(x, y, (image.CGImage.Width - x), (image.CGImage.Height - y));
+                var src = new RectangleF(
+                    x, y, (image.CGImage.Width - x * 2), (image.CGImage.Height - y * 2));
                 var cropped = UIImage.FromImage(image.CGImage.WithImageInRect(src));
-                cropped.Draw(rect);
+                cropped.Draw(drawingRect);
             }
 
             // Draw the gradient over the bottom.
@@ -56,8 +56,8 @@ namespace BabbyJotz.iOS {
                 });
                 context.DrawLinearGradient(
                     gradient,
-                    new PointF(rect.Left, rect.Top + (float)gradientY * rect.Height),
-                    new PointF(rect.Left, rect.Bottom),
+                    new PointF(drawingRect.Left, drawingRect.Top + (float)gradientY * drawingRect.Height),
+                    new PointF(drawingRect.Left, drawingRect.Bottom),
                     CGGradientDrawingOptions.DrawsAfterEndLocation);
             }
         }

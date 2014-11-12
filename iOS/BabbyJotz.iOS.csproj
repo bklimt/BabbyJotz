@@ -161,9 +161,6 @@
     <BundleResource Include="Resources\toolbar_left.png" />
     <BundleResource Include="Resources\toolbar_left%402x.png" />
     <BundleResource Include="Resources\toolbar_left%403x.png" />
-    <BundleResource Include="Resources\gear.png" />
-    <BundleResource Include="Resources\gear%402x.png" />
-    <BundleResource Include="Resources\gear%403x.png" />
     <BundleResource Include="Resources\toolbar_menu%403x.png" />
     <BundleResource Include="Resources\toolbar_menu%402x.png" />
     <BundleResource Include="Resources\toolbar_menu.png" />
@@ -173,6 +170,9 @@
     <BundleResource Include="Resources\Default-Landscape.png" />
     <BundleResource Include="Resources\Default-Portrait%402x.png" />
     <BundleResource Include="Resources\Default-Landscape%402x.png" />
+    <BundleResource Include="Resources\gear.png" />
+    <BundleResource Include="Resources\gear%402x.png" />
+    <BundleResource Include="Resources\gear%403x.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

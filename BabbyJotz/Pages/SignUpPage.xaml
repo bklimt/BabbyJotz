@@ -5,57 +5,59 @@
     x:Class="BabbyJotz.SignUpPage"
     BackgroundColor="{Binding Theme.Background}">
     <ContentPage.Content>
-        <StackLayout Spacing="8">
-            <StackLayout.Padding>
-                <Thickness Top="20" Bottom="20" Left="20" Right="20" />
-            </StackLayout.Padding>
-            <Label
-                Text="Email:"
-                TextColor="{Binding Theme.Text}" />
-            <Entry
-                x:Name="username"
-                BackgroundColor="White"
-                HorizontalOptions="FillAndExpand" />
-            <Label
-                Text="Password:"
-                TextColor="{Binding Theme.Text}" />
-            <Entry
-                x:Name="password"
-                IsPassword="true"
-                BackgroundColor="White"
-                HorizontalOptions="FillAndExpand" />
-            <Label
-                Text="Retype Password:"
-                TextColor="{Binding Theme.Text}" />
-            <Entry
-                x:Name="retypePassword"
-                IsPassword="true"
-                BackgroundColor="White"
-                HorizontalOptions="FillAndExpand" />
-            <StackLayout Orientation="Horizontal">
-                <Button
-                    Text="Cancel"
-                    Clicked="OnCancelClicked"
-                    TextColor="{Binding Theme.ButtonText}"
+        <ScrollView>
+            <StackLayout Spacing="8">
+                <StackLayout.Padding>
+                    <Thickness Top="20" Bottom="20" Left="20" Right="20" />
+                </StackLayout.Padding>
+                <Label
+                    Text="Email:"
+                    TextColor="{Binding Theme.Text}" />
+                <Entry
+                    x:Name="username"
+                    BackgroundColor="White"
                     HorizontalOptions="FillAndExpand" />
-                <Button
-                    Text="Sign Up"
-                    Clicked="OnSignUpClicked"
-                    TextColor="{Binding Theme.ButtonText}"
+                <Label
+                    Text="Password:"
+                    TextColor="{Binding Theme.Text}" />
+                <Entry
+                    x:Name="password"
+                    IsPassword="true"
+                    BackgroundColor="White"
                     HorizontalOptions="FillAndExpand" />
+                <Label
+                    Text="Retype Password:"
+                    TextColor="{Binding Theme.Text}" />
+                <Entry
+                    x:Name="retypePassword"
+                    IsPassword="true"
+                    BackgroundColor="White"
+                    HorizontalOptions="FillAndExpand" />
+                <StackLayout Orientation="Horizontal">
+                    <Button
+                        Text="Cancel"
+                        Clicked="OnCancelClicked"
+                        TextColor="{Binding Theme.ButtonText}"
+                        HorizontalOptions="FillAndExpand" />
+                    <Button
+                        Text="Sign Up"
+                        Clicked="OnSignUpClicked"
+                        TextColor="{Binding Theme.ButtonText}"
+                        HorizontalOptions="FillAndExpand" />
+                </StackLayout>
+                <Label
+                    Text=" "
+                    TextColor="{Binding Theme.Text}" />
+                <Label
+                    Text="Read the Privacy Policy if you want to know why we ask for your email."
+                    TextColor="{Binding Theme.Text}" />
+                <Button
+                    Text="View Privacy Policy"
+                    Clicked="OnViewPrivacyPolicyClicked"
+                    TextColor="{Binding Theme.ButtonText}"
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="EndAndExpand" />
             </StackLayout>
-            <Label
-                Text=" "
-                TextColor="{Binding Theme.Text}" />
-            <Label
-                Text="Read the Privacy Policy if you want to know why we ask for your email."
-                TextColor="{Binding Theme.Text}" />
-            <Button
-                Text="View Privacy Policy"
-                Clicked="OnViewPrivacyPolicyClicked"
-                TextColor="{Binding Theme.ButtonText}"
-                HorizontalOptions="FillAndExpand"
-                VerticalOptions="EndAndExpand" />
-        </StackLayout>
+        </ScrollView>
     </ContentPage.Content>
 </ContentPage>
