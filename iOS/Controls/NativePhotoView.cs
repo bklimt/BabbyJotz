@@ -29,6 +29,10 @@ namespace BabbyJotz.iOS {
             var context = UIGraphics.GetCurrentContext();
             var drawingRect = Bounds;
 
+            // TODO: Well, that's a gross hack.
+            context.SetFillColorWithColor(new CGColor(0.2f, 1.0f));
+            context.FillRect(drawingRect);
+
             if (image != null) {
                 // This logic makes the image fill the control, while maintaining the aspect ratio.
                 var ratio = drawingRect.Width / drawingRect.Height;

@@ -94,6 +94,22 @@ namespace BabbyJotz {
         }
 
         #endregion
+        #region Baby Tab
+
+        public void OnSwitchBabyClicked(object sender, EventArgs args) {
+            var masterDetail = Parent.Parent as MasterDetailPage;
+            masterDetail.IsPresented = true;
+        }
+
+        public async void OnShareBabyClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new SharePage(RootViewModel, RootViewModel.Baby));
+        }
+
+        public async void OnEditBabyClicked(object sender, EventArgs args) {
+            await Navigation.PushAsync(new EditBabyPage(RootViewModel, new Baby(RootViewModel.Baby)));
+        }
+            
+        #endregion
         #region Sync Tab
 
         public async void OnSyncToggled(object sender, EventArgs args) {

@@ -82,25 +82,38 @@ namespace BabbyJotz {
 
         public async void OnUnlinkClicked(object sender, EventArgs args) {
             // TODO: Disable the Save and Delete buttons while this is happening.
-            var ok = await DisplayAlert("Remove " + Baby.Name + "?", "Are you sure? " +
-                "Once you remove this baby from your account, you will no longer be able to access " +
-                "their data. If you are the last person to remove this baby, the baby will be " +
-                "deleted.", "Remove", "Cancel");
-            if (!ok) {
-                return;
-            }
+            if (RootViewModel.CloudUserName == null) {
+                var ok = await DisplayAlert("Remove " + Baby.Name + "?", "Are you sure? " +
+                    "Once you remove this baby from your device, you will no longer be able to access " +
+                    "their data.", "Remove", "Cancel");
+                if (!ok) {
+                    return;
+                }
 
-            ok = await DisplayAlert("Remove " + Baby.Name + "?", "Are you really super-duper sure? " +
-                "Warning: Just because you remove a baby from this app, that doesn't lessen your " +
-                "responsibilities in real life. You still have to feed them and stuff.",
-                "Remove!", "Cancel");
-            if (!ok) {
-                return;
-            }
+                await RootViewModel.LocalStore.DeleteAsync(Baby);
+                await Navigation.PopAsync();
 
-            await RootViewModel.CloudStore.UnlinkAsync(Baby);
-            await Navigation.PopAsync();
-            RootViewModel.TryToSyncEventually("Remove Baby Clicked");
+            } else {
+                var ok = await DisplayAlert("Remove " + Baby.Name + "?", "Are you sure? " +
+                         "Once you remove this baby from your account, you will no longer be able to access " +
+                         "their data. If you are the last person to remove this baby, the baby will be " +
+                         "deleted.", "Remove", "Cancel");
+                if (!ok) {
+                    return;
+                }
+
+                ok = await DisplayAlert("Remove " + Baby.Name + "?", "Are you really super-duper sure? " +
+                    "Warning: Just because you remove a baby from this app, that doesn't lessen your " +
+                    "responsibilities in real life. You still have to feed them and stuff.",
+                    "Remove!", "Cancel");
+                if (!ok) {
+                    return;
+                }
+
+                await RootViewModel.CloudStore.UnlinkAsync(Baby);
+                await Navigation.PopAsync();
+                RootViewModel.TryToSyncEventually("Remove Baby Clicked");
+            }
         }
 
         public async void OnDeleteClicked(object sender, EventArgs args) {

@@ -173,6 +173,10 @@
     <BundleResource Include="Resources\gear.png" />
     <BundleResource Include="Resources\gear%402x.png" />
     <BundleResource Include="Resources\gear%403x.png" />
+    <BundleResource Include="Resources\baby.png" />
+    <BundleResource Include="Resources\baby%402x.png" />
+    <BundleResource Include="Resources\baby%403x.png" />
+    <BundleResource Include="Resources\ic_launcher.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

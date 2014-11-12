@@ -33,7 +33,7 @@ namespace BabbyJotz.iOS {
                     });
                 });
             } else {
-                var image = UIImage.FromFile("Icon-76.png");
+                var image = UIImage.FromFile("ic_launcher.png");
                 view.SetImage(image);
             }
         }
