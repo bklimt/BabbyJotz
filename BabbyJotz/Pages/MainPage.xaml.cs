@@ -65,10 +65,18 @@ namespace BabbyJotz {
 
         protected override void OnAppearing() {
             base.OnAppearing();
+            RootViewModel.CloudStore.LogEvent("MainPage.OnAppearing");
             MaybeShowNux();
         }
 
+        protected override void OnCurrentPageChanged() {
+            base.OnCurrentPageChanged();
+            RootViewModel.CloudStore.LogEvent("MainPage.OnCurrentPageChanged");
+            RootViewModel.CloudStore.LogEvent("MainPage.OnCurrentPageChanged." + CurrentPage.Title);
+        }
+
         private async Task OnAddClicked() {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnAddClicked");
             await Navigation.PushAsync(new EntryPage(RootViewModel, new LogEntry(RootViewModel.Baby)));
         }
 
@@ -79,6 +87,7 @@ namespace BabbyJotz {
         #region Log Tab
 
         public async void OnEntryTapped(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnEntryTapped");
             var tappedArgs = args as ItemTappedEventArgs;
             var entry = tappedArgs.Item as LogEntry;
             await Navigation.PushAsync(new EntryPage(RootViewModel, new LogEntry(entry)));
@@ -86,10 +95,12 @@ namespace BabbyJotz {
         }
 
         public void OnPreviousDayClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnPreviousDayClicked");
             RootViewModel.Date -= TimeSpan.FromDays(1);
         }
 
         public void OnNextDayClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnNextDayClicked");
             RootViewModel.Date += TimeSpan.FromDays(1);
         }
 
@@ -97,15 +108,18 @@ namespace BabbyJotz {
         #region Baby Tab
 
         public void OnSwitchBabyClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnSwitchBabyClicked");
             var masterDetail = Parent.Parent as MasterDetailPage;
             masterDetail.IsPresented = true;
         }
 
         public async void OnShareBabyClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnShareBabyClicked");
             await Navigation.PushAsync(new SharePage(RootViewModel, RootViewModel.Baby));
         }
 
         public async void OnEditBabyClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnEditBabyClicked");
             await Navigation.PushAsync(new EditBabyPage(RootViewModel, new Baby(RootViewModel.Baby)));
         }
             
@@ -113,6 +127,7 @@ namespace BabbyJotz {
         #region Sync Tab
 
         public async void OnSyncToggled(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnSyncToggled");
             var toggle = sender as Switch;
 
             // Bail if this was just updated by the binding.
@@ -143,29 +158,36 @@ namespace BabbyJotz {
         }
 
         public async void OnSyncClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnSyncClicked");
             try {
                 await RootViewModel.SyncAsync("Sync Button Clicked", true);
             } catch (TaskCanceledException) {
                 // Ignore it.
-            } catch (Exception e) {
-                await DisplayAlert("Error", String.Format("Unable to sync: {0}", e), "Ok");
+            } catch (Exception) {
+                var message = String.Format("Unable to sync.");
+                // var message = String.Format("Unable to sync: {0}", e);
+                await DisplayAlert("Error", message, "Ok");
                 // await DisplayAlert("Error", String.Format("Unable to sync. Check your network connection.", e), "Ok");
             }
         }
 
         public void OnCancelSyncClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnCancelSyncClicked");
             RootViewModel.CancelSync();
         }
 
         public void OnLogInClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnLogInClicked");
             Navigation.PushAsync(new LogInPage(RootViewModel));
         }
 
         public async void OnLogOutClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnLogOutClicked");
             await Navigation.PushAsync(new LogOutPage(RootViewModel));
         }
 
         public async void OnViewPrivacyPolicyClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnViewPrivacyPolicyClicked");
             var page = new WebViewPage("Privacy Policy", () => {
                 return Task.FromResult(App.PrivacyPolicy);
             });
@@ -175,6 +197,7 @@ namespace BabbyJotz {
         #endregion
 
         public async void OnToggleThemeClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnToggleThemeClicked");
             RootViewModel.ToggleTheme();
             if (Device.OS == TargetPlatform.iOS) {
                 // This is a stupid hack to force the tabs on the bottom to update.
@@ -272,66 +295,79 @@ namespace BabbyJotz {
         }
 
         public async void OnSleepingBarChartClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnSleepingBarChartClicked");
             await Navigation.PushAsync(new WebViewPage("Sleeping", () =>
                 StatisticsHtmlBuilder.GetSleepingBarChartHtmlAsync(RootViewModel)));
         }
 
         public async void OnSleepingDayHeatMapClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnSleepingDayHeatMapClicked");
             await Navigation.PushAsync(new WebViewPage("Sleeping", () =>
                 StatisticsHtmlBuilder.GetSleepingDayHeatMapHtmlAsync(RootViewModel)));
         }
 
         public async void OnSleepingNightHeatMapClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnSleepingNightHeatMapClicked");
             await Navigation.PushAsync(new WebViewPage("Sleeping", () =>
                 StatisticsHtmlBuilder.GetSleepingNightHeatMapHtmlAsync(RootViewModel)));
         }
 
         public async void OnFormulaBarChartClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnFormulaBarChartClicked");
             await Navigation.PushAsync(new WebViewPage("Eating", () =>
                 StatisticsHtmlBuilder.GetFormulaBarChartHtmlAsync(RootViewModel)));
         }
 
         public async void OnFormulaHeatMapClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnFormulaHeatMapClicked");
             await Navigation.PushAsync(new WebViewPage("Eating", () =>
                 StatisticsHtmlBuilder.GetFormulaHeatMapHtmlAsync(RootViewModel)));
         }
 
         public async void OnPumpedBarChartClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnPumpedBarChartClicked");
             await Navigation.PushAsync(new WebViewPage("Eating", () =>
                 StatisticsHtmlBuilder.GetPumpedBarChartHtmlAsync(RootViewModel)));
         }
 
         public async void OnPumpedHeatMapClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnPumpedHeatMapClicked");
             await Navigation.PushAsync(new WebViewPage("Eating", () =>
                 StatisticsHtmlBuilder.GetPumpedHeatMapHtmlAsync(RootViewModel)));
         }
 
         public async void OnBottleBarChartClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnBottleBarChartClicked");
             await Navigation.PushAsync(new WebViewPage("Eating", () =>
                 StatisticsHtmlBuilder.GetBottleBarChartHtmlAsync(RootViewModel)));
         }
 
         public async void OnBottleHeatMapClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnBottleHeatMapClicked");
             await Navigation.PushAsync(new WebViewPage("Eating", () =>
                 StatisticsHtmlBuilder.GetBottleHeatMapHtmlAsync(RootViewModel)));
         }
 
         public async void OnBreastfeedingBarChartClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnBreastfeedingBarChartClicked");
             await Navigation.PushAsync(new WebViewPage("Eating", () =>
                 StatisticsHtmlBuilder.GetBreastfeedingBarChartHtmlAsync(RootViewModel)));
         }
 
         public async void OnBreastfeedingHeatMapClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnBreastfeedingHeatMapClicked");
             await Navigation.PushAsync(new WebViewPage("Eating", () =>
                 StatisticsHtmlBuilder.GetBreastfeedingHeatMapHtmlAsync(RootViewModel)));
         }
 
         public async void OnPoopingBarChartClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnPoopingBarChartClicked");
             await Navigation.PushAsync(new WebViewPage("Pooping", () =>
                 StatisticsHtmlBuilder.GetPoopingBarChartHtmlAsync(RootViewModel)));
         }
 
         public async void OnPoopingHeatMapClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("MainPage.OnPoopingHeatMapClicked");
             await Navigation.PushAsync(new WebViewPage("Pooping", () =>
                 StatisticsHtmlBuilder.GetPoopingHeatMapHtmlAsync(RootViewModel)));
         }

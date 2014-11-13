@@ -17,7 +17,7 @@ namespace BabbyJotz.Android {
         public override void OnCreate() {
             base.OnCreate();
             var prefs = new Preferences(this);
-            var cloudStore = new BabbyJotz.iOS.ParseStore(prefs);
+            var cloudStore = new BabbyJotz.iOS.ParseStore(this, prefs);
             var localStore = new BabbyJotz.iOS.LocalStore();
             RootViewModel = new RootViewModel(localStore, cloudStore, prefs);
         }

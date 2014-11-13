@@ -22,17 +22,20 @@ namespace BabbyJotz {
 
         protected override void OnAppearing() {
             base.OnAppearing();
+            RootViewModel.CloudStore.LogEvent("LinkExistingBabyPage.OnAppearing");
             if (RootViewModel.CloudUserName != null) {
                 UpdateInvites();
             }
         }
 
         public async void OnLogInClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("LinkExistingBabyPage.OnLogInClicked");
             var page = new LogInPage(RootViewModel);
             await Navigation.PushAsync(page);
         }
 
         public async void OnViewPrivacyPolicyClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("LinkExistingBabyPage.OnViewPrivacyPolicyClicked");
             var page = new WebViewPage("Privacy Policy", () => {
                 return Task.FromResult(App.PrivacyPolicy);
             });
@@ -40,11 +43,13 @@ namespace BabbyJotz {
         }
 
         public async void OnLogOutClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("LinkExistingBabyPage.OnLogOutClicked");
             var page = new LogOutPage(RootViewModel);
             await Navigation.PushAsync(page);
         }
 
         private async void UpdateInvites() {
+            RootViewModel.CloudStore.LogEvent("LinkExistingBabyPage.UpdateInvites");
             var invites = await RootViewModel.CloudStore.GetInvitesAsync();
             Invites.Clear();
             foreach (var invite in invites) {

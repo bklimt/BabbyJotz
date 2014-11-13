@@ -13,6 +13,7 @@ namespace BabbyJotz {
         }
 
         private async void OnBabyTapped(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("BabyListPage.OnBabyTapped");
             var parent = Parent as MasterDetailPage;
             parent.IsPresented = false;
             await parent.Detail.Navigation.PushAsync(
@@ -20,6 +21,7 @@ namespace BabbyJotz {
         }
 
         public async void OnBabyListTapped(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("BabyListPage.OnBabyListTapped");
             var tappedArgs = args as ItemTappedEventArgs;
             var baby = tappedArgs.Item as Baby;
             if (baby.Uuid == null) {

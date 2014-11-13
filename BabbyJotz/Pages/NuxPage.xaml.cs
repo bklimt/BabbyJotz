@@ -13,11 +13,13 @@ namespace BabbyJotz {
         }
 
         public async void OnNewBabyClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("NuxPage.OnNewBabyClicked");
             var page = new EditBabyPage(RootViewModel, null);
             await Navigation.PushAsync(page);
         }
 
         public async void OnLinkExistingBabyClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("NuxPage.OnLinkExistingBabyClicked");
             var page = new LinkExistingBabyPage(RootViewModel);
             await Navigation.PushAsync(page);
         }

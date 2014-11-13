@@ -111,7 +111,7 @@ namespace BabbyJotz.Android {
 
             var resultIntent = new Intent(this, typeof(SplashActivity));
 
-            var stackBuilder = TaskStackBuilder.Create(this);
+            var stackBuilder = global::Android.Support.V4.App.TaskStackBuilder.Create(this);
             stackBuilder.AddParentStack(Java.Lang.Class.FromType(typeof(SplashActivity)));
             stackBuilder.AddNextIntent(resultIntent);
 

@@ -29,6 +29,7 @@ namespace BabbyJotz {
         }
 
         public async void OnPhotoClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("EditBabyPage.OnPhotoClicked");
             var picker = DependencyService.Get<IMediaPicker>();
 
             bool camera = false;
@@ -62,6 +63,7 @@ namespace BabbyJotz {
         }
 
         public async void OnSaveClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("EditBabyPage.OnSaveClicked");
             // TODO: Disable the Save and Delete buttons while this is happening.
             // Photos are treated as immutable, so only save new ones.
             if (Baby.ProfilePhoto != null && Baby.ProfilePhoto.ObjectId == null) {
@@ -77,11 +79,13 @@ namespace BabbyJotz {
         }
 
         public async void OnShareClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("EditBabyPage.OnShareClicked");
             await Navigation.PushAsync(new SharePage(RootViewModel, Baby));
         }
 
         public async void OnUnlinkClicked(object sender, EventArgs args) {
             // TODO: Disable the Save and Delete buttons while this is happening.
+            RootViewModel.CloudStore.LogEvent("EditBabyPage.OnUnlinkClicked");
             if (RootViewModel.CloudUserName == null) {
                 var ok = await DisplayAlert("Remove " + Baby.Name + "?", "Are you sure? " +
                     "Once you remove this baby from your device, you will no longer be able to access " +
@@ -118,6 +122,7 @@ namespace BabbyJotz {
 
         public async void OnDeleteClicked(object sender, EventArgs args) {
             // TODO: Disable the Save and Delete buttons while this is happening.
+            RootViewModel.CloudStore.LogEvent("EditBabyPage.OnDeleteClicked");
             var ok = await DisplayAlert("Are you sure?", "Delete " + Baby.Name + "?", "Delete", "Cancel");
             if (ok) {
                 await RootViewModel.LocalStore.DeleteAsync(Baby);

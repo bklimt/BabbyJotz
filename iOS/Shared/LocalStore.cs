@@ -987,6 +987,8 @@ namespace BabbyJotz.iOS {
             bool markNewAsRead,
             InstrumentedProcess process) {
 
+            cloudStore.LogEvent("ParseStore.SyncToCloudAsync.Started");
+
             /*
              * The breakdown for progress is like this:
              * 0.15 - Save changes.
@@ -1046,6 +1048,8 @@ namespace BabbyJotz.iOS {
             } catch (Exception) {
                 // Meh.
             }
+
+            cloudStore.LogEvent("ParseStore.SyncToCloudAsync.Finished");
         }
 
         #endregion

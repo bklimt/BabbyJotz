@@ -19,6 +19,7 @@ namespace BabbyJotz {
         }
 
         public async void OnSaveClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("EntryPage.OnSaveClicked");
             // TODO: Disable the Save and Delete buttons while this is happening.
             await RootViewModel.LocalStore.SaveAsync(Entry);
             try {
@@ -30,6 +31,7 @@ namespace BabbyJotz {
         }
 
         public async void OnDeleteClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("EntryPage.OnDeleteClicked");
             // TODO: Disable the Save and Delete buttons while this is happening.
             var ok = await DisplayAlert("Are you sure?", "Delete \"" + Entry.Description + "\"?", "Delete", "Cancel");
             if (ok) {
@@ -43,6 +45,7 @@ namespace BabbyJotz {
         }
 
         public void OnNotesFocused(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("EntryPage.OnNotesFocused");
         }
     }
 }

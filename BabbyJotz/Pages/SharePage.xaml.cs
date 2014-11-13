@@ -18,6 +18,7 @@ namespace BabbyJotz {
         }
 
         public async void OnShareClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("SharePage.OnShareClicked");
             await RootViewModel.CloudStore.InviteAsync(usernameEntry.Text, Baby);
             await DisplayAlert("Share Baby", "Invitation sent!", "Ok");
             await Navigation.PopAsync();

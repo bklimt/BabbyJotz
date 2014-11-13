@@ -32,6 +32,7 @@ namespace BabbyJotz {
         Task RegisterForPushAsync(string deviceToken);
 
         Task LogSyncReportAsync(string report);
+        void LogEvent(string name);
     }
 }
 

@@ -13,6 +13,7 @@ using MonoTouch.UIKit;
 #else
 using Android.App;
 using Android.Content;
+using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
 #endif
@@ -20,9 +21,31 @@ using Android.Runtime;
 namespace BabbyJotz.iOS {
     public class ParseStore : ICloudStore {
         private IPreferences Preferences { get; set; }
+        private string InstanceUuid { get; set; }
 
-        public ParseStore(IPreferences prefs) {
+        private bool LogEvents { get; set; }
+        private bool LogExceptions { get; set; }
+        private bool LogSyncReports { get; set; }
+
+        #if __ANDROID__
+        private Context Context { get; set; }
+        #endif
+
+        public ParseStore(
+            #if __ANDROID__
+            Context context,
+            #endif
+            IPreferences prefs
+        ) {
+            #if __ANDROID__
+            Context = context.ApplicationContext;
+            #endif
             Preferences = prefs;
+            InstanceUuid = Guid.NewGuid().ToString("D");
+
+            LogEvents = !prefs.Get(PreferenceKey.DoNotLogEvents);
+            LogExceptions = !prefs.Get(PreferenceKey.DoNotLogExceptions);
+            LogSyncReports = !prefs.Get(PreferenceKey.DoNotLogSyncReports);
 
             ParseClient.Initialize(
                 "dRJrkKFywmUEYJx10K96Sw848juYyFF01Zlno6Uf",
@@ -32,6 +55,31 @@ namespace BabbyJotz.iOS {
                 ParseAnalytics.TrackAppOpenedAsync();
             } catch (Exception) {
                 // Well, we tried our best.
+            }
+
+            UpdateConfig();
+        }
+
+        private async void UpdateConfig() {
+            try {
+                var config = await ParseConfig.GetAsync();
+
+                bool value;
+                if (config.TryGetValue<bool>("logEvents", out value)) {
+                    LogEvents = value;
+                    Preferences.Set(PreferenceKey.DoNotLogEvents, !value);
+                }
+                if (config.TryGetValue<bool>("logExceptions", out value)) {
+                    LogExceptions = value;
+                    Preferences.Set(PreferenceKey.DoNotLogExceptions, !value);
+                }
+                if (config.TryGetValue<bool>("logSyncReports", out value)) {
+                    LogSyncReports = value;
+                    Preferences.Set(PreferenceKey.DoNotLogSyncReports, !value);
+                }
+            } catch (Exception e) {
+                // Oh well...
+                Console.WriteLine("Unable to update config: {0}\n", e);
             }
         }
 
@@ -401,6 +449,7 @@ namespace BabbyJotz.iOS {
 
         // Call this to initiate the push process.
         private void RegisterForPush() {
+            LogEvent("ParseStore.RegisterForPush");
             #if __IOS__
                 if (new Version(UIDevice.CurrentDevice.SystemVersion) < new Version(8, 0)) {
                     var notificationTypes =
@@ -434,6 +483,7 @@ namespace BabbyJotz.iOS {
         }
 
         private void UnregisterForPush() {
+            LogEvent("ParseStore.UnregisterForPush");
             #if __IOS__
                 UIApplication.SharedApplication.UnregisterForRemoteNotifications();
             #else
@@ -447,6 +497,7 @@ namespace BabbyJotz.iOS {
 
         // Call this once you get a device token.
         public async Task RegisterForPushAsync(string deviceToken) {
+            LogEvent("ParseStore.RegisterForPushAsync");
             // From https://groups.google.com/forum/#!topic/parse-developers/pPatDDkzcEc
             // And https://gist.github.com/gfosco/a526cbc3061398d50e8b
             var objectId = Preferences.Get(PreferenceKey.ParseInstallationObjectId);
@@ -470,6 +521,11 @@ namespace BabbyJotz.iOS {
                 obj["pushType"] = "gcm";
             #endif
 
+            var systemData = AddSystemData(new Dictionary<string, object>());
+            foreach (var data in systemData) {
+                obj[data.Key] = data.Value;
+            }
+
             await obj.SaveAsync();
             Preferences.Set(PreferenceKey.ParseInstallationObjectId, obj.ObjectId);
         }
@@ -477,10 +533,65 @@ namespace BabbyJotz.iOS {
         #endregion
         #region Logging
 
+        private Dictionary<string, object> AddSystemData(Dictionary<string, object> dict) {
+            #if __IOS__
+            var info = NSBundle.MainBundle.InfoDictionary;
+            dict.Add("platform", "ios");
+            dict.Add("osVersionString", NSProcessInfo.ProcessInfo.OperatingSystemVersionString);
+            dict.Add("osName", NSProcessInfo.ProcessInfo.OperatingSystemName);
+            dict.Add("displayName", ((NSString)info["CFBundleDisplayName"]).ToString());
+            dict.Add("shortVersionString", ((NSString)info["CFBundleShortVersionString"]).ToString());
+            dict.Add("version", ((NSString)info["CFBundleVersion"]).ToString());
+            #else
+            var pkgInfo = Context.PackageManager.GetPackageInfo(Context.PackageName, 0);
+            dict.Add("platform", "android");
+            dict.Add("packageName", Context.PackageName);
+            dict.Add("versionName", pkgInfo.VersionName);
+            dict.Add("versionCodeString", String.Format("{0}", pkgInfo.VersionCode));
+            dict.Add("androidVersionCodename", Build.VERSION.Codename);
+            dict.Add("androidVersionIncremental", Build.VERSION.Incremental);
+            dict.Add("androidVersionRelease", Build.VERSION.Release);
+            #endif
+            return dict;
+        }
+
         public async Task LogSyncReportAsync(string report) {
-            await ParseCloud.CallFunctionAsync<bool>("logSyncReport", new Dictionary<string, object>() {
-                { "report", report }
-            });
+            if (!LogSyncReports) {
+                return;
+            }
+            LogEvent("ParseStore.LogSyncReportAsync");
+            await ParseCloud.CallFunctionAsync<bool>("logSyncReport",
+                AddSystemData(new Dictionary<string, object>() {
+                { "report", report },
+                { "instance", InstanceUuid },
+            }));
+        }
+
+        public async Task LogExceptionAsync(Exception e) {
+            if (!LogExceptions) {
+                return;
+            }
+            LogEvent("ParseStore.LogException");
+            await ParseCloud.CallFunctionAsync<bool>("logException",
+                AddSystemData(new Dictionary<string, object>() {
+                { "exception", e.ToString() },
+                { "instance", InstanceUuid },
+            }));
+        }
+
+        public async void LogEvent(string name) {
+            if (!LogEvents) {
+                return;
+            }
+            try {
+                await ParseCloud.CallFunctionAsync<bool>("logEvent",
+                    AddSystemData(new Dictionary<string, object>() {
+                    { "name", name },
+                    { "instance", InstanceUuid }
+                }));
+            } catch (Exception e) {
+                Console.WriteLine("Unable to log event: {0}", e);
+            }
         }
 
         #endregion

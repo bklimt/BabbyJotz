@@ -8,6 +8,7 @@ namespace BabbyJotz {
             BindingContext = model;
             InitializeComponent();
             Appearing += async (object sender, EventArgs args) => {
+                model.CloudStore.LogEvent("VanishingPage.Appearing");
                 await Navigation.PopAsync();
             };
         }

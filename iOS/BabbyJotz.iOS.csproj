@@ -64,10 +64,13 @@
     <WarningLevel>4</WarningLevel>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <ConsolePause>false</ConsolePause>
-    <CodesignKey>iPhone Distribution</CodesignKey>
-    <CodesignProvision>3c621d8a-5b32-4df9-9467-4c9bf2209df0</CodesignProvision>
+    <CodesignKey>iPhone Developer</CodesignKey>
+    <CodesignProvision>d4b23444-9038-414d-b199-e6b45d6440c9</CodesignProvision>
     <IpaPackageName>
     </IpaPackageName>
+    <MtouchI18n>
+    </MtouchI18n>
+    <MtouchArch>ARMv7</MtouchArch>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Ad-Hoc|iPhone' ">
     <DebugType>full</DebugType>
@@ -87,10 +90,10 @@
     <OutputPath>bin\iPhone\AppStore</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodesignKey>iPhone Distribution</CodesignKey>
+    <CodesignKey>iPhone Distribution: Bryan Klimt (BNHJYV62WY)</CodesignKey>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <ConsolePause>false</ConsolePause>
-    <CodesignProvision>3c621d8a-5b32-4df9-9467-4c9bf2209df0</CodesignProvision>
+    <CodesignProvision>4d33b221-9e62-4e7d-bca4-7c49c66d7b58</CodesignProvision>
     <IpaPackageName>
     </IpaPackageName>
     <MtouchI18n>
