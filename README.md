@@ -1,5 +1,5 @@
-BabbyJotz
-=========
+Babby Jotz
+==========
 
 A Xamarin app for noting baby information. This app was hacked together in my spare time, but it does show off lots of useful techniques for mobile developers.
 
