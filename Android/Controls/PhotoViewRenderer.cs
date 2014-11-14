@@ -24,7 +24,9 @@ namespace BabbyJotz.Android {
                     var bitmap = await BitmapFactory.DecodeByteArrayAsync(bytes, 0, bytes.Length);
                     var handler = new Handler(Looper.MainLooper);
                     handler.Post(() => {
-                        Control.SetImageBitmap(bitmap);
+                        if (Control != null) {
+                            Control.SetImageBitmap(bitmap);
+                        }
                     });
                 });
             } else {

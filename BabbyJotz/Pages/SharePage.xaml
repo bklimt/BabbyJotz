@@ -51,6 +51,7 @@
                         HorizontalOptions="FillAndExpand" />
                     <Entry
                         x:Name="usernameEntry"
+                        BackgroundColor="White"
                         HorizontalOptions="FillAndExpand" />
                     <Label
                         Text=" "
