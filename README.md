@@ -3,7 +3,7 @@ Babby Jotz
 
 A Xamarin app for noting baby information. This app was hacked together in my spare time, but it does show off lots of useful techniques for mobile developers.
 
-* Xamarin Forms with a [Master Detail Page](BabbyJotz/Pages/MainPage.xaml) and several Navigation Pages.
+* Xamarin Forms XAML with a [Master Detail Page](BabbyJotz/Pages/MainPage.xaml) and several Navigation Pages.
 * Storing data locally with [Mono.Data.Sqlite](iOS/Shared/LocalStore.cs).
 * Syncing data to the cloud with [Facebook's Parse](iOS/Shared/ParseStore.cs).
     * Custom [analytics](parse/cloud/logging.js).
