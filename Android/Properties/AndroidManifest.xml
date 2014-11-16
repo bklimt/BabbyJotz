@@ -1,19 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0" package="com.bklimt.BabbyJotz">
-    <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="19" />
-    <application
-        android:label="Babby Jotz"
-        android:icon="@drawable/ic_launcher">
-        <!-- This metadata tag is required to use Google Play Services. -->
-        <meta-data android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
-        <activity android:name="com.google.android.gms.ads.AdActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" />
-    </application>
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    <uses-permission android:name="com.bklimt.BabbyJotz.permission.C2D_MESSAGE" />
-    <uses-permission android:name="android.permission.CAMERA" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.0" package="com.bklimt.BabbyJotz" android:versionCode="2">
+	<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="19" />
+	<application android:label="Babby Jotz" android:icon="@drawable/ic_launcher">
+		<!-- This metadata tag is required to use Google Play Services. -->
+		<meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
+		<activity android:name="com.google.android.gms.ads.AdActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" />
+	</application>
+	<uses-permission android:name="android.permission.GET_ACCOUNTS" />
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.WAKE_LOCK" />
+	<uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+	<uses-permission android:name="com.bklimt.BabbyJotz.permission.C2D_MESSAGE" />
+	<uses-permission android:name="android.permission.CAMERA" />
 </manifest>
