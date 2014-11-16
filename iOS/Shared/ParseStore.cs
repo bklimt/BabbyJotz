@@ -77,6 +77,9 @@ namespace BabbyJotz.iOS {
                     LogSyncReports = value;
                     Preferences.Set(PreferenceKey.DoNotLogSyncReports, !value);
                 }
+                if (config.TryGetValue<bool>("logCrashReports", out value)) {
+                    Preferences.Set(PreferenceKey.DoNotLogCrashReports, !value);
+                }
             } catch (Exception e) {
                 // Oh well...
                 Console.WriteLine("Unable to update config: {0}\n", e);

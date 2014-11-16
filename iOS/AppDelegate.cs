@@ -1,14 +1,18 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 
-using MonoTouch.Foundation;
-using MonoTouch.UIKit;
-using Parse;
 using Xamarin.Forms;
 using Xamarin.Forms.Labs.iOS.Services.Media;
 using Xamarin.Forms.Platform.iOS;
+using MonoTouch.Foundation;
+using MonoTouch.UIKit;
+
+using HockeyApp;
+using Parse;
 
 namespace BabbyJotz.iOS {
     [Register("AppDelegate")]
@@ -38,12 +42,35 @@ namespace BabbyJotz.iOS {
             }
         }
 
+        private void setupCrashReporting() {
+            // We MUST wrap our setup in this block to wire up
+            // Mono's SIGSEGV and SIGBUS signals.
+            HockeyApp.Setup.EnableCustomCrashReporting(() => {
+                var manager = BITHockeyManager.SharedHockeyManager;
+                manager.Configure("9e9451e734b85c44a7d83a6d745df265");
+                manager.StartManager();
+                manager.Authenticator.AuthenticateInstallation();
+
+                // Rethrow any unhandled .NET exceptions as native iOS 
+                // exceptions so the stack traces appear nicely in HockeyApp.
+                AppDomain.CurrentDomain.UnhandledException += (sender, e) => 
+                    Setup.ThrowExceptionAsNative(e.ExceptionObject);
+
+                TaskScheduler.UnobservedTaskException += (sender, e) => 
+                    Setup.ThrowExceptionAsNative(e.Exception);
+            });
+        }
+
         public override bool FinishedLaunching(UIApplication app, NSDictionary options) {
+            var prefs = new Preferences();
+            if (!prefs.Get(PreferenceKey.DoNotLogCrashReports)) {
+                setupCrashReporting();
+            }
+
             window = new UIWindow(UIScreen.MainScreen.Bounds);
 
             Forms.Init();
 
-            var prefs = new Preferences();
             var cloudStore = new ParseStore(prefs);
             var localStore = new LocalStore();
             model = new RootViewModel(localStore, cloudStore, prefs);

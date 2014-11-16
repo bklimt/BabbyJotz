@@ -20,6 +20,8 @@ namespace BabbyJotz.Android {
         ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
     public class MainActivity : AndroidActivity {
 
+        const string HOCKEYAPP_APPID = "ba982d91572645d2885399833f8b697c";
+
         protected override void OnCreate(Bundle bundle) {
             base.OnCreate(bundle);
             Xamarin.Forms.Forms.Init(this, bundle);
@@ -30,10 +32,16 @@ namespace BabbyJotz.Android {
         protected override void OnResume() {
             base.OnResume();
 
+            var app = (BabbyJotzApplication)this.Application;
+            var prefs = app.RootViewModel.Preferences;
+
+            if (!prefs.Get(PreferenceKey.DoNotLogCrashReports)) {
+                HockeyApp.CrashManager.Register(this, HOCKEYAPP_APPID);
+            }
+
             // Remove all notifications and mark all entries as read.
             var manager = (NotificationManager)GetSystemService(Context.NotificationService);
             manager.CancelAll();
-            var app = (BabbyJotzApplication)this.Application;
             app.RootViewModel.LocalStore.MarkAllAsReadAsync();
         }
     }

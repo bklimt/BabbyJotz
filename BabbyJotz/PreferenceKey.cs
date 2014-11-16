@@ -13,6 +13,8 @@ namespace BabbyJotz {
             new PreferenceKey<bool>("dontLogExceptions");
         public static readonly PreferenceKey<bool> DoNotLogSyncReports =
             new PreferenceKey<bool>("dontLogSyncReports");
+        public static readonly PreferenceKey<bool> DoNotLogCrashReports =
+            new PreferenceKey<bool>("dontLogCrashReports");
 
         public static readonly PreferenceKey<string> ParseInstallationObjectId =
             new PreferenceKey<string>("ParseInstallationObjectId");

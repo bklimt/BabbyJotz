@@ -131,6 +131,9 @@
     <Reference Include="GoogleAdMobAds">
       <HintPath>..\Components\googleadmob-6.12.0\lib\ios\GoogleAdMobAds.dll</HintPath>
     </Reference>
+    <Reference Include="HockeyApp.iOS">
+      <HintPath>..\Components\hockeyappios-3.5.5.1\lib\ios\HockeyApp.iOS.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BabbyJotz\BabbyJotz.csproj">
@@ -205,6 +208,10 @@
     </XamarinComponentReference>
     <XamarinComponentReference Include="googleadmob">
       <Version>6.12.0</Version>
+      <Visible>False</Visible>
+    </XamarinComponentReference>
+    <XamarinComponentReference Include="hockeyappios">
+      <Version>3.5.5.1</Version>
       <Visible>False</Visible>
     </XamarinComponentReference>
   </ItemGroup>
