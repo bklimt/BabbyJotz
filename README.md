@@ -13,6 +13,6 @@ A Xamarin app for noting baby information. This app was hacked together in my sp
     * Scripts for [data migrations](scripts/fix_dates.js) using node.js.
 * Parse [Cloud Code](parse/cloud) for server-side policy enforcement.
     * The Parse Image Cloud Module for [resizing uploaded photos](parse/cloud/photo.js) to thumbnail size.
-    * Role-based Access Controls for [securely sharing babies](parse/cloud/baby.js) between users.
+    * Role-based Access Controls for [securely sharing babies](parse/cloud/invites.js) between users.
 * Ads served by Google's AdMob.
     * A [custom view](BabbyJotz/AdMobBanner.cs) with renderers for [iOS](iOS/Controls/AdMobBannerRenderer.cs) and [Android](Android/Controls/AdMobBannerRenderer.cs).
