@@ -77,14 +77,17 @@ namespace BabbyJotz {
         public void AssertFinished() {
             lock (mutex) {
                 if (finished) {
-                    throw new InvalidOperationException("Process finished multiple times.");
+                    throw new InvalidOperationException(
+                        String.Format("Process {0} finished multiple times.", Name));
                 }
                 finished = true;
                 finishTime = DateTime.Now;
                 double remaining = 1.0;
                 foreach (var sub in subprocesses) {
                     if (!sub.Item2.finished) {
-                        throw new InvalidOperationException("Operation marked finished before its children.");
+                        throw new InvalidOperationException(
+                            String.Format("Operation {0} marked finished before its child {1}.",
+                                Name, sub.Item2.Name));
                     }
                     remaining -= sub.Item1;
                 }

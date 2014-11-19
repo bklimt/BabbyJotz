@@ -163,7 +163,8 @@ namespace BabbyJotz {
                 await RootViewModel.SyncAsync("Sync Button Clicked", true);
             } catch (TaskCanceledException) {
                 // Ignore it.
-            } catch (Exception) {
+            } catch (Exception e) {
+                RootViewModel.CloudStore.LogException("OnSyncClicked", e);
                 var message = String.Format("Unable to sync.");
                 // var message = String.Format("Unable to sync: {0}", e);
                 await DisplayAlert("Error", message, "Ok");

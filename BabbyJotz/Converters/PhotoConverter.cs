@@ -6,6 +6,7 @@ using System.IO;
 using Xamarin.Forms;
 
 namespace BabbyJotz {
+    [Obsolete("This shouldn't be needed anymore.", true)]
     public class PhotoConverter : IValueConverter {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
             if (targetType == typeof(byte[])) {
@@ -31,6 +32,7 @@ namespace BabbyJotz {
                         return new MemoryStream(photo.Bytes);
                     } catch (Exception e) {
                         Debug.WriteLine("Got exception while creating photo memory stream: {0}", e);
+                        // TODO: It sure would be nice to be able to log exceptions from here.
                         throw;
                     }
                 });

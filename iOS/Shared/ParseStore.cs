@@ -53,8 +53,9 @@ namespace BabbyJotz.iOS {
 
             try {
                 ParseAnalytics.TrackAppOpenedAsync();
-            } catch (Exception) {
+            } catch (Exception e) {
                 // Well, we tried our best.
+                LogException("TrackAppOpenedAsync", e);
             }
 
             UpdateConfig();
@@ -82,6 +83,7 @@ namespace BabbyJotz.iOS {
                 }
             } catch (Exception e) {
                 // Oh well...
+                LogException("UpdateConfig", e);
                 Console.WriteLine("Unable to update config: {0}\n", e);
             }
         }
@@ -348,7 +350,8 @@ namespace BabbyJotz.iOS {
                     runAgain = false;
                     try {
                         await ParseUser.LogInAsync(username, password);
-                    } catch (NullReferenceException) {
+                    } catch (NullReferenceException nre) {
+                        LogException("LogInAsync.NullReferenceException", nre);
                         retries--;
                         if (retries > 0) {
                             runAgain = true;
@@ -379,7 +382,8 @@ namespace BabbyJotz.iOS {
                     runAgain = false;
                     try {
                         await user.SignUpAsync();
-                    } catch (NullReferenceException) {
+                    } catch (NullReferenceException nre) {
+                        LogException("SignUpAsync.NullReferenceException", nre);
                         retries--;
                         if (retries > 0) {
                             runAgain = true;
@@ -565,21 +569,26 @@ namespace BabbyJotz.iOS {
             LogEvent("ParseStore.LogSyncReportAsync");
             await ParseCloud.CallFunctionAsync<bool>("logSyncReport",
                 AddSystemData(new Dictionary<string, object>() {
-                { "report", report },
-                { "instance", InstanceUuid },
-            }));
+                    { "report", report },
+                    { "instance", InstanceUuid },
+                }));
         }
 
-        public async Task LogExceptionAsync(Exception e) {
+        public async void LogException(string tag, Exception e) {
             if (!LogExceptions) {
                 return;
             }
-            LogEvent("ParseStore.LogException");
-            await ParseCloud.CallFunctionAsync<bool>("logException",
-                AddSystemData(new Dictionary<string, object>() {
-                { "exception", e.ToString() },
-                { "instance", InstanceUuid },
-            }));
+            try {
+                await ParseCloud.CallFunctionAsync<bool>("logException",
+                    AddSystemData(new Dictionary<string, object>() {
+                        { "exception", e.ToString() },
+                        { "instance", InstanceUuid },
+                        { "tag", tag }
+                    }));
+            } catch (Exception e2) {
+                // Oh, so ironic.
+                Console.WriteLine("Unable to log exception: {0}", e2);
+            }
         }
 
         public async void LogEvent(string name) {
@@ -589,10 +598,11 @@ namespace BabbyJotz.iOS {
             try {
                 await ParseCloud.CallFunctionAsync<bool>("logEvent",
                     AddSystemData(new Dictionary<string, object>() {
-                    { "name", name },
-                    { "instance", InstanceUuid }
-                }));
+                        { "name", name },
+                        { "instance", InstanceUuid }
+                    }));
             } catch (Exception e) {
+                LogException("LogEvent", e);
                 Console.WriteLine("Unable to log event: {0}", e);
             }
         }

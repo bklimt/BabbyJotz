@@ -58,12 +58,7 @@ namespace BabbyJotz.iOS {
         private async Task NotifyRemotelyChangedAsync() {
             if (RemotelyChanged != null) {
                 await RunOnMainThreadAsync(() => {
-                    try {
-                        RemotelyChanged(this, EventArgs.Empty);
-                    } catch (Exception e) {
-                        System.Diagnostics.Debug.WriteLine("Exception in remote change handler: {0}", e);
-                        throw;
-                    }
+                    RemotelyChanged(this, EventArgs.Empty);
                 });
             }
         }
@@ -71,12 +66,7 @@ namespace BabbyJotz.iOS {
         private async Task NotifyLocallyChangedAsync() {
             if (LocallyChanged != null) {
                 await RunOnMainThreadAsync(() => {
-                    try {
-                        LocallyChanged(this, EventArgs.Empty);
-                    } catch (Exception e) {
-                        System.Diagnostics.Debug.WriteLine("Exception in remote change handler: {0}", e);
-                        throw;
-                    }
+                    LocallyChanged(this, EventArgs.Empty);
                 });
             }
         }
@@ -1045,8 +1035,9 @@ namespace BabbyJotz.iOS {
                 // We just did a sync to the cloud, so saving a log file should usually work.
                 var report = process.GenerateReport();
                 await cloudStore.LogSyncReportAsync(report);
-            } catch (Exception) {
+            } catch (Exception e) {
                 // Meh.
+                cloudStore.LogException("LogSyncReport", e);
             }
 
             cloudStore.LogEvent("ParseStore.SyncToCloudAsync.Finished");

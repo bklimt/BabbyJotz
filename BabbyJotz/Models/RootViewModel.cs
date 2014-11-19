@@ -258,6 +258,7 @@ namespace BabbyJotz {
             } catch (Exception e) {
                 // Just ignore it.
                 Debug.WriteLine(String.Format("Error syncing: {0}", e));
+                CloudStore.LogException("TryToSyncEventually", e);
             }
         }
 

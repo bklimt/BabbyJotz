@@ -28,7 +28,8 @@ namespace BabbyJotz {
             try {
                 await RootViewModel.CloudStore.LogInAsync(username.Text, password.Text);
                 await Navigation.PopAsync();
-            } catch (Exception) {
+            } catch (Exception e) {
+                RootViewModel.CloudStore.LogException("OnLogInClicked", e);
                 var message = String.Format("Unable to log in.");
                 //var message = String.Format("Unable to log in.\n{0}", e);
                 await DisplayAlert("Error", message, "OK");

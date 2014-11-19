@@ -80,6 +80,7 @@ util.declare("logException", {
     obj.set("exception", file);
     obj.set("platform", request.params.platform);
     obj.set("instance", request.params.instance);
+    obj.set("tag", request.params.tag);
     return obj.save();
 
   }).then(function() {

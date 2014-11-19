@@ -50,7 +50,9 @@ namespace BabbyJotz {
             try {
                 await RootViewModel.CloudStore.SignUpAsync(email, password.Text);
                 await Navigation.PopAsync();
-            } catch (Exception) {
+            } catch (Exception e) {
+                // TODO: Figure out how to give more specific error messages.
+                RootViewModel.CloudStore.LogException("OnSignInClicked", e);
                 var message = String.Format("Unable to sign up.");
                 // var message = String.Format("Unable to sign up.\n{0}", e);
                 await DisplayAlert("Error", message, "OK");

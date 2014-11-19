@@ -110,6 +110,7 @@ namespace BabbyJotz.iOS {
                 string dt = deviceToken.ToString().Replace("<", "").Replace(">", "").Replace(" ", "");
                 await model.CloudStore.RegisterForPushAsync(dt);
             } catch (Exception e) {
+                model.CloudStore.LogException("RegisteredForRemoteNotifications", e);
                 Console.WriteLine("Unable to save device token. {0}", e);
             }
         }
