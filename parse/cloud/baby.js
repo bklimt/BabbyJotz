@@ -54,3 +54,18 @@ Parse.Cloud.beforeSave("Baby", function(request, response) {
   });
 });
 
+Parse.Cloud.define("saveBaby", function(request, response) {
+  var baby = new Parse.Object("Baby");
+  if (request.params.objectId) {
+    baby.id = request.params.objectId;
+  }
+  var data = _.omit(request.params, "objectId");
+  baby.save(data).then(function() {
+    response.success({
+      objectId: baby.id;
+    });
+  }, function(error) {
+    response.error(error);
+  });
+});
+

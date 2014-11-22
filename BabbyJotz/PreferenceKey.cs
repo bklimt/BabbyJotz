@@ -21,6 +21,13 @@ namespace BabbyJotz {
 
         public static readonly PreferenceKey<string> CurrentBabyUUID =
             new PreferenceKey<string>("CurrentBabyUUID");
+
+        public static readonly PreferenceKey<string> ParseSessionToken =
+            new PreferenceKey<string>("ParseSessionToken");
+        public static readonly PreferenceKey<string> ParseUserObjectId =
+            new PreferenceKey<string>("ParseUserObjectId");
+        public static readonly PreferenceKey<string> ParseUserName =
+            new PreferenceKey<string>("ParseUserName");
     }
 
     public class PreferenceKey<T> {

@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Newtonsoft.Json;
 using Parse;
 
 #if __IOS__
@@ -23,9 +27,68 @@ namespace BabbyJotz.iOS {
         private IPreferences Preferences { get; set; }
         private string InstanceUuid { get; set; }
 
+        #region Parse Ids
+        private string ApplicationId { get; set; }
+        private string RestApiKey { get; set; }
+        #endregion
+
+        #region Current User State
+
+        private object mutex;
+
+        private string sessionToken;
+        private string SessionToken {
+            get {
+                lock (mutex) {
+                    return sessionToken;
+                }
+            }
+            set {
+                lock (mutex) {
+                    sessionToken = value;
+                    Preferences.Set(PreferenceKey.ParseSessionToken, sessionToken);
+                }
+            }
+        }
+
+        private string userName;
+        public string UserName {
+            get {
+                lock (mutex) {
+                    return userName;
+                }
+            }
+            private set {
+                lock (mutex) {
+                    userName = value;
+                    Preferences.Set(PreferenceKey.ParseUserName, userName);
+                }
+            }
+        }
+
+        private string userId;
+        public string UserId {
+            get {
+                lock (mutex) {
+                    return userId;
+                }
+            }
+            private set {
+                lock (mutex) {
+                    userId = value;
+                    Preferences.Set(PreferenceKey.ParseUserObjectId, userId);
+                }
+            }
+        }
+
+        #endregion
+        #region Feature Preferences
+
         private bool LogEvents { get; set; }
         private bool LogExceptions { get; set; }
         private bool LogSyncReports { get; set; }
+
+        #endregion
 
         #if __ANDROID__
         private Context Context { get; set; }
@@ -43,6 +106,11 @@ namespace BabbyJotz.iOS {
             Preferences = prefs;
             InstanceUuid = Guid.NewGuid().ToString("D");
 
+            mutex = new object();
+            sessionToken = prefs.Get(PreferenceKey.ParseSessionToken);
+            userName = prefs.Get(PreferenceKey.ParseUserName);
+            userId = prefs.Get(PreferenceKey.ParseUserObjectId);
+
             LogEvents = !prefs.Get(PreferenceKey.DoNotLogEvents);
             LogExceptions = !prefs.Get(PreferenceKey.DoNotLogExceptions);
             LogSyncReports = !prefs.Get(PreferenceKey.DoNotLogSyncReports);
@@ -50,6 +118,9 @@ namespace BabbyJotz.iOS {
             ParseClient.Initialize(
                 "dRJrkKFywmUEYJx10K96Sw848juYyFF01Zlno6Uf",
                 "0ICNGpRDtEswmZw8E3nfS08W8RNWbFLExIIw2IvS");
+
+            ApplicationId = "dRJrkKFywmUEYJx10K96Sw848juYyFF01Zlno6Uf";
+            RestApiKey = "YP2slH5715xfScvCG64cediDeZzCre4ytxgTyn2l";
 
             try {
                 ParseAnalytics.TrackAppOpenedAsync();
@@ -66,20 +137,22 @@ namespace BabbyJotz.iOS {
                 var config = await ParseConfig.GetAsync();
 
                 bool value;
-                if (config.TryGetValue<bool>("logEvents", out value)) {
-                    LogEvents = value;
-                    Preferences.Set(PreferenceKey.DoNotLogEvents, !value);
-                }
-                if (config.TryGetValue<bool>("logExceptions", out value)) {
-                    LogExceptions = value;
-                    Preferences.Set(PreferenceKey.DoNotLogExceptions, !value);
-                }
-                if (config.TryGetValue<bool>("logSyncReports", out value)) {
-                    LogSyncReports = value;
-                    Preferences.Set(PreferenceKey.DoNotLogSyncReports, !value);
-                }
-                if (config.TryGetValue<bool>("logCrashReports", out value)) {
-                    Preferences.Set(PreferenceKey.DoNotLogCrashReports, !value);
+                lock (mutex) {
+                    if (config.TryGetValue<bool>("logEvents", out value)) {
+                        LogEvents = value;
+                        Preferences.Set(PreferenceKey.DoNotLogEvents, !value);
+                    }
+                    if (config.TryGetValue<bool>("logExceptions", out value)) {
+                        LogExceptions = value;
+                        Preferences.Set(PreferenceKey.DoNotLogExceptions, !value);
+                    }
+                    if (config.TryGetValue<bool>("logSyncReports", out value)) {
+                        LogSyncReports = value;
+                        Preferences.Set(PreferenceKey.DoNotLogSyncReports, !value);
+                    }
+                    if (config.TryGetValue<bool>("logCrashReports", out value)) {
+                        Preferences.Set(PreferenceKey.DoNotLogCrashReports, !value);
+                    }
                 }
             } catch (Exception e) {
                 // Oh well...
@@ -88,6 +161,59 @@ namespace BabbyJotz.iOS {
             }
         }
 
+        #region Utils
+
+        private class CloudResult<T> {
+            public T Result { get; set; }
+        }
+
+        private class SaveResult {
+            public string ObjectId { get; set; }
+        }
+
+        // TODO: Support cancellation tokens.
+        private async Task<T> RunCloudFunctionAsync<T>(string name, Dictionary<string, object> parameters) {
+            var encoding = new UTF8Encoding();
+            var requestBodyString = JsonConvert.SerializeObject(parameters);
+            var requestBodyBytes = encoding.GetBytes(requestBodyString);
+
+            string sessionToken = null;
+            lock (mutex) {
+                sessionToken = SessionToken;
+            }
+
+            var client = WebRequest.Create(new Uri("https://api.parse.com/1/functions/" + name));
+            client.Method = WebRequestMethods.Http.Post;
+            client.ContentType = "application/json";
+            client.ContentLength = requestBodyBytes.Length;
+            client.Headers.Add("X-Parse-Application-Id", ApplicationId);
+            client.Headers.Add("X-Parse-REST-API-Key", RestApiKey);
+            if (sessionToken != null) {
+                client.Headers.Add("X-Parse-Session-Token", sessionToken);
+            }
+            using (var stream = await client.GetRequestStreamAsync()) {
+                await stream.WriteAsync(requestBodyBytes, 0, requestBodyBytes.Length);
+            }
+            HttpWebResponse response = null;
+            try {
+                response = await client.GetResponseAsync() as HttpWebResponse;
+            } catch (WebException we) {
+                response = we.Response as HttpWebResponse;
+            }
+            using (var stream = response.GetResponseStream()) {
+                var reader = new StreamReader(stream);
+                var responseBodyString = await reader.ReadToEndAsync();
+                if (response.StatusCode == HttpStatusCode.OK) {
+                    var result = JsonConvert.DeserializeObject<CloudResult<T>>(responseBodyString);
+                    return result.Result;
+                } else {
+                    var e = JsonConvert.DeserializeObject<CloudException>(responseBodyString);
+                    throw e;
+                }
+            }
+        }
+
+        #endregion
         #region LogEntry
 
         private LogEntry CreateLogEntry(ParseObject obj) {
@@ -211,9 +337,7 @@ namespace BabbyJotz.iOS {
                 throw new InvalidOperationException("Tried to sync without logging in.");
             }
 
-            var obj = baby.ObjectId != null
-                ? ParseObject.CreateWithoutData("Baby", baby.ObjectId)
-                : ParseObject.Create("Baby");
+            var obj = new Dictionary<string, object>();
             obj["uuid"] = baby.Uuid;
             obj["name"] = baby.Name;
             obj["birthday"] = baby.Birthday;
@@ -222,17 +346,19 @@ namespace BabbyJotz.iOS {
             obj["showFormula"] = baby.ShowFormula;
             obj["deleted"] = baby.Deleted;
 
+            if (baby.ObjectId != null) {
+                obj["objectId"] = baby.ObjectId;
+            }
+
             if (baby.ProfilePhoto != null) {
                 obj["profilePhotoUuid"] = baby.ProfilePhoto.Uuid;
             } else {
-                obj.Remove("profilePhotoUuid");
+                // TODO: Well, that's not right at all.
+                obj.Remove("profilePhotoUuid");dasd
             }
 
-            // This will be overridden by Cloud Code, but may as well leave it here just in case.
-            obj.ACL = new ParseACL(ParseUser.CurrentUser);
-
-            await obj.SaveAsync(cancellationToken);
-            baby.ObjectId = obj.ObjectId;
+            var result = await RunCloudFunctionAsync<SaveResult>("saveBaby", obj, cancellationToken);
+            baby.ObjectId = result.ObjectId;
         }
 
         #endregion
@@ -329,37 +455,18 @@ namespace BabbyJotz.iOS {
 
         public event EventHandler UserChanged;
 
-        public string UserName {
-            get {
-                return ParseUser.CurrentUser != null ? ParseUser.CurrentUser.Username : null;
-            }
-        }
-
-        public string UserId {
-            get {
-                return ParseUser.CurrentUser != null ? ParseUser.CurrentUser.ObjectId : null;
-            }
-        }
-
         public async Task LogInAsync(string username, string password) {
             LogOut();
             try {
-                var retries = 3;
-                var runAgain = true;
-                while (runAgain) {
-                    runAgain = false;
-                    try {
-                        await ParseUser.LogInAsync(username, password);
-                    } catch (NullReferenceException nre) {
-                        LogException("LogInAsync.NullReferenceException", nre);
-                        retries--;
-                        if (retries > 0) {
-                            runAgain = true;
-                        } else {
-                            throw;
-                        }
-                    }
-                }
+                var result = await RunCloudFunctionAsync<Dictionary<string, string>>(
+                    "login", new Dictionary<string, object> {
+                        { "username", username },
+                        { "password", password }
+                    });
+                UserId = result["objectId"];
+                SessionToken = result["sessionToken"];
+                UserName = username;
+                await ParseUser.BecomeAsync(SessionToken);
                 RegisterForPush();
             } finally {
                 if (UserChanged != null) {
@@ -370,28 +477,17 @@ namespace BabbyJotz.iOS {
 
         public async Task SignUpAsync(string username, string password) {
             LogOut();
-            var user = new ParseUser();
-            user.Username = username;
-            user.Password = password;
-            user.Email = username;
-            user.ACL = new ParseACL();
             try {
-                var retries = 3;
-                var runAgain = true;
-                while (runAgain) {
-                    runAgain = false;
-                    try {
-                        await user.SignUpAsync();
-                    } catch (NullReferenceException nre) {
-                        LogException("SignUpAsync.NullReferenceException", nre);
-                        retries--;
-                        if (retries > 0) {
-                            runAgain = true;
-                        } else {
-                            throw;
-                        }
-                    }
-                }
+                var result = await RunCloudFunctionAsync<Dictionary<string, string>>(
+                    "signup", new Dictionary<string, object> {
+                        { "username", username },
+                        { "password", password },
+                        { "email", username }
+                    });
+                UserId = result["objectId"];
+                SessionToken = result["sessionToken"];
+                UserName = username;
+                await ParseUser.BecomeAsync(SessionToken);
                 RegisterForPush();
             } finally {
                 if (UserChanged != null) {
@@ -402,6 +498,9 @@ namespace BabbyJotz.iOS {
 
         public void LogOut() {
             try {
+                SessionToken = null;
+                UserName = null;
+                UserId = null;
                 ParseUser.LogOut();
                 UnregisterForPush();
             } finally {
@@ -415,38 +514,29 @@ namespace BabbyJotz.iOS {
         #region Invites / Baby Sharing
 
         public async Task InviteAsync(string username, Baby baby) {
-            await ParseCloud.CallFunctionAsync<bool>("invite", new Dictionary<string, object>() {
+            await RunCloudFunctionAsync<bool>("invite", new Dictionary<string, object>() {
                 { "username", username },
                 { "babyUuid", baby.Uuid }
             });
         }
 
         public async Task<List<Invite>> GetInvitesAsync() {
-            var results = await ParseCloud.CallFunctionAsync<Dictionary<string, object>>(
+            var results = await RunCloudFunctionAsync<Dictionary<string, List<Invite>>>(
                               "listInvites", new Dictionary<string, object>());
-            var babyList = results["babies"] as List<object>;
-            var invites = new List<Invite>();
-            foreach (var babyObj in babyList) {
-                var baby = babyObj as Dictionary<string, object>;
-                var inviteId = baby["inviteId"] as string;
-                var babyName = baby["babyName"] as string;
-                var babyUuid = baby["babyUuid"] as string;
-                invites.Add(new Invite(inviteId, babyName, babyUuid));
-            }
-            return invites;
+            return results["babies"];
         }
 
         public async Task AcceptInviteAsync(Invite invite) {
             if (invite.Id == null) {
                 return;
             }
-            await ParseCloud.CallFunctionAsync<bool>("acceptInvite", new Dictionary<string, object>() {
+            await RunCloudFunctionAsync<bool>("acceptInvite", new Dictionary<string, object>() {
                 { "inviteId", invite.Id }
             });
         }
 
         public async Task UnlinkAsync(Baby baby) {
-            await ParseCloud.CallFunctionAsync<bool>("unlink", new Dictionary<string, object>() {
+            await RunCloudFunctionAsync<bool>("unlink", new Dictionary<string, object>() {
                 { "babyUuid", baby.Uuid }
             });
         }
@@ -567,7 +657,7 @@ namespace BabbyJotz.iOS {
                 return;
             }
             LogEvent("ParseStore.LogSyncReportAsync");
-            await ParseCloud.CallFunctionAsync<bool>("logSyncReport",
+            await RunCloudFunctionAsync<bool>("logSyncReport",
                 AddSystemData(new Dictionary<string, object>() {
                     { "report", report },
                     { "instance", InstanceUuid },
@@ -579,7 +669,7 @@ namespace BabbyJotz.iOS {
                 return;
             }
             try {
-                await ParseCloud.CallFunctionAsync<bool>("logException",
+                await RunCloudFunctionAsync<bool>("logException",
                     AddSystemData(new Dictionary<string, object>() {
                         { "exception", e.ToString() },
                         { "instance", InstanceUuid },
@@ -596,7 +686,7 @@ namespace BabbyJotz.iOS {
                 return;
             }
             try {
-                await ParseCloud.CallFunctionAsync<bool>("logEvent",
+                await RunCloudFunctionAsync<bool>("logEvent",
                     AddSystemData(new Dictionary<string, object>() {
                         { "name", name },
                         { "instance", InstanceUuid }

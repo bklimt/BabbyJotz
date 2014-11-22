@@ -4,4 +4,5 @@ require("cloud/entry");
 require("cloud/photo");
 require("cloud/invites");
 require("cloud/logging");
+require("cloud/user");
 
