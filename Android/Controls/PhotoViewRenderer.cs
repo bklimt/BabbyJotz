@@ -21,16 +21,21 @@ namespace BabbyJotz.Android {
         private void SetBytes(byte[] bytes) {
             if (bytes != null) {
                 Task.Run(async () => {
+                    if (bytes == null) {
+                        throw new InvalidOperationException("Bytes was null when it shouldn't be possible.");
+                    }
                     var bitmap = await BitmapFactory.DecodeByteArrayAsync(bytes, 0, bytes.Length);
                     var handler = new Handler(Looper.MainLooper);
                     handler.Post(() => {
-                        if (Control != null) {
+                        if (Control != null && bitmap != null) {
                             Control.SetImageBitmap(bitmap);
                         }
                     });
                 });
             } else {
-                Control.SetImageResource(Resource.Drawable.ic_launcher);
+                if (Control != null) {
+                    Control.SetImageResource(Resource.Drawable.ic_launcher);
+                }
             }
         }
 

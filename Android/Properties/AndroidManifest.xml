@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.0" package="com.bklimt.BabbyJotz" android:versionCode="4">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.0" package="com.bklimt.BabbyJotz" android:versionCode="5">
 	<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="19" />
 	<application android:label="Babby Jotz" android:icon="@drawable/ic_launcher">
 		<!-- This metadata tag is required to use Google Play Services. -->
