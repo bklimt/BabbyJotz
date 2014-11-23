@@ -40,14 +40,16 @@ util.declare("logSyncReport", {
 
   return file.save().then(function() {
     var obj = new Parse.Object("SyncReport");
+    obj.set(_.omit(request.params, 'report'));
+
     var acl = new Parse.ACL();
     obj.setACL(acl);
+
     if (request.user) {
       obj.set("user", request.user);
     }
+
     obj.set("report", file);
-    obj.set("platform", request.params.platform);
-    obj.set("instance", request.params.instance);
     return obj.save();
 
   }).then(function() {
@@ -72,15 +74,16 @@ util.declare("logException", {
 
   return file.save().then(function() {
     var obj = new Parse.Object("Exception");
+    obj.set(_.omit(request.params, 'exception'));
+
     var acl = new Parse.ACL();
     obj.setACL(acl);
+
     if (request.user) {
       obj.set("user", request.user);
     }
+
     obj.set("exception", file);
-    obj.set("platform", request.params.platform);
-    obj.set("instance", request.params.instance);
-    obj.set("tag", request.params.tag);
     return obj.save();
 
   }).then(function() {

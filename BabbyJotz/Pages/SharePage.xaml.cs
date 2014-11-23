@@ -24,6 +24,7 @@ namespace BabbyJotz {
                 await DisplayAlert("Share Baby", "Invitation sent!", "Ok");
                 await Navigation.PopAsync();
             } catch (Exception e) {
+                RootViewModel.CloudStore.LogException("SharePage.OnShareClicked", e);
                 await DisplayAlert("Share Baby", "Unable to send invite.", "Ok");
             }
         }
