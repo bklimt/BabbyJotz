@@ -36,6 +36,12 @@ namespace BabbyJotz {
             }
         }
 
+        public async void OnForgotClicked(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("LogInPage.OnForgotClicked");
+            var page = new ForgotPasswordPage(RootViewModel, username.Text);
+            await Navigation.PushAsync(page);
+        }
+
         public async void OnSignUpClicked(object sender, EventArgs args) {
             RootViewModel.CloudStore.LogEvent("LogInPage.OnSignUpClicked");
             var page = new SignUpPage(RootViewModel, username.Text, password.Text);

@@ -50,23 +50,34 @@ namespace BabbyJotz {
 
         private async void UpdateInvites() {
             RootViewModel.CloudStore.LogEvent("LinkExistingBabyPage.UpdateInvites");
-            var invites = await RootViewModel.CloudStore.GetInvitesAsync();
-            Invites.Clear();
-            foreach (var invite in invites) {
-                Invites.Add(invite);
+            try {
+                var invites = await RootViewModel.CloudStore.GetInvitesAsync();
+                Invites.Clear();
+                foreach (var invite in invites) {
+                    Invites.Add(invite);
+                }
+            } catch (Exception e) {
+                RootViewModel.CloudStore.LogException("LinkExistingBabyPage.UpdateInvites", e);
+                await DisplayAlert("Invite", "Unable to retrieve invites.", "Ok");
             }
         }
 
         public async void OnInviteTapped(object sender, EventArgs args) {
+            RootViewModel.CloudStore.LogEvent("LinkExistingBabyPage.OnInviteTapped");
             var tappedArgs = args as ItemTappedEventArgs;
             var invite = tappedArgs.Item as Invite;
-            await RootViewModel.CloudStore.AcceptInviteAsync(invite);
-            RootViewModel.Baby = new Baby(invite.BabyUuid);
-            RootViewModel.TryToSyncEventually("Invite Tapped");
             try {
-                await Navigation.PopModalAsync();
-            } catch (Exception) {
-                await Navigation.PopToRootAsync();
+                await RootViewModel.CloudStore.AcceptInviteAsync(invite);
+                RootViewModel.Baby = new Baby(invite.BabyUuid);
+                RootViewModel.TryToSyncEventually("Invite Tapped");
+                try {
+                    await Navigation.PopModalAsync();
+                } catch (Exception) {
+                    await Navigation.PopToRootAsync();
+                }
+            } catch (Exception e) {
+                RootViewModel.CloudStore.LogException("LinkExistingBabyPage.OnInviteTapped", e);
+                await DisplayAlert("Invite", "Unable to accept invite.", "Ok");
             }
         }
     }

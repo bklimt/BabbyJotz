@@ -268,10 +268,13 @@ namespace BabbyJotz.iOS {
             response.NewUpdatedAt = request.LastUpdatedAt;
             response.MaybeHasMore = false;
 
-            var query = from obj in ParseObject.GetQuery(request.ClassName)
-                where obj.Get<string>("babyUuid") == request.Baby.Uuid
-                orderby obj.UpdatedAt ascending
-                select obj;
+            if (request.Baby.Uuid == null) {
+                throw new InvalidOperationException("Baby Uuid is null in sync request.");
+            }
+
+            var query = new ParseQuery<ParseObject>(request.ClassName);
+            query = query.WhereEqualTo("babyUuid", request.Baby.Uuid);
+            query = query.OrderBy("updatedAt");
             query = query.Limit(request.Limit);
             if (request.LastUpdatedAt != null) {
                 // TODO: Well, technically this isn't exactly correct, because two items could have the
@@ -409,6 +412,10 @@ namespace BabbyJotz.iOS {
                     UserChanged(this, EventArgs.Empty);
                 }
             }
+        }
+
+        public async Task SendPasswordResetEmailAsync(string username) {
+            await ParseUser.RequestPasswordResetAsync(username);
         }
 
         #endregion

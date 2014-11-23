@@ -50,10 +50,11 @@ specific with aggregated data at this time, but it is possible in the future.</p
 <p>Your data synced to the Babby Cloud will have to be shared with certain third parties for the
 express purpose of providing the service itself. For example, push notifications will have to be
 shared with Apple (for iOS) or Google (for Android) in order for them to be delivered. Your data
-will be stored on Parse (operated by Facebook) for persistence and syncing. While I trust these
-service providers to be responsible stewards of your data and not resell it or share it without
-our permission, I cannot be held liable for their actions. By agreeing to this privacy policy,
-you are also agreeing to the privacy policies for those services.</p>
+will be stored on Parse (operated by Facebook) for persistence and syncing. HockeyApp is used to
+process crash reports you submit. While I trust these service providers to be responsible stewards
+of your data and not resell it or share it without our permission, I cannot be held liable for their
+actions. By agreeing to this privacy policy, you are also agreeing to the privacy policies for those
+services.</p>
 
 <h2>Email Address</h2>
 <p>Your email address will only be used by the developer for transactions that you opt into. For

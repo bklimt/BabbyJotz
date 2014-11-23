@@ -13,6 +13,7 @@ namespace BabbyJotz {
         Task LogInAsync(string username, string password);
         Task SignUpAsync(string username, string password);
         void LogOut();
+        Task SendPasswordResetEmailAsync(string username);
 
         Task InviteAsync(string username, Baby baby);
         Task<List<Invite>> GetInvitesAsync();

@@ -19,16 +19,20 @@ namespace BabbyJotz.Android {
             base.OnCreate();
 
             var prefs = new Preferences(this);
+            var cloudStore = new BabbyJotz.iOS.ParseStore(this, prefs);
 
             if (!prefs.Get(PreferenceKey.DoNotLogCrashReports)) {
                 // Handle the events and Save the Managed Exceptions to HockeyApp.     
-                AppDomain.CurrentDomain.UnhandledException += (sender, e) => 
+                AppDomain.CurrentDomain.UnhandledException += (sender, e) => {
+                    cloudStore.LogException("UnhandledException", e);
                     HockeyApp.ManagedExceptionHandler.SaveException(e.ExceptionObject);
-                TaskScheduler.UnobservedTaskException += (sender, e) => 
+                };
+                TaskScheduler.UnobservedTaskException += (sender, e) => {
+                    cloudStore.LogException("UnobservedTaskException", e);
                     HockeyApp.ManagedExceptionHandler.SaveException(e.Exception);
+                };
             }
 
-            var cloudStore = new BabbyJotz.iOS.ParseStore(this, prefs);
             var localStore = new BabbyJotz.iOS.LocalStore();
             RootViewModel = new RootViewModel(localStore, cloudStore, prefs);
         }

@@ -715,6 +715,8 @@ namespace BabbyJotz.iOS {
                 var markPhotoSyncedProcess = photoProcess.SubProcess("MarkAsSynced", 0.5);
                 await MarkAsSyncedAsync(item, "Photo");
                 markPhotoSyncedProcess.AssertFinished();
+
+                photoProcess.AssertFinished();
             }
             savePhotosProcess.AssertFinished();
 
@@ -730,6 +732,8 @@ namespace BabbyJotz.iOS {
                 var markEntrySyncedProcess = entryProcess.SubProcess("MarkAsSynced", 0.5);
                 await MarkAsSyncedAsync(item, "LogEntry");
                 markEntrySyncedProcess.AssertFinished();
+
+                entryProcess.AssertFinished();
             }
             saveEntriesProcess.AssertFinished();
 

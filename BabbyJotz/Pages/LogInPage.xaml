@@ -32,6 +32,11 @@
                         TextColor="{Binding Theme.ButtonText}"
                         HorizontalOptions="FillAndExpand" />
                     <Button
+                        Text="Forgot Password"
+                        Clicked="OnForgotClicked"
+                        TextColor="{Binding Theme.ButtonText}"
+                        HorizontalOptions="FillAndExpand" />
+                    <Button
                         Text="Log In"
                         Clicked="OnLogInClicked"
                         TextColor="{Binding Theme.ButtonText}"
