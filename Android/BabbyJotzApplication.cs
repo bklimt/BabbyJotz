@@ -24,11 +24,14 @@ namespace BabbyJotz.Android {
             if (!prefs.Get(PreferenceKey.DoNotLogCrashReports)) {
                 // Handle the events and Save the Managed Exceptions to HockeyApp.     
                 AppDomain.CurrentDomain.UnhandledException += (sender, e) => {
-                    cloudStore.LogException("UnhandledException", e);
+                    var ex = e.ExceptionObject as Exception;
+                    if (ex != null) {
+                        cloudStore.LogException("UnhandledException", ex);
+                    }
                     HockeyApp.ManagedExceptionHandler.SaveException(e.ExceptionObject);
                 };
                 TaskScheduler.UnobservedTaskException += (sender, e) => {
-                    cloudStore.LogException("UnobservedTaskException", e);
+                    cloudStore.LogException("UnobservedTaskException", e.Exception);
                     HockeyApp.ManagedExceptionHandler.SaveException(e.Exception);
                 };
             }
