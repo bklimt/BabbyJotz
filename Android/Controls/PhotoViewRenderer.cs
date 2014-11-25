@@ -18,19 +18,56 @@ using BabbyJotz;
 [assembly: Xamarin.Forms.ExportRenderer(typeof(PhotoView), typeof(BabbyJotz.Android.PhotoViewRenderer))]
 namespace BabbyJotz.Android {
     public class PhotoViewRenderer : ViewRenderer<PhotoView, NativePhotoView> {
+        private void ReportException(Exception e) {
+            try {
+                // This might just not work at all, but meh.
+                var app = (BabbyJotzApplication)Context.ApplicationContext;
+                var model = app.RootViewModel;
+                model.CloudStore.LogException("PhotoViewRenderer", e);
+            } catch (Exception) {
+                // Well, we tried.
+            }
+        }
+
         private void SetBytes(byte[] bytes) {
             if (bytes != null) {
                 Task.Run(async () => {
                     if (bytes == null) {
                         throw new InvalidOperationException("Bytes was null when it shouldn't be possible.");
                     }
-                    var bitmap = await BitmapFactory.DecodeByteArrayAsync(bytes, 0, bytes.Length);
-                    var handler = new Handler(Looper.MainLooper);
-                    handler.Post(() => {
-                        if (Control != null && bitmap != null) {
-                            Control.SetImageBitmap(bitmap);
-                        }
-                    });
+                    Bitmap bitmap = null;
+                    try {
+                        bitmap = await BitmapFactory.DecodeByteArrayAsync(bytes, 0, bytes.Length);
+                    } catch (Exception e) {
+                        ReportException(e);
+                        throw new AggregateException("Unable to decode byte array.", e);
+                    }
+                    var looper = Looper.MainLooper;
+                    if (looper == null) {
+                        throw new AggregateException("MainLooper is null.");
+                    }
+                    Handler handler = null;
+                    try {
+                        handler = new Handler(looper);
+                    } catch (Exception e) {
+                        ReportException(e);
+                        throw new AggregateException("Unable to create Handler.", e);
+                    }
+                    try {
+                        handler.Post(() => {
+                            if (Control != null && bitmap != null) {
+                                try {
+                                    Control.SetImageBitmap(bitmap);
+                                } catch (Exception e) {
+                                    ReportException(e);
+                                    throw new AggregateException("Unable to set image bitmap.", e);
+                                }
+                            }
+                        });
+                    } catch (Exception e) {
+                        ReportException(e);
+                        throw new AggregateException("Unable to post to Handler.", e);
+                    }
                 });
             } else {
                 if (Control != null) {
