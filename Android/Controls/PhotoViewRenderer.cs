@@ -51,7 +51,10 @@ namespace BabbyJotz.Android {
                         handler = new Handler(looper);
                     } catch (Exception e) {
                         ReportException(e);
-                        throw new AggregateException("Unable to create Handler.", e);
+                        // Sometimes there's a null reference exception when we try to create the Handler.
+                        // I don't really understand how that could happen when updating the UI, but there's
+                        // no reason to crash the whole app over it.
+                        return;
                     }
                     try {
                         handler.Post(() => {
